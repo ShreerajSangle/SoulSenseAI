@@ -1,19 +1,29 @@
-import { 
-  personas, 
-  conversations, 
-  messages, 
+import {
+  users,
+  personas,
+  conversations,
+  messages,
   sessions,
-  type Persona, 
+  userMemories,
+  type User,
+  type UpsertUser,
+  type Persona,
   type InsertPersona,
-  type Conversation, 
+  type Conversation,
   type InsertConversation,
-  type Message, 
+  type Message,
   type InsertMessage,
   type Session,
-  type InsertSession
+  type InsertSession,
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations (required for authentication)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
   // Personas
   getPersonas(): Promise<Persona[]>;
   getPersona(id: string): Promise<Persona | undefined>;
@@ -37,178 +47,185 @@ export interface IStorage {
   saveUserMemory(userId: string, memory: any): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private personas: Map<string, Persona>;
-  private conversations: Map<number, Conversation>;
-  private messages: Map<number, Message>;
-  private sessions: Map<number, Session>;
-  private userMemories: Map<string, any[]>;
-  private currentConversationId: number;
-  private currentMessageId: number;
-  private currentSessionId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.personas = new Map();
-    this.conversations = new Map();
-    this.messages = new Map();
-    this.sessions = new Map();
-    this.userMemories = new Map();
-    this.currentConversationId = 1;
-    this.currentMessageId = 1;
-    this.currentSessionId = 1;
-    
-    // Initialize personas
     this.initializePersonas();
   }
 
-  private initializePersonas() {
-    const defaultPersonas: Persona[] = [
+  private async initializePersonas() {
+    // Check if personas already exist
+    const existingPersonas = await db.select().from(personas);
+    if (existingPersonas.length > 0) {
+      return;
+    }
+
+    // Insert default personas
+    const defaultPersonas: InsertPersona[] = [
       {
-        id: "dr-sarah",
-        name: "Dr. Sarah Chen",
-        role: "Clinical Psychologist",
-        specialty: "CBT Therapy",
-        description: "Warm, professional therapist specializing in CBT and evidence-based approaches",
-        avatarUrl: "https://images.unsplash.com/photo-1594824395806-2457c11b9e90?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150",
-        color: "#8b5cf6"
+        id: "sarah",
+        name: "Dr. Sarah",
+        role: "Clinical Therapist",
+        specialty: "Cognitive Behavioral Therapy",
+        description: "A compassionate therapist specializing in anxiety, depression, and trauma recovery.",
+        avatarUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face",
+        color: "bg-blue-500"
       },
       {
         id: "alex",
-        name: "Alex Rodriguez",
+        name: "Alex",
         role: "Peer Counselor",
-        specialty: "Relatability",
-        description: "Friendly peer who understands your struggles and speaks your language",
-        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150",
-        color: "#f59e0b"
+        specialty: "Lived Experience Support",
+        description: "A peer counselor who understands your journey and offers genuine support.",
+        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
+        color: "bg-green-500"
       },
       {
         id: "marcus",
-        name: "Marcus Thompson",
+        name: "Marcus",
         role: "Life Coach",
-        specialty: "Goal Achievement",
-        description: "Motivational coach focused on personal growth and achieving your goals",
-        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150",
-        color: "#ef4444"
+        specialty: "Goal Setting & Motivation",
+        description: "An energetic coach focused on helping you achieve your personal and professional goals.",
+        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+        color: "bg-orange-500"
       },
       {
         id: "maya",
-        name: "Maya Patel",
+        name: "Maya",
         role: "Mindfulness Expert",
-        specialty: "Meditation & Mindfulness",
-        description: "Calm guide for mindfulness, meditation, and present-moment awareness",
-        avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&h=150",
-        color: "#10b981"
+        specialty: "Meditation & Stress Relief",
+        description: "A mindfulness practitioner guiding you through meditation and stress management.",
+        avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
+        color: "bg-purple-500"
       }
     ];
 
-    defaultPersonas.forEach(persona => {
-      this.personas.set(persona.id, persona);
-    });
+    await db.insert(personas).values(defaultPersonas);
   }
 
+  // User operations (required for authentication)
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
+  // Personas
   async getPersonas(): Promise<Persona[]> {
-    return Array.from(this.personas.values());
+    return await db.select().from(personas);
   }
 
   async getPersona(id: string): Promise<Persona | undefined> {
-    return this.personas.get(id);
+    const [persona] = await db.select().from(personas).where(eq(personas.id, id));
+    return persona || undefined;
   }
 
+  // Conversations
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
-    const id = this.currentConversationId++;
-    const now = new Date();
-    const conversation: Conversation = {
-      id,
-      userId: insertConversation.userId,
-      personaId: insertConversation.personaId,
-      title: insertConversation.title || null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.conversations.set(id, conversation);
+    const [conversation] = await db
+      .insert(conversations)
+      .values(insertConversation)
+      .returning();
     return conversation;
   }
 
   async getConversation(id: number): Promise<Conversation | undefined> {
-    return this.conversations.get(id);
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conversation || undefined;
   }
 
   async getUserConversations(userId: string): Promise<Conversation[]> {
-    return Array.from(this.conversations.values())
-      .filter(conv => conv.userId === userId)
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    return await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(conversations.updatedAt));
   }
 
   async updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined> {
-    const conversation = this.conversations.get(id);
-    if (!conversation) return undefined;
-    
-    const updated = { ...conversation, ...updates, updatedAt: new Date() };
-    this.conversations.set(id, updated);
-    return updated;
+    const [conversation] = await db
+      .update(conversations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(conversations.id, id))
+      .returning();
+    return conversation || undefined;
   }
 
+  // Messages
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const id = this.currentMessageId++;
-    const message: Message = {
-      id,
-      conversationId: insertMessage.conversationId,
-      content: insertMessage.content,
-      sender: insertMessage.sender,
-      emotionDetected: insertMessage.emotionDetected || null,
-      timestamp: new Date(),
-    };
-    this.messages.set(id, message);
-    
-    // Update conversation timestamp
-    const conversation = this.conversations.get(insertMessage.conversationId);
-    if (conversation) {
-      await this.updateConversation(conversation.id, { updatedAt: new Date() });
-    }
-    
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
     return message;
   }
 
   async getConversationMessages(conversationId: number): Promise<Message[]> {
-    return Array.from(this.messages.values())
-      .filter(msg => msg.conversationId === conversationId)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    return await db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, conversationId))
+      .orderBy(messages.timestamp);
   }
 
+  // Sessions
   async createSession(insertSession: InsertSession): Promise<Session> {
-    const id = this.currentSessionId++;
-    const session: Session = {
-      id,
-      conversationId: insertSession.conversationId,
-      summary: insertSession.summary || null,
-      keyTopics: insertSession.keyTopics || null,
-      techniquesUsed: insertSession.techniquesUsed || null,
-      homework: insertSession.homework || null,
-      moodBefore: insertSession.moodBefore || null,
-      moodAfter: insertSession.moodAfter || null,
-      createdAt: new Date(),
-    };
-    this.sessions.set(id, session);
+    const [session] = await db
+      .insert(sessions)
+      .values(insertSession)
+      .returning();
     return session;
   }
 
   async getConversationSession(conversationId: number): Promise<Session | undefined> {
-    return Array.from(this.sessions.values())
-      .find(session => session.conversationId === conversationId);
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.conversationId, conversationId));
+    return session || undefined;
   }
 
+  // Memory & Context
   async getUserMemories(userId: string): Promise<any[]> {
-    return this.userMemories.get(userId) || [];
+    const memories = await db
+      .select()
+      .from(userMemories)
+      .where(eq(userMemories.userId, userId))
+      .orderBy(desc(userMemories.createdAt));
+    
+    return memories.map(memory => ({
+      type: memory.type,
+      content: memory.content,
+      metadata: memory.metadata,
+      personaId: memory.personaId,
+      conversationId: memory.conversationId,
+      createdAt: memory.createdAt
+    }));
   }
 
   async saveUserMemory(userId: string, memory: any): Promise<void> {
-    const currentMemories = this.userMemories.get(userId) || [];
-    currentMemories.push({
-      ...memory,
-      timestamp: new Date()
+    await db.insert(userMemories).values({
+      userId,
+      type: memory.type || 'general',
+      content: memory.content,
+      metadata: memory.metadata || {},
+      personaId: memory.personaId,
+      conversationId: memory.conversationId
     });
-    this.userMemories.set(userId, currentMemories);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
