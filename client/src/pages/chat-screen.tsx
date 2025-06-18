@@ -32,7 +32,11 @@ export default function ChatScreen() {
     handleMoodSelect,
     skipMoodCheck,
     greeting,
-    selectedMood
+    selectedMood,
+    crisisDetected,
+    dismissCrisisAlert,
+    suggestSessionEnd,
+    dismissSessionEndSuggestion
   } = useChat(personaId || undefined);
 
   // Auto-scroll to bottom when new messages arrive
@@ -138,6 +142,51 @@ export default function ChatScreen() {
           <div ref={messagesEndRef} />
         </div>
       </main>
+
+      {/* Crisis Alert */}
+      {crisisDetected && (
+        <div className="px-4 pb-4">
+          <CrisisAlert onClose={dismissCrisisAlert} />
+        </div>
+      )}
+      
+      {/* Session End Suggestion */}
+      {suggestSessionEnd && (
+        <div className="px-4 pb-4">
+          <Card className="border-indigo-200 bg-indigo-50 animate-slide-up">
+            <div className="p-4">
+              <div className="flex items-start space-x-3">
+                <Heart className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-1" />
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-indigo-800 mb-1">
+                    Consider Taking a Break
+                  </h3>
+                  <p className="text-sm text-indigo-700 mb-3">
+                    It might be helpful to process our conversation. Would you like to view a summary?
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button 
+                      size="sm"
+                      onClick={() => setLocation(`/session-summary?conversation=${conversationId}`)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    >
+                      View Summary
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline" 
+                      onClick={dismissSessionEndSuggestion}
+                      className="border-indigo-300 text-indigo-700 hover:bg-indigo-100"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       <InputBar onSendMessage={sendMessage} disabled={isLoading} />
     </div>
