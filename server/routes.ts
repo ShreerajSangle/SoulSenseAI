@@ -404,12 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId,
         content: `I understand you'd like to continue our conversation with ${newPersona?.name}. ${newPersona?.name} will now take over to provide you with their specialized support. How can I help you today?`,
         sender: 'ai',
-        metadata: {
-          type: 'persona_transition',
-          previousPersona: conversation.personaId,
-          newPersona: newPersonaId,
-          reason
-        }
+        emotionDetected: 'supportive'
       });
 
       res.json({
