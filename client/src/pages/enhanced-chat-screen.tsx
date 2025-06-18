@@ -11,6 +11,7 @@ import { CrisisAlert } from "@/components/crisis-alert";
 import { MoodCheckInWidget, MoodCheckInData } from "@/components/mood-checkin-widget";
 import { BreathingExercise, GroundingTechnique, CBTJournal } from "@/components/micro-tools";
 import { MoodTrackerDashboard } from "@/components/mood-tracker-dashboard";
+import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components/voice-interface";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,10 @@ export default function EnhancedChatScreen() {
   // UI state
   const [suggestedTools, setSuggestedTools] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Voice interface
+  const { speakText, stopSpeaking } = useVoiceInterface();
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   const userId = "anonymous"; // Will be replaced with actual user ID when auth is enabled
 

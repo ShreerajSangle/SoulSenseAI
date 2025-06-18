@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { emotionDetector } from "./emotion_detection";
+import { conversationalAI } from "./conversational_ai";
 import { z } from "zod";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import fs from "fs";
@@ -266,6 +267,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching session:", error);
       res.status(500).json({ error: "Failed to fetch session" });
+    }
+  });
+
+  // Enhanced chat endpoint with advanced conversational AI
+  app.post("/api/chat/enhanced-message", async (req, res) => {
+    try {
+      const { message, personaId, userId, conversationId, emotionContext, moodData, isFirstMessage } = req.body;
+      
+      if (!message || !personaId || !userId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Get or create conversation
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else if (isFirstMessage) {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Session with ${personaId}`,
+          status: 'active'
+        });
+      }
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Analyze emotion from user message
+      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
+      
+      // Create user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user',
+        metadata: { 
+          emotionAnalysis,
+          emotionContext, 
+          moodData 
+        }
+      });
+
+      // Get conversation history for context
+      const messageHistory = await storage.getConversationMessages(conversation.id);
+      
+      // Build context for conversational AI
+      const context = {
+        userId,
+        personaId,
+        conversationId: conversation.id,
+        messageHistory: messageHistory.map(msg => ({
+          content: msg.content,
+          sender: msg.sender,
+          timestamp: msg.createdAt,
+          emotionAnalysis: msg.metadata?.emotionAnalysis
+        })),
+        userProfile: {
+          preferences: {},
+          emotionalPatterns: {},
+          conversationStyle: 'balanced',
+          topics: [],
+          goals: []
+        },
+        sessionContext: {
+          duration: 0,
+          emotionalJourney: [],
+          keyMoments: [],
+          therapeuticProgress: {}
+        }
+      };
+
+      // Generate personalized response using advanced AI
+      const aiResponse = await conversationalAI.generatePersonalizedResponse(message, context);
+      
+      // Create AI message
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: aiResponse.content,
+        sender: 'ai',
+        metadata: {
+          emotionalTone: aiResponse.emotionalTone,
+          empathyLevel: aiResponse.empathyLevel,
+          responseStrategy: aiResponse.responseStrategy,
+          therapeuticTechniques: aiResponse.therapeuticTechniques,
+          memoryAnchors: aiResponse.memoryAnchors
+        }
+      });
+
+      // Determine suggested micro-tools based on emotion and strategy
+      const suggestedMicroTools = [];
+      if (aiResponse.responseStrategy === 'anxiety_exploration' || emotionAnalysis.primary_emotion === 'anxiety') {
+        suggestedMicroTools.push('breathing', 'grounding');
+      } else if (aiResponse.responseStrategy === 'depression_support' || emotionAnalysis.primary_emotion === 'depression') {
+        suggestedMicroTools.push('cbt', 'grounding');
+      } else if (emotionAnalysis.arousal_level > 0.7) {
+        suggestedMicroTools.push('breathing');
+      }
+
+      // Check for crisis indicators
+      const crisisDetected = aiResponse.responseStrategy === 'crisis_support' || 
+                            emotionAnalysis.crisis_indicators.level !== 'none';
+
+      res.json({
+        conversation,
+        aiMessage,
+        emotionAnalysis,
+        suggestedMicroTools,
+        crisisDetected,
+        followUpQuestions: aiResponse.followUpQuestions,
+        therapeuticTechniques: aiResponse.therapeuticTechniques
+      });
+
+    } catch (error) {
+      console.error("Enhanced chat error:", error);
+      res.status(500).json({ error: "Failed to process enhanced message" });
+    }
+  });
+
+  // Persona switching endpoint
+  app.post("/api/chat/switch-persona", async (req, res) => {
+    try {
+      const { conversationId, newPersonaId, reason, userId } = req.body;
+      
+      if (!conversationId || !newPersonaId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Get conversation
+      const conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Update conversation persona
+      const updatedConversation = await storage.updateConversation(conversationId, {
+        personaId: newPersonaId
+      });
+
+      // Get new persona info
+      const newPersona = await storage.getPersona(newPersonaId);
+      
+      // Create transition message
+      const transitionMessage = await storage.createMessage({
+        conversationId,
+        content: `I understand you'd like to continue our conversation with ${newPersona?.name}. ${newPersona?.name} will now take over to provide you with their specialized support. How can I help you today?`,
+        sender: 'ai',
+        metadata: {
+          type: 'persona_transition',
+          previousPersona: conversation.personaId,
+          newPersona: newPersonaId,
+          reason
+        }
+      });
+
+      res.json({
+        conversation: updatedConversation,
+        transitionMessage,
+        newPersona
+      });
+
+    } catch (error) {
+      console.error("Persona switch error:", error);
+      res.status(500).json({ error: "Failed to switch persona" });
+    }
+  });
+
+  // Mood entries endpoint
+  app.post("/api/mood-entries", async (req, res) => {
+    try {
+      const moodEntry = await storage.createMoodEntry(req.body);
+      res.json(moodEntry);
+    } catch (error) {
+      console.error("Error creating mood entry:", error);
+      res.status(500).json({ error: "Failed to create mood entry" });
+    }
+  });
+
+  app.get("/api/mood-entries", async (req, res) => {
+    try {
+      const { userId, range = '30d' } = req.query;
+      const entries = await storage.getUserMoodEntries(userId as string, range as string);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching mood entries:", error);
+      res.status(500).json({ error: "Failed to fetch mood entries" });
+    }
+  });
+
+  // Micro-tools usage endpoint
+  app.post("/api/micro-tools/usage", async (req, res) => {
+    try {
+      const usage = await storage.createMicroToolUsage(req.body);
+      res.json(usage);
+    } catch (error) {
+      console.error("Error creating micro-tool usage:", error);
+      res.status(500).json({ error: "Failed to create micro-tool usage" });
+    }
+  });
+
+  // Message feedback endpoint
+  app.post("/api/messages/:messageId/feedback", async (req, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const feedback = await storage.createMessageFeedback({
+        messageId,
+        ...req.body
+      });
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error creating message feedback:", error);
+      res.status(500).json({ error: "Failed to create message feedback" });
     }
   });
 
