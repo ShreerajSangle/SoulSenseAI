@@ -4,12 +4,12 @@ import type { Persona, Conversation, Message, Session } from "@shared/schema";
 export const api = {
   // Personas
   getPersonas: async (): Promise<Persona[]> => {
-    const response = await apiRequest("GET", "/api/personas");
+    const response = await apiRequest("/api/personas", "GET");
     return response.json();
   },
 
   getPersona: async (id: string): Promise<Persona> => {
-    const response = await apiRequest("GET", `/api/personas/${id}`);
+    const response = await apiRequest(`/api/personas/${id}`, "GET");
     return response.json();
   },
 
@@ -18,7 +18,7 @@ export const api = {
     personaId: string;
     userId?: string;
   }) => {
-    const response = await apiRequest("POST", "/api/chat/greeting", data);
+    const response = await apiRequest("/api/chat/greeting", "POST", data);
     return response.json();
   },
 
@@ -30,18 +30,18 @@ export const api = {
     isFirstMessage?: boolean;
     userMood?: string;
   }) => {
-    const response = await apiRequest("POST", "/api/chat/message", data);
+    const response = await apiRequest("/api/chat/message", "POST", data);
     return response.json();
   },
 
   // Conversations
   getConversations: async (userId: string = "anonymous") => {
-    const response = await apiRequest("GET", `/api/conversations?userId=${userId}`);
+    const response = await apiRequest(`/api/conversations?userId=${userId}`, "GET");
     return response.json();
   },
 
   getConversationMessages: async (conversationId: number): Promise<Message[]> => {
-    const response = await apiRequest("GET", `/api/conversations/${conversationId}/messages`);
+    const response = await apiRequest(`/api/conversations/${conversationId}/messages`, "GET");
     return response.json();
   },
 
@@ -55,18 +55,18 @@ export const api = {
     moodBefore?: number;
     moodAfter?: number;
   }): Promise<Session> => {
-    const response = await apiRequest("POST", "/api/sessions", data);
+    const response = await apiRequest("/api/sessions", "POST", data);
     return response.json();
   },
 
   getSession: async (conversationId: number): Promise<Session> => {
-    const response = await apiRequest("GET", `/api/sessions/${conversationId}`);
+    const response = await apiRequest(`/api/sessions/${conversationId}`, "GET");
     return response.json();
   },
 
   // Health check
   healthCheck: async () => {
-    const response = await apiRequest("GET", "/api/health");
+    const response = await apiRequest("/api/health", "GET");
     return response.json();
   },
 };
