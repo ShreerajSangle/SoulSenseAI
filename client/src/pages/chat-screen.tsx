@@ -5,8 +5,11 @@ import { TopNavBar } from "@/components/top-nav-bar";
 import { MessageBubble } from "@/components/message-bubble";
 import { TypingIndicator } from "@/components/typing-indicator";
 import { InputBar } from "@/components/input-bar";
+import { MoodSelector } from "@/components/mood-selector";
+import { CrisisAlert } from "@/components/crisis-alert";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Heart } from "lucide-react";
 
 export default function ChatScreen() {
   const [location, setLocation] = useLocation();
@@ -24,7 +27,12 @@ export default function ChatScreen() {
     sendMessage, 
     isLoading, 
     error,
-    conversationId 
+    conversationId,
+    showMoodSelector,
+    handleMoodSelect,
+    skipMoodCheck,
+    greeting,
+    selectedMood
   } = useChat(personaId || undefined);
 
   // Auto-scroll to bottom when new messages arrive
@@ -100,7 +108,19 @@ export default function ChatScreen() {
                   <p className="text-slate-600">{persona.description}</p>
                 </div>
               )}
-              <p className="text-slate-500">Start a conversation by sending a message below.</p>
+              
+              {showMoodSelector ? (
+                <MoodSelector 
+                  onMoodSelect={handleMoodSelect} 
+                  onSkip={skipMoodCheck}
+                />
+              ) : greeting ? (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border max-w-md mx-auto mb-6 animate-slide-up">
+                  <p className="text-slate-700">{greeting}</p>
+                </div>
+              ) : (
+                <p className="text-slate-500">Start a conversation by sending a message below.</p>
+              )}
             </div>
           ) : (
             messages.map((message) => (

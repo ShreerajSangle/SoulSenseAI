@@ -9,6 +9,8 @@ export function useChat(personaId?: string, conversationId?: number) {
   const [showMoodSelector, setShowMoodSelector] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | undefined>();
   const [greeting, setGreeting] = useState<string | undefined>();
+  const [crisisDetected, setCrisisDetected] = useState(false);
+  const [suggestSessionEnd, setSuggestSessionEnd] = useState(false);
   const queryClient = useQueryClient();
 
   // Get conversation messages
@@ -25,15 +27,32 @@ export function useChat(personaId?: string, conversationId?: number) {
     enabled: !!personaId,
   });
 
+  // Get greeting when persona changes
+  useEffect(() => {
+    if (personaId && !currentConversationId) {
+      api.getGreeting({ personaId, userId: "anonymous" })
+        .then((response) => {
+          setGreeting(response.greeting);
+          if (response.requiresMoodCheck) {
+            setShowMoodSelector(true);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [personaId, currentConversationId]);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: (message: string) => {
       if (!personaId) throw new Error("No persona selected");
+      const isFirstMessage = messages.length === 0;
       return api.sendMessage({
         message,
         personaId,
         conversationId: currentConversationId,
-        userId: "anonymous"
+        userId: "anonymous",
+        isFirstMessage,
+        userMood: selectedMood
       });
     },
     onMutate: () => {
@@ -43,6 +62,16 @@ export function useChat(personaId?: string, conversationId?: number) {
       // Update conversation ID if it's a new conversation
       if (!currentConversationId && data.conversationId) {
         setCurrentConversationId(data.conversationId);
+      }
+      
+      // Handle crisis detection
+      if (data.crisisDetected) {
+        setCrisisDetected(true);
+      }
+      
+      // Handle session end suggestion
+      if (data.suggestSessionEnd) {
+        setSuggestSessionEnd(true);
       }
       
       // Invalidate and refetch messages
@@ -62,6 +91,23 @@ export function useChat(personaId?: string, conversationId?: number) {
     sendMessageMutation.mutate(message);
   }, [sendMessageMutation]);
 
+  const handleMoodSelect = useCallback((mood: string) => {
+    setSelectedMood(mood);
+    setShowMoodSelector(false);
+  }, []);
+
+  const skipMoodCheck = useCallback(() => {
+    setShowMoodSelector(false);
+  }, []);
+
+  const dismissCrisisAlert = useCallback(() => {
+    setCrisisDetected(false);
+  }, []);
+
+  const dismissSessionEndSuggestion = useCallback(() => {
+    setSuggestSessionEnd(false);
+  }, []);
+
   return {
     messages,
     persona,
@@ -71,6 +117,15 @@ export function useChat(personaId?: string, conversationId?: number) {
     isLoading: sendMessageMutation.isPending,
     error: sendMessageMutation.error,
     conversationId: currentConversationId,
+    showMoodSelector,
+    handleMoodSelect,
+    skipMoodCheck,
+    greeting,
+    selectedMood,
+    crisisDetected,
+    dismissCrisisAlert,
+    suggestSessionEnd,
+    dismissSessionEndSuggestion,
   };
 }
 
