@@ -97,9 +97,102 @@ export const sessions = pgTable("therapy_sessions", {
   homework: json("homework").$type<string[]>(),
   moodBefore: integer("mood_before"), // 1-5 scale
   moodAfter: integer("mood_after"), // 1-5 scale
+  emotionAnalysis: jsonb("emotion_analysis").$type<{
+    primary_emotion: string;
+    intensity: number;
+    secondary_emotions: string[];
+    mood_valence: number;
+    arousal_level: number;
+  }>(),
+  crisisIndicators: jsonb("crisis_indicators").$type<{
+    level: string;
+    keywords: string[];
+    requires_intervention: boolean;
+  }>(),
+  duration: integer("duration"), // in minutes
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("idx_sessions_conversation_id").on(table.conversationId),
+]);
+
+// Mood tracking table
+export const moodEntries = pgTable("mood_entries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  sessionId: integer("session_id"),
+  moodRating: integer("mood_rating").notNull(), // 1-5 scale
+  emotions: json("emotions").$type<string[]>(),
+  notes: text("notes"),
+  triggers: json("triggers").$type<string[]>(),
+  type: varchar("type").notNull(), // 'check_in', 'check_out', 'daily'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_mood_entries_user_id").on(table.userId),
+  index("idx_mood_entries_created_at").on(table.createdAt),
+]);
+
+// Micro-tools usage tracking
+export const microToolUsage = pgTable("micro_tool_usage", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  sessionId: integer("session_id"),
+  toolType: varchar("tool_type").notNull(), // 'breathing', 'grounding', 'cbt_journal'
+  toolName: varchar("tool_name").notNull(),
+  duration: integer("duration"), // in seconds
+  completed: boolean("completed").default(false),
+  effectiveness: integer("effectiveness"), // 1-5 rating
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_micro_tool_user_id").on(table.userId),
+  index("idx_micro_tool_type").on(table.toolType),
+]);
+
+// Feedback and learning
+export const messageFeedback = pgTable("message_feedback", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  rating: varchar("rating").notNull(), // 'thumbs_up', 'thumbs_down'
+  feedback: text("feedback"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_message_feedback_message_id").on(table.messageId),
+  index("idx_message_feedback_user_id").on(table.userId),
+]);
+
+// Crisis interventions log
+export const crisisInterventions = pgTable("crisis_interventions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  sessionId: integer("session_id"),
+  severityLevel: varchar("severity_level").notNull(),
+  triggerKeywords: json("trigger_keywords").$type<string[]>(),
+  interventionType: varchar("intervention_type").notNull(),
+  resourcesProvided: json("resources_provided").$type<string[]>(),
+  followUpRequired: boolean("follow_up_required").default(false),
+  resolved: boolean("resolved").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_crisis_user_id").on(table.userId),
+  index("idx_crisis_severity").on(table.severityLevel),
+]);
+
+// Daily check-ins and notifications
+export const dailyCheckIns = pgTable("daily_check_ins", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  personaId: text("persona_id").notNull(),
+  checkInType: varchar("check_in_type").notNull(), // 'morning', 'evening', 'custom'
+  moodRating: integer("mood_rating").notNull(),
+  gratitude: text("gratitude"),
+  goals: json("goals").$type<string[]>(),
+  challenges: text("challenges"),
+  aiInsight: text("ai_insight"),
+  responded: boolean("responded").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_daily_checkins_user_id").on(table.userId),
+  index("idx_daily_checkins_date").on(table.createdAt),
 ]);
 
 // Database relations
