@@ -5,6 +5,9 @@ import {
   messages,
   sessions,
   userMemories,
+  moodEntries,
+  microToolUsage,
+  messageFeedback,
   type User,
   type UpsertUser,
   type Persona,
@@ -45,6 +48,16 @@ export interface IStorage {
   // Memory & Context
   getUserMemories(userId: string): Promise<any[]>;
   saveUserMemory(userId: string, memory: any): Promise<void>;
+  
+  // Mood tracking
+  createMoodEntry(entry: any): Promise<any>;
+  getUserMoodEntries(userId: string, range: string): Promise<any[]>;
+  
+  // Micro-tools tracking
+  createMicroToolUsage(usage: any): Promise<any>;
+  
+  // Message feedback
+  createMessageFeedback(feedback: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -238,6 +251,79 @@ export class DatabaseStorage implements IStorage {
       personaId: memory.personaId,
       conversationId: memory.conversationId
     });
+  }
+
+  // Mood tracking methods
+  async createMoodEntry(entry: any): Promise<any> {
+    const [moodEntry] = await db
+      .insert(moodEntries)
+      .values({
+        userId: entry.userId,
+        sessionId: entry.sessionId,
+        moodRating: entry.moodRating,
+        emotions: entry.emotions || null,
+        notes: entry.notes,
+        triggers: entry.triggers || null,
+        type: entry.type,
+      })
+      .returning();
+    return moodEntry;
+  }
+
+  async getUserMoodEntries(userId: string, range: string): Promise<any[]> {
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (range) {
+      case 'week':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      case 'quarter':
+        startDate.setMonth(now.getMonth() - 3);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 7);
+    }
+
+    return await db
+      .select()
+      .from(moodEntries)
+      .where(eq(moodEntries.userId, userId))
+      .orderBy(desc(moodEntries.createdAt));
+  }
+
+  // Micro-tools tracking
+  async createMicroToolUsage(usage: any): Promise<any> {
+    const [toolUsage] = await db
+      .insert(microToolUsage)
+      .values({
+        userId: usage.userId,
+        sessionId: usage.sessionId,
+        toolType: usage.toolType,
+        toolName: usage.toolName,
+        duration: usage.duration,
+        completed: usage.completed,
+        effectiveness: usage.effectiveness,
+      })
+      .returning();
+    return toolUsage;
+  }
+
+  // Message feedback
+  async createMessageFeedback(feedback: any): Promise<any> {
+    const [feedbackEntry] = await db
+      .insert(messageFeedback)
+      .values({
+        messageId: feedback.messageId,
+        userId: feedback.userId,
+        rating: feedback.rating,
+        feedback: feedback.feedback,
+      })
+      .returning();
+    return feedbackEntry;
   }
 }
 

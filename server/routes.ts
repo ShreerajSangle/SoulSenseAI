@@ -32,6 +32,42 @@ const createSessionSummaryRequestSchema = z.object({
   moodAfter: z.number().min(1).max(5).optional(),
 });
 
+const moodEntrySchema = z.object({
+  userId: z.string().default("anonymous"),
+  sessionId: z.number().optional(),
+  moodRating: z.number().min(1).max(5),
+  emotions: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+  triggers: z.array(z.string()).optional(),
+  type: z.enum(['check_in', 'check_out', 'daily']),
+});
+
+const microToolUsageSchema = z.object({
+  userId: z.string().default("anonymous"),
+  sessionId: z.number().optional(),
+  toolType: z.enum(['breathing', 'grounding', 'cbt_journal']),
+  toolName: z.string(),
+  duration: z.number().optional(),
+  completed: z.boolean().default(false),
+  effectiveness: z.number().min(1).max(5).optional(),
+});
+
+const messageFeedbackSchema = z.object({
+  messageId: z.number(),
+  userId: z.string().default("anonymous"),
+  rating: z.enum(['thumbs_up', 'thumbs_down']),
+  feedback: z.string().optional(),
+});
+
+// Load persona configuration
+let personaConfig: any = {};
+try {
+  const configFile = fs.readFileSync('./server/persona_config.yaml', 'utf8');
+  personaConfig = yaml.load(configFile) as any;
+} catch (error) {
+  console.warn('Could not load persona config:', error);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize auth system (commented for now to focus on core functionality)
   // await setupAuth(app);
