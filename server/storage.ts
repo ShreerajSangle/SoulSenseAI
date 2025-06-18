@@ -183,11 +183,24 @@ export class DatabaseStorage implements IStorage {
 
   // Sessions
   async createSession(insertSession: InsertSession): Promise<Session> {
-    const [session] = await db
-      .insert(sessions)
-      .values(insertSession)
-      .returning();
-    return session;
+    try {
+      const [session] = await db
+        .insert(sessions)
+        .values({
+          conversationId: insertSession.conversationId,
+          summary: insertSession.summary,
+          keyTopics: insertSession.keyTopics,
+          techniquesUsed: insertSession.techniquesUsed,
+          homework: insertSession.homework,
+          moodBefore: insertSession.moodBefore,
+          moodAfter: insertSession.moodAfter,
+        } as any)
+        .returning();
+      return session;
+    } catch (error) {
+      console.error("Error creating session:", error);
+      throw error;
+    }
   }
 
   async getConversationSession(conversationId: number): Promise<Session | undefined> {
