@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { useChat } from "@/hooks/use-chat";
 import { TopNavBar } from "@/components/top-nav-bar";
 import { MessageBubble } from "@/components/message-bubble";
@@ -13,14 +13,15 @@ import { AlertTriangle, Heart } from "lucide-react";
 
 export default function ChatScreen() {
   const [location, setLocation] = useLocation();
+  const params = useParams();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Get persona ID from URL params
-  const searchParams = new URLSearchParams(location.split('?')[1] || '');
-  const personaId = searchParams.get('persona');
+  // Get persona ID from URL path params or query params (fallback)
+  const personaId = params.persona || new URLSearchParams(location.split('?')[1] || '').get('persona');
   
   // Debug logging
   console.log('Current location:', location);
+  console.log('URL params:', params);
   console.log('Extracted personaId:', personaId);
   
   const { 

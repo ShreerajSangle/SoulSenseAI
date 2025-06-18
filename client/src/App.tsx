@@ -14,6 +14,7 @@ function Router() {
     <Switch>
       <Route path="/" component={PersonaSelector} />
       <Route path="/chat" component={ChatScreen} />
+      <Route path="/chat/:persona" component={ChatScreen} />
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={() => <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold text-slate-800 mb-2">Diary Feature</h2><p className="text-slate-600">Coming soon...</p></div></div>} />
       <Route path="/profile" component={() => <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold text-slate-800 mb-2">Profile Feature</h2><p className="text-slate-600">Coming soon...</p></div></div>} />

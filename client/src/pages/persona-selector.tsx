@@ -24,7 +24,7 @@ export default function PersonaSelector() {
   const [, setLocation] = useLocation();
 
   const handlePersonaSelect = (persona: Persona) => {
-    setLocation(`/chat?persona=${persona.id}`);
+    setLocation(`/chat/${persona.id}`);
   };
 
   if (isLoading) {
