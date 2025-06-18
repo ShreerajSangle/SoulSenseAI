@@ -287,8 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversation = await storage.createConversation({
           userId,
           personaId,
-          title: `Session with ${personaId}`,
-          status: 'active'
+          title: `Session with ${personaId}`
         });
       }
 
@@ -304,11 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
         content: message,
         sender: 'user',
-        metadata: { 
-          emotionAnalysis,
-          emotionContext, 
-          moodData 
-        }
+        emotionDetected: emotionAnalysis.primary_emotion
       });
 
       // Get conversation history for context
@@ -321,9 +316,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
         messageHistory: messageHistory.map(msg => ({
           content: msg.content,
-          sender: msg.sender,
-          timestamp: msg.createdAt,
-          emotionAnalysis: msg.metadata?.emotionAnalysis
+          sender: msg.sender as 'user' | 'ai',
+          timestamp: msg.timestamp,
+          emotionAnalysis: msg.emotionDetected
         })),
         userProfile: {
           preferences: {},
@@ -348,13 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
         content: aiResponse.content,
         sender: 'ai',
-        metadata: {
-          emotionalTone: aiResponse.emotionalTone,
-          empathyLevel: aiResponse.empathyLevel,
-          responseStrategy: aiResponse.responseStrategy,
-          therapeuticTechniques: aiResponse.therapeuticTechniques,
-          memoryAnchors: aiResponse.memoryAnchors
-        }
+        emotionDetected: aiResponse.emotionalTone
       });
 
       // Determine suggested micro-tools based on emotion and strategy

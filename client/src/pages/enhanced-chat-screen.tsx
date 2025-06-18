@@ -172,6 +172,7 @@ export default function EnhancedChatScreen() {
         feedback: data.feedback,
         userId
       });
+      return await response.json();
     }
   });
 
@@ -226,9 +227,9 @@ export default function EnhancedChatScreen() {
 
       const response = await sendMessageMutation.mutateAsync({
         message,
-        conversationId,
+        conversationId: conversationId || undefined,
         emotionContext,
-        moodData: sessionMoodData
+        moodData: sessionMoodData || undefined
       });
       
       // Speak AI response if voice is enabled
