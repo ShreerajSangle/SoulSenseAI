@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 
@@ -29,6 +30,14 @@ const createSessionSummaryRequestSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize auth system (commented for now to focus on core functionality)
+  // await setupAuth(app);
+
+  // Auth routes (placeholder for now)
+  app.get('/api/auth/user', async (req: any, res) => {
+    // Return anonymous user for now
+    res.json({ id: 'anonymous', email: null });
+  });
   // Get all personas
   app.get("/api/personas", async (req, res) => {
     try {
