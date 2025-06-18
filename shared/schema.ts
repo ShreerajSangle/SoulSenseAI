@@ -272,3 +272,41 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
+
+// Diary entries for journaling and reflection
+export const diaryEntries = pgTable("diary_entries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  moodRating: integer("mood_rating").notNull(),
+  emotions: json("emotions").$type<string[]>(),
+  gratitude: text("gratitude"),
+  goals: text("goals"),
+  reflections: text("reflections"),
+  tags: json("tags").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_diary_entries_user_id").on(table.userId),
+  index("idx_diary_entries_created_at").on(table.createdAt),
+]);
+
+// User profiles for personalization
+export const userProfiles = pgTable("user_profiles", {
+  userId: varchar("user_id").primaryKey(),
+  bio: text("bio"),
+  avatar: varchar("avatar"),
+  preferences: json("preferences").$type<Record<string, any>>().default({}),
+  goals: json("goals").$type<string[]>(),
+  interests: json("interests").$type<string[]>(),
+  mentalHealthFocus: json("mental_health_focus").$type<string[]>(),
+  stats: json("stats").$type<Record<string, any>>().default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export type DiaryEntry = typeof diaryEntries.$inferSelect;
+export type InsertDiaryEntry = typeof diaryEntries.$inferInsert;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;

@@ -58,6 +58,17 @@ export interface IStorage {
   
   // Message feedback
   createMessageFeedback(feedback: any): Promise<any>;
+  
+  // Diary entries
+  createDiaryEntry(entry: any): Promise<any>;
+  getDiaryEntries(userId: string): Promise<any[]>;
+  updateDiaryEntry(id: number, updates: any): Promise<any>;
+  deleteDiaryEntry(id: number): Promise<void>;
+  
+  // User profiles
+  getUserProfile(userId: string): Promise<any>;
+  createUserProfile(profile: any): Promise<any>;
+  updateUserProfile(userId: string, updates: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -324,6 +335,135 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return feedbackEntry;
+  }
+
+  // Diary entries
+  async createDiaryEntry(entry: any): Promise<any> {
+    const [diaryEntry] = await db
+      .insert(diaryEntries)
+      .values({
+        userId: entry.userId,
+        title: entry.title,
+        content: entry.content,
+        moodRating: entry.moodRating,
+        emotions: entry.emotions,
+        gratitude: entry.gratitude,
+        goals: entry.goals,
+        reflections: entry.reflections,
+        tags: entry.tags,
+      })
+      .returning();
+    return diaryEntry;
+  }
+
+  async getDiaryEntries(userId: string): Promise<any[]> {
+    const entries = await db
+      .select()
+      .from(diaryEntries)
+      .where(eq(diaryEntries.userId, userId))
+      .orderBy(desc(diaryEntries.createdAt));
+    return entries;
+  }
+
+  async updateDiaryEntry(id: number, updates: any): Promise<any> {
+    const [updatedEntry] = await db
+      .update(diaryEntries)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(diaryEntries.id, id))
+      .returning();
+    return updatedEntry;
+  }
+
+  async deleteDiaryEntry(id: number): Promise<void> {
+    await db
+      .delete(diaryEntries)
+      .where(eq(diaryEntries.id, id));
+  }
+
+  // User profiles
+  async getUserProfile(userId: string): Promise<any> {
+    const [profile] = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, userId));
+    
+    if (!profile) {
+      // Create default profile if it doesn't exist
+      return await this.createUserProfile({
+        userId,
+        bio: "",
+        preferences: {
+          preferredPersona: "sarah",
+          voiceEnabled: false,
+          darkMode: false,
+          notifications: {
+            dailyCheckins: true,
+            sessionReminders: true,
+            progressUpdates: true
+          },
+          privacy: {
+            shareAnalytics: true,
+            dataRetention: "2-years"
+          }
+        },
+        goals: [],
+        interests: [],
+        mentalHealthFocus: [],
+        stats: {
+          totalSessions: 0,
+          totalMessages: 0,
+          streakDays: 0,
+          favoritePersona: "sarah",
+          averageMood: 5
+        }
+      });
+    }
+    
+    // Get user data from users table
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+    
+    return {
+      ...profile,
+      name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email || 'User',
+      email: user?.email || '',
+      joinedDate: user?.createdAt || new Date(),
+      lastActive: user?.updatedAt || new Date(),
+    };
+  }
+
+  async createUserProfile(profile: any): Promise<any> {
+    const [newProfile] = await db
+      .insert(userProfiles)
+      .values({
+        userId: profile.userId,
+        bio: profile.bio,
+        avatar: profile.avatar,
+        preferences: profile.preferences,
+        goals: profile.goals,
+        interests: profile.interests,
+        mentalHealthFocus: profile.mentalHealthFocus,
+        stats: profile.stats,
+      })
+      .returning();
+    return newProfile;
+  }
+
+  async updateUserProfile(userId: string, updates: any): Promise<any> {
+    const [updatedProfile] = await db
+      .update(userProfiles)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(userProfiles.userId, userId))
+      .returning();
+    return updatedProfile;
   }
 }
 
