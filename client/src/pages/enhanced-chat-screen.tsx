@@ -214,12 +214,18 @@ export default function EnhancedChatScreen() {
       };
       setMessages(prev => [...prev, userMessage]);
 
-      await sendMessageMutation.mutateAsync({
+      const response = await sendMessageMutation.mutateAsync({
         message,
         conversationId,
         emotionContext,
         moodData: sessionMoodData
       });
+      
+      // Speak AI response if voice is enabled
+      if (voiceEnabled && response?.aiMessage?.content) {
+        const personaVoice = getPersonaVoice(personaId!);
+        speakText(response.aiMessage.content, personaVoice);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {
@@ -465,7 +471,21 @@ export default function EnhancedChatScreen() {
           </div>
         </div>
         
-        <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
+        <div className="flex items-center gap-2">
+          <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
+          <VoiceInterface 
+            onTranscription={handleSendMessage}
+            isEnabled={voiceEnabled}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={voiceEnabled ? 'text-green-600' : 'text-gray-400'}
+          >
+            {voiceEnabled ? 'Voice On' : 'Voice Off'}
+          </Button>
+        </div>
       </div>
     </div>
   );
