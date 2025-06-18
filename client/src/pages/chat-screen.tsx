@@ -19,6 +19,10 @@ export default function ChatScreen() {
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const personaId = searchParams.get('persona');
   
+  // Debug logging
+  console.log('Current location:', location);
+  console.log('Extracted personaId:', personaId);
+  
   const { 
     messages, 
     persona, 
