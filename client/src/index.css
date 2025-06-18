@@ -1,0 +1,182 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(210, 40%, 98%);
+  --foreground: hsl(222.2, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222.2, 84%, 4.9%);
+  --border: hsl(214.3, 31.8%, 91.4%);
+  --input: hsl(214.3, 31.8%, 91.4%);
+  --primary: hsl(262.1, 83.3%, 57.8%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(262.1, 83.3%, 57.8%);
+  --radius: 0.75rem;
+  
+  /* SoulSense AI Custom Colors */
+  --therapeutic: hsl(162, 63%, 41%);
+  --therapeutic-foreground: hsl(0, 0%, 100%);
+  --persona-sarah: hsl(262, 83%, 67%);
+  --persona-alex: hsl(38, 92%, 50%);
+  --persona-marcus: hsl(0, 84%, 60%);
+  --persona-maya: hsl(162, 63%, 41%);
+  
+  /* Chat Interface Colors */
+  --chat-bg: linear-gradient(135deg, hsl(210, 40%, 98%) 0%, hsl(214, 42%, 94%) 100%);
+  --message-user: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(262, 83%, 67%) 100%);
+  --message-ai: hsl(0, 0%, 100%);
+  --message-ai-border: hsl(214.3, 31.8%, 91.4%);
+}
+
+.dark {
+  --background: hsl(222.2, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217.2, 32.6%, 17.5%);
+  --muted-foreground: hsl(215, 20.2%, 65.1%);
+  --popover: hsl(222.2, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222.2, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217.2, 32.6%, 17.5%);
+  --input: hsl(217.2, 32.6%, 17.5%);
+  --primary: hsl(262.1, 83.3%, 57.8%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(217.2, 32.6%, 17.5%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(217.2, 32.6%, 17.5%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(262.1, 83.3%, 57.8%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .therapeutic-gradient {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  }
+  
+  .message-bubble-user {
+    background: var(--message-user);
+  }
+  
+  .message-bubble-ai {
+    background: var(--message-ai);
+    border: 1px solid var(--message-ai-border);
+  }
+  
+  .persona-card:hover {
+    transform: translateY(-4px);
+    transition: all 0.3s ease;
+  }
+  
+  .typing-dot {
+    animation: typing 1.4s infinite ease-in-out both;
+  }
+  
+  .typing-dot:nth-child(1) { 
+    animation-delay: -0.32s; 
+  }
+  
+  .typing-dot:nth-child(2) { 
+    animation-delay: -0.16s; 
+  }
+}
+
+@layer utilities {
+  .animate-typing {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+}
+
+@keyframes typing {
+  0%, 80%, 100% { 
+    transform: scale(0);
+    opacity: 0.5;
+  } 
+  40% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  0% { 
+    transform: translateY(100%); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes fadeIn {
+  0% { 
+    opacity: 0; 
+  }
+  100% { 
+    opacity: 1; 
+  }
+}
+
+/* Chat specific styles */
+.chat-container {
+  background: var(--chat-bg);
+  min-height: 100vh;
+}
+
+.messages-container {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(214.3, 31.8%, 91.4%) transparent;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: hsl(214.3, 31.8%, 91.4%);
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: hsl(215.4, 16.3%, 46.9%);
+}
