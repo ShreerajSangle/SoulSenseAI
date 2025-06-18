@@ -6,6 +6,9 @@ import type { Message, Persona } from "@shared/schema";
 export function useChat(personaId?: string, conversationId?: number) {
   const [isTyping, setIsTyping] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<number | undefined>(conversationId);
+  const [showMoodSelector, setShowMoodSelector] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<string | undefined>();
+  const [greeting, setGreeting] = useState<string | undefined>();
   const queryClient = useQueryClient();
 
   // Get conversation messages

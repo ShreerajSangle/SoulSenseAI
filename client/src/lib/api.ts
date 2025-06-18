@@ -14,11 +14,21 @@ export const api = {
   },
 
   // Chat
+  getGreeting: async (data: {
+    personaId: string;
+    userId?: string;
+  }) => {
+    const response = await apiRequest("POST", "/api/chat/greeting", data);
+    return response.json();
+  },
+
   sendMessage: async (data: {
     message: string;
     personaId: string;
     conversationId?: number;
     userId?: string;
+    isFirstMessage?: boolean;
+    userMood?: string;
   }) => {
     const response = await apiRequest("POST", "/api/chat/message", data);
     return response.json();

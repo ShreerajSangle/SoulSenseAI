@@ -107,9 +107,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sender: "user",
       });
 
+      // Check for crisis indicators
+      const crisisDetected = detectCrisisKeywords(message);
+      
       // Generate AI response based on persona
       const persona = await storage.getPersona(personaId);
-      const aiResponse = await generatePersonaResponse(message, persona!, personaId);
+      const userMemories = await storage.getUserMemories(userId);
+      const aiResponse = await generatePersonaResponse(message, persona!, personaId, userMemories, userMood, isFirstMessage);
+      
+      // Save user memory for context
+      if (isFirstMessage && userMood) {
+        await storage.saveUserMemory(userId, {
+          type: 'mood_check',
+          mood: userMood,
+          personaId: personaId
+        });
+      }
       
       // Save AI message
       const aiMessage = await storage.createMessage({
@@ -124,6 +137,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: aiMessage,
         aiResponse: aiResponse.content,
         emotionDetected: aiResponse.emotionDetected,
+        crisisDetected: crisisDetected,
+        suggestSessionEnd: aiResponse.suggestSessionEnd || false,
       });
     } catch (error) {
       console.error("Error processing chat message:", error);
@@ -215,32 +230,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// Helper function to generate persona-specific responses
-async function generatePersonaResponse(userMessage: string, persona: any, personaId: string) {
-  // Simple emotion detection based on keywords
-  const emotionDetected = detectEmotion(userMessage);
+// Helper function to generate personalized greetings
+function generatePersonalizedGreeting(persona: any, personaId: string, memories: any[]) {
+  const hasHistory = memories.length > 0;
+  const lastMood = memories.find(m => m.type === 'mood_check')?.mood;
   
-  // Generate response based on persona
+  const greetings = {
+    "dr-sarah": hasHistory 
+      ? `Hello again! I'm Dr. Sarah. It's good to see you back. Before we continue, how are you feeling today?`
+      : `Hello, I'm Dr. Sarah Chen. I'm here to provide you with professional therapeutic support. How are you feeling today?`,
+    "alex": hasHistory
+      ? `Hey there! Good to see you again. How's it going today?`
+      : `Hey! I'm Alex. I'm here as someone who gets it - we've all been through tough times. How are you doing today?`,
+    "marcus": hasHistory
+      ? `Welcome back, champion! Ready to tackle another day? How are you feeling?`
+      : `Hey there! I'm Marcus, your personal development coach. Every great journey starts with one step. How are you feeling today?`,
+    "maya": hasHistory
+      ? `Welcome back to this peaceful space. Take a deep breath with me. How is your heart feeling today?`
+      : `Hello, I'm Maya. Let's create a calm, mindful space together. Take a moment to breathe. How are you feeling in this moment?`
+  };
+  
+  return greetings[personaId as keyof typeof greetings] || greetings["dr-sarah"];
+}
+
+// Helper function to detect crisis keywords
+function detectCrisisKeywords(message: string): boolean {
+  const crisisKeywords = [
+    'suicide', 'kill myself', 'end it all', 'hurt myself', 'self harm', 
+    'cut myself', 'want to die', 'better off dead', 'no point living',
+    'overdose', 'pills', 'jump off', 'hanging'
+  ];
+  
+  const lowerMessage = message.toLowerCase();
+  return crisisKeywords.some(keyword => lowerMessage.includes(keyword));
+}
+
+// Helper function to generate persona-specific responses
+async function generatePersonaResponse(
+  userMessage: string, 
+  persona: any, 
+  personaId: string, 
+  memories: any[] = [], 
+  userMood?: string, 
+  isFirstMessage: boolean = false
+) {
+  // Enhanced emotion detection
+  const emotionDetected = detectEmotion(userMessage);
+  const crisisDetected = detectCrisisKeywords(userMessage);
+  
+  // Check if user has been chatting for a while (suggest session end)
+  const recentMemories = memories.filter(m => {
+    const memoryTime = new Date(m.timestamp);
+    const now = new Date();
+    return (now.getTime() - memoryTime.getTime()) < (30 * 60 * 1000); // 30 minutes
+  });
+  
+  const suggestSessionEnd = recentMemories.length > 15; // After 15+ exchanges
+  
   let content = "";
   
-  switch (personaId) {
-    case "dr-sarah":
-      content = generateTherapistResponse(userMessage, emotionDetected);
-      break;
-    case "alex":
-      content = generatePeerResponse(userMessage, emotionDetected);
-      break;
-    case "marcus":
-      content = generateCoachResponse(userMessage, emotionDetected);
-      break;
-    case "maya":
-      content = generateMindfulnessResponse(userMessage, emotionDetected);
-      break;
-    default:
-      content = "I understand. Can you tell me more about how you're feeling?";
+  if (crisisDetected) {
+    content = generateCrisisResponse(personaId);
+  } else if (isFirstMessage && userMood) {
+    content = generateMoodAwareResponse(userMessage, userMood, personaId);
+  } else {
+    // Generate response based on persona with memory context
+    switch (personaId) {
+      case "dr-sarah":
+        content = generateTherapistResponse(userMessage, emotionDetected, memories);
+        break;
+      case "alex":
+        content = generatePeerResponse(userMessage, emotionDetected, memories);
+        break;
+      case "marcus":
+        content = generateCoachResponse(userMessage, emotionDetected, memories);
+        break;
+      case "maya":
+        content = generateMindfulnessResponse(userMessage, emotionDetected, memories);
+        break;
+      default:
+        content = "I understand. Can you tell me more about how you're feeling?";
+    }
+  }
+  
+  // Add session end suggestion if needed
+  if (suggestSessionEnd) {
+    content += "\n\nWe've covered a lot of ground today. Would you like to wrap up our session and see a summary of what we've discussed?";
   }
 
-  return { content, emotionDetected };
+  return { content, emotionDetected, suggestSessionEnd };
+}
+
+// Crisis response function
+function generateCrisisResponse(personaId: string): string {
+  const crisisResponses = {
+    "dr-sarah": "I'm deeply concerned about what you've shared. Your safety is the most important thing right now. Please reach out to a crisis helpline immediately - call 988 (Suicide & Crisis Lifeline) or text 'HELLO' to 741741. You don't have to go through this alone.",
+    "alex": "Hey, I'm really worried about you right now. What you're feeling is serious, and you deserve support. Please call 988 or text 741741 - there are people who want to help. You matter, and this feeling can change.",
+    "marcus": "This is bigger than what we can handle together right now. I need you to reach out for immediate support - call 988 or text 741741. You have strength even when it doesn't feel like it, and getting help is the strongest thing you can do.",
+    "maya": "I'm holding space for your pain right now, and I'm concerned for your safety. Please reach out for immediate support - call 988 or text 741741. You are not alone in this darkness, and there are people trained to help guide you to light."
+  };
+  
+  return crisisResponses[personaId as keyof typeof crisisResponses] || crisisResponses["dr-sarah"];
+}
+
+// Mood-aware response function
+function generateMoodAwareResponse(userMessage: string, userMood: string, personaId: string): string {
+  const moodResponses = {
+    "dr-sarah": {
+      "😊": "I'm glad to hear you're feeling positive today! Let's explore what's contributing to these good feelings and how we can build on them.",
+      "😐": "It sounds like you're feeling neutral today. Sometimes that's exactly where we need to be. What's on your mind?",
+      "😔": "I can sense you're having a difficult day. Thank you for sharing that with me. What would feel most supportive right now?",
+      "😰": "I hear that you're feeling anxious or stressed. That takes courage to acknowledge. Let's work through this together.",
+      "😤": "It sounds like frustration or anger might be present for you today. These feelings are valid and important to explore."
+    },
+    "alex": {
+      "😊": "That's awesome that you're feeling good! What's been going well for you lately?",
+      "😐": "Okay, so kind of a middle-ground day. I get that - sometimes we're just... existing, you know?",
+      "😔": "I can tell things are tough right now. I've been there too, and you don't have to carry this alone.",
+      "😰": "Sounds like anxiety is hitting hard today. That's such a overwhelming feeling - what's been weighing on you?",
+      "😤": "Feeling frustrated or angry? That's totally valid. Sometimes life just pushes our buttons, right?"
+    },
+    "marcus": {
+      "😊": "I love that energy! When we feel good, that's fuel for even greater things. What victories are you celebrating?",
+      "😐": "Neutral days are part of the journey, champion. Sometimes we need to pause before the next breakthrough. What's calling for your attention?",
+      "😔": "I see you're facing some challenges today. Every champion has tough rounds - this is where we build resilience. What support do you need?",
+      "😰": "Anxiety is trying to protect you, but sometimes it goes overboard. Let's channel that energy into action. What can we tackle together?",
+      "😤": "That fire you're feeling? Let's use it constructively. Anger often signals something needs to change. What boundaries or goals need your attention?"
+    },
+    "maya": {
+      "😊": "I can feel the lightness in your words. Let's breathe into this joy and explore what's nurturing your spirit today.",
+      "😐": "Neutral can be a peaceful place to rest. Sometimes we just need to be present with what is. What does your heart need right now?",
+      "😔": "I'm sensing heaviness in your spirit. Let's create a gentle space for these feelings. You're safe to share whatever comes up.",
+      "😰": "Your nervous system seems activated today. Let's start with some grounding. Can you feel your feet on the floor right now?",
+      "😤": "There's intensity in your energy today. Sometimes our emotions are messengers. What might this feeling be trying to tell you?"
+    }
+  };
+  
+  const responses = moodResponses[personaId as keyof typeof moodResponses];
+  return responses?.[userMood as keyof typeof responses] || "Thank you for sharing how you're feeling. Tell me more about what's going on for you today.";
 }
 
 function detectEmotion(message: string): string | undefined {
@@ -262,7 +389,7 @@ function detectEmotion(message: string): string | undefined {
   return undefined;
 }
 
-function generateTherapistResponse(message: string, emotion?: string): string {
+function generateTherapistResponse(message: string, emotion?: string, memories: any[] = []): string {
   const responses = {
     anxiety: [
       "I can hear that you're experiencing anxiety. That's completely understandable. Can you help me understand what specifically is contributing to these anxious feelings?",
@@ -301,7 +428,7 @@ function generateTherapistResponse(message: string, emotion?: string): string {
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
 
-function generatePeerResponse(message: string, emotion?: string): string {
+function generatePeerResponse(message: string, emotion?: string, memories: any[] = []): string {
   const responses = {
     anxiety: [
       "Hey, I totally get that feeling of anxiety - I've been there too. It's like your mind just won't stop racing, right? What's been triggering it for you lately?",
@@ -340,7 +467,7 @@ function generatePeerResponse(message: string, emotion?: string): string {
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
 
-function generateCoachResponse(message: string, emotion?: string): string {
+function generateCoachResponse(message: string, emotion?: string, memories: any[] = []): string {
   const responses = {
     anxiety: [
       "I can see you're dealing with anxiety, and that shows you care deeply about the outcome. Let's channel that energy into action. What specific steps can we take to address what's worrying you?",
@@ -379,7 +506,7 @@ function generateCoachResponse(message: string, emotion?: string): string {
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
 
-function generateMindfulnessResponse(message: string, emotion?: string): string {
+function generateMindfulnessResponse(message: string, emotion?: string, memories: any[] = []): string {
   const responses = {
     anxiety: [
       "I can feel the restless energy in your words. Take a moment with me right now - let's breathe together. Inhale slowly... hold... and release. Anxiety is like clouds passing through the sky of your mind. What do you notice when you simply observe these feelings without judgment?",
