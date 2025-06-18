@@ -87,7 +87,8 @@ export default function EnhancedChatScreen() {
   // Create conversation mutation
   const createConversationMutation = useMutation({
     mutationFn: async (data: { userId: string; personaId: string; title?: string }) => {
-      return await apiRequest("/api/conversations", "POST", data);
+      const response = await apiRequest("/api/conversations", "POST", data);
+      return await response.json();
     },
     onSuccess: (conversation) => {
       setConversationId(conversation.id);
@@ -103,7 +104,7 @@ export default function EnhancedChatScreen() {
       emotionContext?: any;
       moodData?: MoodCheckInData;
     }) => {
-      return await apiRequest("/api/chat/enhanced-message", "POST", {
+      const response = await apiRequest("/api/chat/enhanced-message", "POST", {
         message: data.message,
         personaId,
         userId,
@@ -112,6 +113,7 @@ export default function EnhancedChatScreen() {
         moodData: data.moodData,
         isFirstMessage: !data.conversationId
       });
+      return await response.json();
     },
     onSuccess: (response) => {
       const { conversation, aiMessage, emotionAnalysis, suggestedMicroTools, crisisDetected } = response;
@@ -135,11 +137,12 @@ export default function EnhancedChatScreen() {
   // Mood entry mutation
   const moodEntryMutation = useMutation({
     mutationFn: async (data: MoodCheckInData) => {
-      return await apiRequest("/api/mood-entries", "POST", {
+      const response = await apiRequest("/api/mood-entries", "POST", {
         ...data,
         userId,
         sessionId: conversationId
       });
+      return await response.json();
     }
   });
 
@@ -152,18 +155,19 @@ export default function EnhancedChatScreen() {
       completed: boolean;
       effectiveness?: number;
     }) => {
-      return await apiRequest("/api/micro-tools/usage", "POST", {
+      const response = await apiRequest("/api/micro-tools/usage", "POST", {
         ...data,
         userId,
         sessionId: conversationId
       });
+      return await response.json();
     }
   });
 
   // Message feedback mutation
   const feedbackMutation = useMutation({
     mutationFn: async (data: { messageId: number; rating: 'thumbs_up' | 'thumbs_down'; feedback?: string }) => {
-      return await apiRequest(`/api/messages/${data.messageId}/feedback`, "POST", {
+      const response = await apiRequest(`/api/messages/${data.messageId}/feedback`, "POST", {
         rating: data.rating,
         feedback: data.feedback,
         userId
