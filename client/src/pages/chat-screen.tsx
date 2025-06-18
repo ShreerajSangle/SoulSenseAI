@@ -19,11 +19,6 @@ export default function ChatScreen() {
   // Get persona ID from URL path params or query params (fallback)
   const personaId = params.persona || new URLSearchParams(location.split('?')[1] || '').get('persona');
   
-  // Debug logging
-  console.log('Current location:', location);
-  console.log('URL params:', params);
-  console.log('Extracted personaId:', personaId);
-  
   const { 
     messages, 
     persona, 
