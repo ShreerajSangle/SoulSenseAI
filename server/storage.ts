@@ -31,6 +31,10 @@ export interface IStorage {
   // Sessions
   createSession(session: InsertSession): Promise<Session>;
   getConversationSession(conversationId: number): Promise<Session | undefined>;
+  
+  // Memory & Context
+  getUserMemories(userId: string): Promise<any[]>;
+  saveUserMemory(userId: string, memory: any): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -38,6 +42,7 @@ export class MemStorage implements IStorage {
   private conversations: Map<number, Conversation>;
   private messages: Map<number, Message>;
   private sessions: Map<number, Session>;
+  private userMemories: Map<string, any[]>;
   private currentConversationId: number;
   private currentMessageId: number;
   private currentSessionId: number;
@@ -47,6 +52,7 @@ export class MemStorage implements IStorage {
     this.conversations = new Map();
     this.messages = new Map();
     this.sessions = new Map();
+    this.userMemories = new Map();
     this.currentConversationId = 1;
     this.currentMessageId = 1;
     this.currentSessionId = 1;
@@ -112,8 +118,10 @@ export class MemStorage implements IStorage {
     const id = this.currentConversationId++;
     const now = new Date();
     const conversation: Conversation = {
-      ...insertConversation,
       id,
+      userId: insertConversation.userId,
+      personaId: insertConversation.personaId,
+      title: insertConversation.title || null,
       createdAt: now,
       updatedAt: now,
     };
@@ -143,8 +151,11 @@ export class MemStorage implements IStorage {
   async createMessage(insertMessage: InsertMessage): Promise<Message> {
     const id = this.currentMessageId++;
     const message: Message = {
-      ...insertMessage,
       id,
+      conversationId: insertMessage.conversationId,
+      content: insertMessage.content,
+      sender: insertMessage.sender,
+      emotionDetected: insertMessage.emotionDetected || null,
       timestamp: new Date(),
     };
     this.messages.set(id, message);
@@ -167,8 +178,14 @@ export class MemStorage implements IStorage {
   async createSession(insertSession: InsertSession): Promise<Session> {
     const id = this.currentSessionId++;
     const session: Session = {
-      ...insertSession,
       id,
+      conversationId: insertSession.conversationId,
+      summary: insertSession.summary || null,
+      keyTopics: insertSession.keyTopics || null,
+      techniquesUsed: insertSession.techniquesUsed || null,
+      homework: insertSession.homework || null,
+      moodBefore: insertSession.moodBefore || null,
+      moodAfter: insertSession.moodAfter || null,
       createdAt: new Date(),
     };
     this.sessions.set(id, session);
@@ -178,6 +195,19 @@ export class MemStorage implements IStorage {
   async getConversationSession(conversationId: number): Promise<Session | undefined> {
     return Array.from(this.sessions.values())
       .find(session => session.conversationId === conversationId);
+  }
+
+  async getUserMemories(userId: string): Promise<any[]> {
+    return this.userMemories.get(userId) || [];
+  }
+
+  async saveUserMemory(userId: string, memory: any): Promise<void> {
+    const currentMemories = this.userMemories.get(userId) || [];
+    currentMemories.push({
+      ...memory,
+      timestamp: new Date()
+    });
+    this.userMemories.set(userId, currentMemories);
   }
 }
 

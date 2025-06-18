@@ -9,6 +9,13 @@ const createChatMessageRequestSchema = z.object({
   personaId: z.string(),
   conversationId: z.number().optional(),
   userId: z.string().default("anonymous"),
+  isFirstMessage: z.boolean().default(false),
+  userMood: z.string().optional(),
+});
+
+const moodCheckRequestSchema = z.object({
+  personaId: z.string(),
+  userId: z.string().default("anonymous"),
 });
 
 const createSessionSummaryRequestSchema = z.object({
@@ -47,10 +54,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get personalized greeting
+  app.post("/api/chat/greeting", async (req, res) => {
+    try {
+      const { personaId, userId } = moodCheckRequestSchema.parse(req.body);
+      const persona = await storage.getPersona(personaId);
+      
+      if (!persona) {
+        return res.status(404).json({ error: "Persona not found" });
+      }
+
+      // Get user memories for context
+      const memories = await storage.getUserMemories(userId);
+      const greeting = generatePersonalizedGreeting(persona, personaId, memories);
+      
+      res.json({ greeting, requiresMoodCheck: true });
+    } catch (error) {
+      console.error("Error generating greeting:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request format", details: error.errors });
+      }
+      res.status(500).json({ error: "Failed to generate greeting" });
+    }
+  });
+
   // Send chat message
   app.post("/api/chat/message", async (req, res) => {
     try {
-      const { message, personaId, conversationId, userId } = createChatMessageRequestSchema.parse(req.body);
+      const { message, personaId, conversationId, userId, isFirstMessage, userMood } = createChatMessageRequestSchema.parse(req.body);
       
       let currentConversationId = conversationId;
       
