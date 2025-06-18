@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 export default function EnhancedChatScreen() {
-  const { personaId } = useParams();
+  const { persona: personaId } = useParams();
   const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
@@ -65,9 +65,15 @@ export default function EnhancedChatScreen() {
   const userId = "anonymous"; // Will be replaced with actual user ID when auth is enabled
 
   // Fetch persona data
-  const { data: persona, isLoading: personaLoading } = useQuery({
+  const { data: persona, isLoading: personaLoading, error: personaError } = useQuery({
     queryKey: ["/api/personas", personaId],
-    queryFn: () => fetch(`/api/personas/${personaId}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/personas/${personaId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch persona: ${response.status}`);
+      }
+      return response.json();
+    },
     enabled: !!personaId
   });
 
@@ -262,8 +268,25 @@ export default function EnhancedChatScreen() {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
+  if (personaError) {
+    console.error('Persona error:', personaError);
+    return (
+      <div className="flex items-center justify-center h-screen flex-col gap-4">
+        <div>Error loading persona: {personaError.message}</div>
+        <div>Persona ID: {personaId}</div>
+        <Button onClick={() => setLocation("/")}>Back to Home</Button>
+      </div>
+    );
+  }
+
   if (!persona) {
-    return <div className="flex items-center justify-center h-screen">Persona not found</div>;
+    return (
+      <div className="flex items-center justify-center h-screen flex-col gap-4">
+        <div>Persona not found</div>
+        <div>Persona ID: {personaId}</div>
+        <Button onClick={() => setLocation("/")}>Back to Home</Button>
+      </div>
+    );
   }
 
   // Show mood check-in first
