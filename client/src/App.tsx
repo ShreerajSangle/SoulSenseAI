@@ -10,6 +10,8 @@ import MemoryScreen from "@/pages/memory-screen";
 import SessionSummary from "@/pages/session-summary";
 import DiaryScreen from "@/pages/diary-screen";
 import ProfileScreen from "@/pages/profile-screen";
+import ClinicalAssessment from "@/pages/clinical-assessment";
+import TherapeuticJourney from "@/pages/therapeutic-journey";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -21,6 +23,8 @@ function Router() {
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={DiaryScreen} />
       <Route path="/profile" component={ProfileScreen} />
+      <Route path="/clinical-assessment" component={ClinicalAssessment} />
+      <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
       <Route component={NotFound} />
     </Switch>

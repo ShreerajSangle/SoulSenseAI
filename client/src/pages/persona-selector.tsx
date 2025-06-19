@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, User, Trophy, Leaf, Sparkles, Brain, MessageCircle, Calendar, BookOpen, Settings, ChevronRight, Star } from "lucide-react";
+import { Heart, User, Trophy, Leaf, Sparkles, Brain, MessageCircle, Calendar, BookOpen, Settings, ChevronRight, Star, Activity, Target } from "lucide-react";
 import { usePersonas } from "@/hooks/use-chat";
 import { useLocation } from "wouter";
 import type { Persona } from "@shared/schema";
@@ -133,6 +133,72 @@ export default function PersonaSelector() {
               </Card>
             );
           })}
+        </div>
+
+        {/* Advanced Clinical Features */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-slate-800 mb-4">Advanced Clinical Intelligence</h2>
+          <p className="text-lg text-center text-slate-600 mb-12 max-w-3xl mx-auto">
+            Experience evidence-based assessments and personalized therapeutic journeys powered by clinical reasoning
+          </p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card 
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
+              onClick={() => setLocation('/clinical-assessment')}
+            >
+              <CardContent className="p-8">
+                <div className="flex items-start mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mr-6">
+                    <Activity className="text-white text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Clinical Assessment</h3>
+                    <Badge className="text-purple-700 bg-purple-50 border-purple-100 border font-medium">
+                      Evidence-Based
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-base text-slate-600 leading-relaxed mb-4">
+                  Take validated PHQ-9 and GAD-7 screenings with detailed clinical reasoning and personalized intervention recommendations
+                </p>
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className="text-sm text-slate-500">5-10 minutes</span>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white">
+                    Start Assessment
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
+              onClick={() => setLocation('/therapeutic-journey')}
+            >
+              <CardContent className="p-8">
+                <div className="flex items-start mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl flex items-center justify-center mr-6">
+                    <Target className="text-white text-2xl" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Therapeutic Journey</h3>
+                    <Badge className="text-pink-700 bg-pink-50 border-pink-100 border font-medium">
+                      Goal-Driven
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-base text-slate-600 leading-relaxed mb-4">
+                  Create personalized therapeutic goals with milestone tracking, progress analytics, and evidence-based interventions
+                </p>
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className="text-sm text-slate-500">6-12 weeks</span>
+                  <Button className="bg-gradient-to-r from-pink-500 to-purple-500 hover:opacity-90 text-white">
+                    Start Journey
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Quick Access Features */}
