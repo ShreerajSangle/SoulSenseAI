@@ -14,17 +14,17 @@ const personaIcons = {
 };
 
 const personaGradients = {
-  "sarah": "from-pink-500 to-purple-600",
-  "alex": "from-purple-400 to-pink-500",
-  "marcus": "from-pink-600 to-purple-700",
-  "maya": "from-purple-500 to-pink-600",
+  "sarah": "from-purple-500 to-purple-700",
+  "alex": "from-pink-500 to-pink-600",
+  "marcus": "from-purple-600 to-purple-800",
+  "maya": "from-pink-400 to-purple-600",
 };
 
 const personaAccents = {
-  "sarah": "text-purple-600 bg-pink-50 border-pink-100",
-  "alex": "text-pink-600 bg-purple-50 border-purple-100",
-  "marcus": "text-purple-700 bg-pink-50 border-pink-100",
-  "maya": "text-pink-700 bg-purple-50 border-purple-100",
+  "sarah": "text-purple-700 bg-purple-50 border-purple-100",
+  "alex": "text-pink-600 bg-pink-50 border-pink-100",
+  "marcus": "text-purple-800 bg-purple-50 border-purple-100",
+  "maya": "text-purple-600 bg-pink-50 border-pink-100",
 };
 
 export default function PersonaSelector() {
@@ -37,13 +37,13 @@ export default function PersonaSelector() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-lavender-100 via-lavender-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-300 via-purple-200 to-purple-400 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl animate-pulse">
+          <div className="w-32 h-32 mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 shadow-2xl animate-pulse">
             <Sparkles className="text-white text-4xl" />
           </div>
-          <h2 className="text-4xl font-bold text-slate-800 mb-4">SoulSense AI</h2>
-          <p className="text-xl text-slate-600">Loading your therapeutic companions...</p>
+          <h2 className="text-4xl font-bold text-purple-900 mb-4">SoulSense AI</h2>
+          <p className="text-xl text-purple-800">Loading your therapeutic companions...</p>
         </div>
       </div>
     );
@@ -142,7 +142,7 @@ export default function PersonaSelector() {
             onClick={() => setLocation('/diary')}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-500 to-purple-700 rounded-2xl flex items-center justify-center mb-6">
                 <BookOpen className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">Daily Journal</h3>
@@ -155,7 +155,7 @@ export default function PersonaSelector() {
             onClick={() => setLocation('/memory')}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6">
                 <Calendar className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">Session History</h3>
@@ -168,7 +168,7 @@ export default function PersonaSelector() {
             onClick={() => setLocation('/profile')}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-600 to-purple-700 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl flex items-center justify-center mb-6">
                 <Settings className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">Profile Settings</h3>
