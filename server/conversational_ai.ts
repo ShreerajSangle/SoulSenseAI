@@ -278,75 +278,778 @@ export class ConversationalAI {
     memories: any[],
     conversationHistory: any[]
   ): string {
-    const patterns = persona.responsePatterns;
-    const personality = persona.corePersonality;
-    
-    // Find relevant memories
+    // Build comprehensive conversation context
+    const context = this.buildAdvancedContext(
+      userMessage,
+      emotionAnalysis,
+      persona,
+      userProfile,
+      memories,
+      conversationHistory
+    );
+
+    // Generate highly contextual and varied response
+    return this.generateDynamicResponse(context, responseStrategy);
+  }
+
+  private buildAdvancedContext(
+    userMessage: string,
+    emotionAnalysis: any,
+    persona: any,
+    userProfile: any,
+    memories: any[],
+    conversationHistory: any[]
+  ): any {
+    const recentHistory = conversationHistory.slice(-8);
+    const conversationThemes = this.extractConversationThemes(recentHistory);
+    const emotionalJourney = this.mapEmotionalJourney(recentHistory);
     const relevantMemories = this.findRelevantMemories(userMessage, memories);
-    const lastTopic = this.extractLastTopic(conversationHistory);
-    const userName = userProfile?.name || "friend";
+    const userCommunicationStyle = this.analyzeUserCommunicationStyle(recentHistory);
+    const sessionProgress = this.assessSessionProgress(conversationHistory);
     
-    // Base response generation
-    let response = "";
+    return {
+      userMessage,
+      emotionAnalysis,
+      persona,
+      userProfile,
+      recentHistory,
+      conversationThemes,
+      emotionalJourney,
+      relevantMemories,
+      userCommunicationStyle,
+      sessionProgress,
+      conversationFlow: this.analyzeConversationFlow(recentHistory),
+      previousResponseStyle: this.getLastResponseStyle(recentHistory),
+      topicContinuity: this.assessTopicContinuity(recentHistory),
+      memoryAnchors: this.identifyMemoryAnchors(userMessage, memories)
+    };
+  }
+
+  private generateDynamicResponse(context: any, responseStrategy: string): string {
+    const responseVariations = this.getResponseVariations(context, responseStrategy);
+    const selectedVariation = this.selectOptimalVariation(responseVariations, context);
     
-    switch (responseStrategy) {
-      case 'crisis_support':
-        response = this.generateCrisisResponse(emotionAnalysis, persona);
-        break;
-        
-      case 'emotional_validation':
-        response = this.generateValidationResponse(userMessage, emotionAnalysis, persona, userName);
-        break;
-        
-      case 'anxiety_exploration':
-        response = this.generateAnxietyResponse(userMessage, emotionAnalysis, persona, relevantMemories, userName);
-        break;
-        
-      case 'depression_support':
-        response = this.generateDepressionResponse(userMessage, emotionAnalysis, persona, relevantMemories, userName);
-        break;
-        
-      case 'positive_reinforcement':
-        response = this.generatePositiveResponse(userMessage, emotionAnalysis, persona, userName);
-        break;
-        
-      default:
-        response = this.generateGeneralResponse(userMessage, emotionAnalysis, persona, relevantMemories, userName);
-    }
+    // Apply personality-specific modifications
+    let response = this.applyPersonalityFilters(selectedVariation, context.persona);
     
-    // Add memory references if relevant
-    if (relevantMemories.length > 0) {
-      response = this.weaveInMemoryReferences(response, relevantMemories, persona);
-    }
+    // Integrate memory references naturally
+    response = this.integrateMemoryReferences(response, context);
     
-    // Adjust tone based on personality
-    response = this.adjustToneForPersonality(response, personality);
+    // Add conversational continuity
+    response = this.addConversationalContinuity(response, context);
+    
+    // Ensure response variety
+    response = this.ensureResponseVariety(response, context);
     
     return response;
   }
 
-  private generateValidationResponse(
-    userMessage: string,
-    emotionAnalysis: any,
-    persona: any,
-    userName: string
-  ): string {
+  private getResponseVariations(context: any, strategy: string): string[] {
+    const { userMessage, emotionAnalysis, persona, relevantMemories } = context;
     const { primary_emotion, intensity } = emotionAnalysis;
-    const pattern = persona.responsePatterns.validation;
     
-    const intensityWords = {
-      high: "incredibly",
-      medium: "really",
-      low: "somewhat"
+    const variations = [];
+    
+    switch (strategy) {
+      case 'emotional_validation':
+        variations.push(
+          ...this.generateValidationVariations(context),
+          ...this.generateEmpathyVariations(context),
+          ...this.generateUnderstandingVariations(context)
+        );
+        break;
+        
+      case 'anxiety_exploration':
+        variations.push(
+          ...this.generateAnxietyExplorationVariations(context),
+          ...this.generateCalmingVariations(context),
+          ...this.generateCopingVariations(context)
+        );
+        break;
+        
+      case 'depression_support':
+        variations.push(
+          ...this.generateDepressionSupportVariations(context),
+          ...this.generateHopeVariations(context),
+          ...this.generateActivationVariations(context)
+        );
+        break;
+        
+      case 'positive_reinforcement':
+        variations.push(
+          ...this.generatePositiveVariations(context),
+          ...this.generateCelebrationVariations(context),
+          ...this.generateEncouragementVariations(context)
+        );
+        break;
+        
+      default:
+        variations.push(
+          ...this.generateGeneralVariations(context),
+          ...this.generateReflectiveVariations(context),
+          ...this.generateCuriousVariations(context)
+        );
+    }
+    
+    return variations;
+  }
+
+  // Core conversation analysis methods
+  private extractConversationThemes(history: any[]): string[] {
+    const themes = [];
+    const keywords = history.map(msg => this.extractKeyPhrases(msg.content)).flat();
+    const themeGroups = this.groupByTheme(keywords);
+    return themeGroups.slice(0, 3);
+  }
+
+  private mapEmotionalJourney(history: any[]): string[] {
+    return history
+      .filter(msg => msg.emotionAnalysis)
+      .map(msg => msg.emotionAnalysis.primary_emotion)
+      .slice(-5);
+  }
+
+  private analyzeUserCommunicationStyle(history: any[]): string {
+    const userMessages = history.filter(msg => msg.sender === 'user');
+    if (userMessages.length === 0) return 'exploratory';
+    
+    const avgLength = userMessages.reduce((sum, msg) => sum + msg.content.length, 0) / userMessages.length;
+    const hasQuestions = userMessages.some(msg => msg.content.includes('?'));
+    const hasEmotionalLanguage = userMessages.some(msg => 
+      /feel|emotion|hurt|happy|sad|angry|anxious/.test(msg.content.toLowerCase())
+    );
+    
+    if (avgLength > 200 && hasEmotionalLanguage) return 'deep-sharing';
+    if (hasQuestions && avgLength < 100) return 'inquisitive';
+    if (hasEmotionalLanguage) return 'emotionally-expressive';
+    return 'conversational';
+  }
+
+  private assessSessionProgress(history: any[]): string {
+    if (history.length < 4) return 'opening';
+    if (history.length < 10) return 'developing';
+    return 'deepening';
+  }
+
+  private analyzeConversationFlow(history: any[]): string {
+    if (history.length < 2) return 'starting';
+    
+    const recentEmotions = history.slice(-3)
+      .filter(msg => msg.emotionAnalysis)
+      .map(msg => msg.emotionAnalysis.intensity || 0);
+    
+    if (recentEmotions.length >= 2) {
+      const trend = recentEmotions[recentEmotions.length - 1] - recentEmotions[0];
+      if (trend > 0.2) return 'intensifying';
+      if (trend < -0.2) return 'calming';
+    }
+    
+    return 'steady';
+  }
+
+  private getLastResponseStyle(history: any[]): string {
+    const lastAiMessage = history.slice().reverse().find(msg => msg.sender === 'ai');
+    if (!lastAiMessage) return 'none';
+    
+    const content = lastAiMessage.content.toLowerCase();
+    if (content.includes('?')) return 'questioning';
+    if (content.includes('understand') || content.includes('hear')) return 'validating';
+    if (content.includes('try') || content.includes('might')) return 'suggesting';
+    return 'reflecting';
+  }
+
+  private assessTopicContinuity(history: any[]): string {
+    if (history.length < 4) return 'new';
+    
+    const recentTopics = history.slice(-4).map(msg => this.extractTopics(msg.content)).flat();
+    const uniqueTopics = [...new Set(recentTopics)];
+    
+    return uniqueTopics.length <= 2 ? 'focused' : 'varied';
+  }
+
+  private identifyMemoryAnchors(userMessage: string, memories: any[]): string[] {
+    const messageKeywords = this.extractKeyPhrases(userMessage);
+    return memories
+      .filter(memory => 
+        messageKeywords.some(keyword => 
+          memory.content?.toLowerCase().includes(keyword.toLowerCase())
+        )
+      )
+      .slice(0, 2)
+      .map(memory => memory.topic || memory.content?.substring(0, 50));
+  }
+
+  private selectOptimalVariation(variations: string[], context: any): string {
+    const recentResponses = context.recentHistory
+      .filter(msg => msg.sender === 'ai')
+      .slice(-3)
+      .map(msg => msg.content);
+    
+    let bestVariation = variations[0];
+    let maxDifference = 0;
+    
+    for (const variation of variations) {
+      let similarity = 0;
+      for (const recent of recentResponses) {
+        similarity += this.calculateSimilarity(variation, recent);
+      }
+      const difference = 1 - (similarity / Math.max(recentResponses.length, 1));
+      
+      if (difference > maxDifference) {
+        maxDifference = difference;
+        bestVariation = variation;
+      }
+    }
+    
+    return bestVariation;
+  }
+
+  private calculateSimilarity(text1: string, text2: string): number {
+    const words1 = text1.toLowerCase().split(/\s+/);
+    const words2 = text2.toLowerCase().split(/\s+/);
+    const commonWords = words1.filter(word => words2.includes(word));
+    return commonWords.length / Math.max(words1.length, words2.length);
+  }
+
+  private applyPersonalityFilters(response: string, persona: any): string {
+    const personality = persona.corePersonality;
+    
+    if (personality.playfulness > 0.6) {
+      response = this.addPlayfulElements(response);
+    }
+    
+    if (personality.directness > 0.7) {
+      response = this.makeMoreDirect(response);
+    }
+    
+    if (personality.warmth > 0.8) {
+      response = this.addWarmthCues(response);
+    }
+    
+    return response;
+  }
+
+  private addPlayfulElements(response: string): string {
+    const playfulMarkers = ['right?', 'you know?', 'honestly', 'I mean'];
+    const randomMarker = playfulMarkers[Math.floor(Math.random() * playfulMarkers.length)];
+    
+    if (Math.random() > 0.7) {
+      return response + ` ${randomMarker}`;
+    }
+    return response;
+  }
+
+  private makeMoreDirect(response: string): string {
+    return response
+      .replace(/I think that maybe/g, 'I think')
+      .replace(/It seems like perhaps/g, 'It seems like')
+      .replace(/might possibly/g, 'might');
+  }
+
+  private addWarmthCues(response: string): string {
+    const warmthCues = ['really', 'truly', 'genuinely'];
+    const randomCue = warmthCues[Math.floor(Math.random() * warmthCues.length)];
+    
+    if (Math.random() > 0.6 && !response.includes(randomCue)) {
+      return response.replace(/I (feel|think|sense|notice)/, `I ${randomCue} $1`);
+    }
+    return response;
+  }
+
+  private integrateMemoryReferences(response: string, context: any): string {
+    if (context.relevantMemories.length === 0) return response;
+    
+    const memory = context.relevantMemories[0];
+    const memoryRef = this.createMemoryReference(memory, context.persona);
+    
+    if (Math.random() > 0.6) {
+      return `${response} ${memoryRef}`;
+    }
+    
+    return response;
+  }
+
+  private createMemoryReference(memory: any, persona: any): string {
+    const timeAgo = this.getTimeAgo(new Date(memory.timestamp));
+    
+    if (persona.id === 'sarah') {
+      return `This reminds me of what you shared ${timeAgo} about ${memory.topic}.`;
+    } else if (persona.id === 'alex') {
+      return `Hey, didn't you mention something about ${memory.topic} ${timeAgo}?`;
+    } else if (persona.id === 'maya') {
+      return `I'm holding the memory of what you shared about ${memory.topic}.`;
+    }
+    
+    return `I remember you talking about ${memory.topic} before.`;
+  }
+
+  private addConversationalContinuity(response: string, context: any): string {
+    const { conversationFlow, topicContinuity } = context;
+    
+    if (topicContinuity === 'focused') {
+      return this.addTopicContinuity(response, context);
+    }
+    
+    if (conversationFlow === 'deepening') {
+      return this.addDepthCues(response);
+    }
+    
+    return response;
+  }
+
+  private addTopicContinuity(response: string, context: any): string {
+    const connectors = [
+      "Building on what you just said,",
+      "Staying with that feeling,",
+      "Going deeper into this,",
+      "As we explore this further,"
+    ];
+    
+    if (Math.random() > 0.7) {
+      const connector = connectors[Math.floor(Math.random() * connectors.length)];
+      return `${connector} ${response.toLowerCase()}`;
+    }
+    
+    return response;
+  }
+
+  private addDepthCues(response: string): string {
+    const depthCues = [
+      "What I'm really hearing is",
+      "At the heart of this seems to be",
+      "The deeper truth here might be",
+      "What strikes me most is"
+    ];
+    
+    if (Math.random() > 0.8) {
+      const cue = depthCues[Math.floor(Math.random() * depthCues.length)];
+      return `${cue} ${response.toLowerCase()}`;
+    }
+    
+    return response;
+  }
+
+  private ensureResponseVariety(response: string, context: any): string {
+    const recentStructures = context.recentHistory
+      .filter(msg => msg.sender === 'ai')
+      .slice(-2)
+      .map(msg => this.getResponseStructure(msg.content));
+    
+    const currentStructure = this.getResponseStructure(response);
+    
+    if (recentStructures.includes(currentStructure)) {
+      return this.varyResponseStructure(response, currentStructure);
+    }
+    
+    return response;
+  }
+
+  private getResponseStructure(response: string): string {
+    if (response.includes('I can') || response.includes('I notice')) return 'observation';
+    if (response.includes('What if') || response.includes('Have you')) return 'question';
+    if (response.includes('That sounds') || response.includes('It seems')) return 'reflection';
+    return 'statement';
+  }
+
+  private varyResponseStructure(response: string, currentStructure: string): string {
+    switch (currentStructure) {
+      case 'observation':
+        return response.replace(/I can (see|hear|feel|sense)/, 'What comes through is');
+      case 'question':
+        return response.replace(/What if/, 'I wonder if').replace(/Have you/, 'Tell me if you\'ve');
+      case 'reflection':
+        return response.replace(/That sounds/, 'This feels like').replace(/It seems/, 'What I\'m picking up is');
+      default:
+        return response;
+    }
+  }
+
+  private groupByTheme(keywords: string[]): string[] {
+    const themes = {
+      'relationships': ['friend', 'family', 'partner', 'relationship', 'love', 'connection'],
+      'work': ['job', 'work', 'career', 'boss', 'colleague', 'stress'],
+      'emotions': ['feel', 'emotion', 'happy', 'sad', 'angry', 'anxious', 'depression'],
+      'self': ['myself', 'identity', 'worth', 'confidence', 'self-esteem']
     };
     
-    const intensityLevel = intensity > 0.7 ? "high" : intensity > 0.4 ? "medium" : "low";
+    const themeScores = {};
+    for (const [theme, themeWords] of Object.entries(themes)) {
+      themeScores[theme] = keywords.filter(keyword => 
+        themeWords.some(word => keyword.toLowerCase().includes(word))
+      ).length;
+    }
     
-    return pattern
-      .replace("{name}", userName)
-      .replace("{emotion}", primary_emotion)
-      .replace("{intensity}", intensityWords[intensityLevel])
-      .replace("{situation}", this.extractSituation(userMessage));
+    return Object.entries(themeScores)
+      .sort(([,a], [,b]) => b - a)
+      .filter(([,score]) => score > 0)
+      .map(([theme]) => theme);
+  }
+
+  private generateValidationVariations(context: any): string[] {
+    const { userMessage, emotionAnalysis, persona, userProfile } = context;
+    const { primary_emotion, intensity } = emotionAnalysis;
+    const userName = userProfile?.name || "friend";
+    
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `I can really hear the ${primary_emotion} in what you're sharing, ${userName}. That must feel overwhelming right now.`,
+        `What you're experiencing makes complete sense - I've seen many people feel exactly this way when facing something like this.`,
+        `Your feelings are so valid here. I'm noticing how much courage it takes to even put this into words.`,
+        `I want you to know that what you're going through is real and important. Let's sit with this together for a moment.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `Oh wow, I can totally feel that ${primary_emotion} coming through. I've been there myself, honestly.`,
+        `Dude, that sounds really tough. I remember feeling something similar when I was going through my own stuff.`,
+        `Yeah, I get it - that kind of ${primary_emotion} can be so intense. You're definitely not alone in feeling this way.`,
+        `That hits close to home for me. I know exactly what you mean about feeling like that.`
+      );
+    } else if (persona.id === 'marcus') {
+      variations.push(
+        `I hear you, ${userName}. That ${primary_emotion} is telling you something important about what matters to you.`,
+        `This is real stuff you're dealing with. Takes strength to acknowledge these feelings instead of pushing them down.`,
+        `What you're describing - that's part of being human. These emotions are showing you where your values are.`,
+        `I respect how honest you're being about this. That ${primary_emotion} is valid and it's pointing toward something.`
+      );
+    } else if (persona.id === 'maya') {
+      variations.push(
+        `I can sense the ${primary_emotion} flowing through your words. Thank you for trusting me with this.`,
+        `What a tender moment you're sharing. These feelings are like waves - they come, they're felt, they pass.`,
+        `I'm holding space for everything you're experiencing right now. Your ${primary_emotion} is honored here.`,
+        `This is such a human moment. Can you feel how your body is holding all of this right now?`
+      );
+    }
+    
+    return variations;
+  }
+
+  // Add missing variation methods
+  private generateCopingVariations(context: any): string[] {
+    const { persona, emotionAnalysis } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Let's work together to find some strategies that might help you feel more grounded in moments like these.`,
+        `What coping skills have you used before that felt helpful? We can build on those.`,
+        `Sometimes it helps to have a few tools in our toolkit for when things feel intense.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `I learned some tricks that really helped me when I was dealing with similar stuff. Want to hear them?`,
+        `When things got rough for me, I found a few things that actually worked. Maybe they'd help you too.`,
+        `I know it's hard to think of solutions when you're in it, but there are some practical things that can help.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateDepressionSupportVariations(context: any): string[] {
+    const { persona, userProfile } = context;
+    const userName = userProfile?.name || "friend";
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Depression can feel so isolating, ${userName}. I want you to know you're not going through this alone.`,
+        `What you're describing sounds like depression is really weighing on you right now. That's incredibly difficult.`,
+        `I can hear how hard it is to even get through each day. That takes tremendous strength, even when it doesn't feel like it.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `I know that depression fog - it's like everything feels muted and heavy. I've been there.`,
+        `Depression is so tough because it tricks you into thinking things will never get better. But they can.`,
+        `When I was depressed, even small things felt impossible. You're doing better than you think you are.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateHopeVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Even in difficult moments like this, there are possibilities for change and growth.`,
+        `I've seen people work through experiences like yours and find their way to a different place.`,
+        `What you're going through now doesn't define your future possibilities.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `I know it's hard to see right now, but things really can shift. I've seen it happen.`,
+        `You've gotten through hard times before, and you have that strength in you still.`,
+        `Sometimes hope is hard to find, but it's there - even when it's just a tiny flicker.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateActivationVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Sometimes when we're feeling low, taking one small step can create a shift.`,
+        `What's one tiny thing you could do today that might bring a moment of connection or accomplishment?`,
+        `Depression tells us nothing will help, but sometimes gentle action can surprise us.`
+      );
+    } else if (persona.id === 'marcus') {
+      variations.push(
+        `Even when motivation is low, small actions can build momentum. What feels possible right now?`,
+        `Let's find one small way to move your energy today - something that honors where you are.`,
+        `Sometimes we have to act our way into feeling better, not wait to feel better to act.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generatePositiveVariations(context: any): string[] {
+    const { persona, userProfile } = context;
+    const userName = userProfile?.name || "friend";
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `I can hear the joy in your voice, ${userName}. It's wonderful to witness these positive moments.`,
+        `This sounds like such a meaningful experience for you. What made it feel so special?`,
+        `I love seeing you light up when you talk about this. Tell me more about what's bringing you joy.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `Dude, I can feel your excitement! That's so awesome to hear.`,
+        `This is amazing! I love seeing you happy about this. What's the best part?`,
+        `Your energy is so positive right now - it's actually making me smile too!`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateCelebrationVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'alex') {
+      variations.push(
+        `We should totally celebrate this! This is a big deal.`,
+        `I'm so proud of you for this. Seriously, this is worth celebrating.`,
+        `This deserves recognition - you've worked hard for this moment.`
+      );
+    } else if (persona.id === 'marcus') {
+      variations.push(
+        `This achievement reflects your commitment and growth. That's worth honoring.`,
+        `Take a moment to really appreciate what you've accomplished here.`,
+        `This progress shows your values in action. That's something to be proud of.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateEncouragementVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'marcus') {
+      variations.push(
+        `You have more strength and wisdom than you're giving yourself credit for.`,
+        `I can see your resilience even when you can't. It's there, and it's real.`,
+        `This challenge is showing you capabilities you might not have known you had.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `You're tougher than you think, and I can see that even if you can't right now.`,
+        `I believe in your ability to get through this. You've got what it takes.`,
+        `You're not giving yourself enough credit for how well you're handling this.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateGeneralVariations(context: any): string[] {
+    const { persona, emotionAnalysis } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `I'm curious to understand more about what this experience has been like for you.`,
+        `Help me understand what's most important for you in this situation.`,
+        `I'm wondering what thoughts or feelings are strongest for you right now.`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `Tell me more about what's going on. I want to understand where you're coming from.`,
+        `What's the biggest thing on your mind about all this?`,
+        `I'm here to listen - what feels most important to share right now?`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateReflectiveVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `As I listen to you, I'm noticing some themes in what you're sharing.`,
+        `What stands out to me is how thoughtfully you're approaching this.`,
+        `I'm struck by the insight you're showing as you work through this.`
+      );
+    } else if (persona.id === 'maya') {
+      variations.push(
+        `There's wisdom in how you're exploring this. I can sense your inner knowing.`,
+        `What you're sharing has such depth. I'm honored to witness your process.`,
+        `I can feel the thoughtfulness in how you're approaching this experience.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateCuriousVariations(context: any): string[] {
+    const { persona } = context;
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `I'm curious about what this connects to for you. What comes up as you think about it?`,
+        `What would it look like if you followed that feeling or thought a little deeper?`,
+        `I wonder what your intuition is telling you about this situation.`
+      );
+    } else if (persona.id === 'maya') {
+      variations.push(
+        `What wants to emerge as you sit with this? What's calling for attention?`,
+        `I'm curious what would happen if you trusted your first instinct here.`,
+        `What does your heart know about this that your mind might be overlooking?`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateEmpathyVariations(context: any): string[] {
+    const { userMessage, emotionAnalysis, persona, relevantMemories } = context;
+    const { primary_emotion, intensity } = emotionAnalysis;
+    
+    const variations = [];
+    
+    if (intensity > 0.7) {
+      variations.push(
+        `This feels like such a heavy moment for you. I can sense how much this is affecting you.`,
+        `I can feel the weight of what you're carrying right now. That must be exhausting.`,
+        `The intensity of what you're going through really comes through in your words.`
+      );
+    } else {
+      variations.push(
+        `I can hear something shifting in you as you talk about this.`,
+        `There's something vulnerable in what you're sharing - I can feel it.`,
+        `I notice a gentleness in how you're exploring this feeling.`
+      );
+    }
+    
+    if (relevantMemories.length > 0) {
+      const memory = relevantMemories[0];
+      variations.push(
+        `This reminds me of when you mentioned ${memory.topic} before. I can see how these experiences connect.`,
+        `I'm thinking about what you shared about ${memory.topic} - there seems to be a thread there.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateUnderstandingVariations(context: any): string[] {
+    const { userMessage, emotionAnalysis, persona, conversationThemes } = context;
+    
+    const variations = [
+      `I think I understand what you're getting at. Let me see if I'm following you correctly.`,
+      `So if I'm hearing you right, this is really about feeling like...`,
+      `It sounds like underneath everything, you're experiencing a sense of...`,
+      `What I'm picking up is that this situation is making you feel...`,
+      `Help me understand - when this happens, what goes through your mind?`,
+      `I want to make sure I'm really getting this. What's the hardest part for you?`
+    ];
+    
+    if (conversationThemes && conversationThemes.length > 0) {
+      const theme = conversationThemes[0];
+      variations.push(
+        `This seems to connect with that theme of ${theme} we've been exploring.`,
+        `I'm seeing how this ties into what we talked about with ${theme}.`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateAnxietyExplorationVariations(context: any): string[] {
+    const { userMessage, emotionAnalysis, persona, userProfile } = context;
+    const userName = userProfile?.name || "friend";
+    
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Let's explore this anxiety together, ${userName}. What does it feel like in your body right now?`,
+        `Anxiety often has important information for us. What do you think yours might be trying to tell you?`,
+        `I notice your anxiety seems to spike around certain situations. Have you noticed any patterns?`,
+        `When you feel this anxious feeling coming on, what thoughts tend to go through your mind first?`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `Anxiety can be such a pain, right? I used to get hit with it out of nowhere too.`,
+        `That anxious feeling is so real. For me, it helped to figure out what was actually triggering it.`,
+        `I get that anxiety - it's like your brain is trying to protect you from something, but sometimes it goes overboard.`,
+        `When I was dealing with anxiety like that, I had to learn what my body was actually trying to tell me.`
+      );
+    } else if (persona.id === 'maya') {
+      variations.push(
+        `Anxiety is often our system trying to get our attention. What is it inviting you to notice?`,
+        `Can you breathe with me for a moment? Let's see what this anxiety wants to show you.`,
+        `I wonder what this anxious energy is asking of you right now. Can you feel into that?`,
+        `Sometimes anxiety is like a messenger. What message might it be carrying for you today?`
+      );
+    }
+    
+    return variations;
+  }
+
+  private generateCalmingVariations(context: any): string[] {
+    const { userMessage, emotionAnalysis, persona } = context;
+    
+    const variations = [];
+    
+    if (persona.id === 'sarah') {
+      variations.push(
+        `Let's take this one step at a time. You don't have to figure it all out right now.`,
+        `I want you to know you're safe here with me. We can slow down and just breathe for a moment.`,
+        `Sometimes when anxiety feels big, it helps to ground ourselves in what's actually happening right now.`
+      );
+    } else if (persona.id === 'maya') {
+      variations.push(
+        `Let's return to your breath together. Feel your feet on the ground. You're here, you're safe.`,
+        `Can you find one thing in your environment that feels soothing right now? Let your attention rest there.`,
+        `This anxious energy - what if we could hold it with compassion instead of resistance?`
+      );
+    } else if (persona.id === 'alex') {
+      variations.push(
+        `Hey, it's okay. I know that feeling. Let's just take it slow for a sec.`,
+        `When I get anxious like that, I try to remember that feelings come and go. This will pass too.`,
+        `You're going to be okay. I know it doesn't feel like it right now, but you've gotten through stuff before.`
+      );
+    }
+    
+    return variations;
   }
 
   private generateAnxietyResponse(
