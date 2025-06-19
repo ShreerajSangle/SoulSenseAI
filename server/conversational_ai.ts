@@ -533,20 +533,53 @@ export class ConversationalAI {
   }
 
   private addConversationalFlair(response: string, persona: any, message: string): string {
-    // Add natural conversation starters based on persona
-    const flairOptions = {
-      sarah: ["*settling in comfortably*", "*leaning forward with gentle attention*", "*with warm, understanding eyes*"],
-      alex: ["*nodding knowingly*", "*with a genuine smile*", "*relaxing into the conversation*"],
-      marcus: ["*with focused energy*", "*sitting up with interest*", "*with encouraging presence*"],
-      maya: ["*with peaceful awareness*", "*breathing deeply together*", "*holding gentle space*"]
+    // Add natural conversation elements and transitions
+    const messageWords = message.toLowerCase();
+    
+    // Context-aware conversation starters
+    const dynamicStarters = {
+      sarah: {
+        continuation: ["I'm hearing that...", "It sounds like...", "What I'm noticing is..."],
+        reflection: ["That reminds me of...", "I wonder if...", "There's something about..."],
+        empathy: ["I can imagine that...", "That must feel...", "I sense that..."]
+      },
+      alex: {
+        continuation: ["Yeah, so...", "I hear you saying...", "What's coming through is..."],
+        reflection: ["That's interesting because...", "You know what strikes me?", "Here's what I'm thinking..."],
+        empathy: ["Dude, that sounds...", "I totally get that...", "I've been there with..."]
+      },
+      marcus: {
+        continuation: ["Here's what I'm seeing...", "What stands out to me is...", "The opportunity here is..."],
+        reflection: ["That tells me...", "What's powerful about this is...", "I respect that you're..."],
+        empathy: ["I hear the strength in...", "That takes courage to...", "What I admire is..."]
+      },
+      maya: {
+        continuation: ["I'm sensing that...", "What's emerging is...", "There's wisdom in..."],
+        reflection: ["The deeper truth seems to be...", "What wants to be honored here is...", "I'm holding space for..."],
+        empathy: ["My heart feels...", "There's such tenderness in...", "I witness your..."]
+      }
     };
 
-    const personaFlair = flairOptions[persona?.id as keyof typeof flairOptions] || flairOptions.sarah;
+    const personaStarters = dynamicStarters[persona?.id as keyof typeof dynamicStarters] || dynamicStarters.sarah;
     
-    // Sometimes add conversational flair, sometimes keep it natural
+    // Choose starter type based on message context
+    let starterType = 'continuation';
+    if (messageWords.includes('feel') || messageWords.includes('emotion')) {
+      starterType = 'empathy';
+    } else if (messageWords.includes('think') || messageWords.includes('wonder')) {
+      starterType = 'reflection';
+    }
+    
+    // Add natural transitions 30% of the time
     if (Math.random() > 0.7) {
-      const randomFlair = personaFlair[Math.floor(Math.random() * personaFlair.length)];
-      return `${randomFlair} ${response}`;
+      const starters = personaStarters[starterType as keyof typeof personaStarters];
+      const randomStarter = starters[Math.floor(Math.random() * starters.length)];
+      
+      // Replace first few words with natural starter
+      const words = response.split(' ');
+      if (words.length > 3) {
+        return `${randomStarter} ${words.slice(2).join(' ')}`;
+      }
     }
     
     return response;
