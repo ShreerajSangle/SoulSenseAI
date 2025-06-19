@@ -387,24 +387,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get conversation history for context
       const messageHistory = await storage.getConversationMessages(conversation.id);
       
+      // Analyze emotion first for context
+      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
+
       // Use advanced AI engine for Replika-quality responses
       const advancedResponse = await advancedAI.generateResponse(
         message,
-        userId,
         personaId,
-        messageHistory
+        userId,
+        messageHistory,
+        emotionAnalysis
       );
 
       // Create AI message with advanced response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: advancedResponse.content,
+        content: advancedResponse.response,
         sender: 'ai',
-        emotionDetected: advancedResponse.emotionalTone
+        emotionDetected: 'empathetic'
       });
-
-      // Analyze emotion for additional context
-      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
       // Determine suggested micro-tools based on emotional state
       const suggestedMicroTools = [];
@@ -434,9 +435,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         crisisDetected,
         followUpQuestions,
         therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
-        personalityInsight: advancedResponse.personality,
-        memoryReferences: advancedResponse.memories,
-        relationshipDepth: advancedResponse.relationshipUpdate
+        personalityInsight: advancedResponse.personalityInsight,
+        memoryReferences: advancedResponse.memoryReferences,
+        relationshipDepth: advancedResponse.relationshipDepth
       });
 
     } catch (error) {
