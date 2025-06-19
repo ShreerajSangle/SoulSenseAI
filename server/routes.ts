@@ -6,9 +6,6 @@ import { spawn } from "child_process";
 import path from "path";
 import { conversationalAI } from "./conversational_ai";
 import { emotionDetector } from "./emotion_detection";
-import { z } from "zod";
-import * as fs from "fs";
-import * as yaml from "js-yaml";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -36,6 +33,9 @@ interface GoalTracker {
 
 import { registerClinicalRoutes } from "./clinical_routes";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
+import { z } from "zod";
+import * as fs from "fs";
+import * as yaml from "js-yaml";
 
 const createChatMessageRequestSchema = z.object({
   message: z.string().min(1),
