@@ -10,6 +10,7 @@ import { advancedAI } from "./advanced_ai_engine";
 import { replikaEngine } from "./replika_engine";
 import { llmEngine } from "./llm_conversation_engine";
 import { enhancedConversationSystem } from "./enhanced_conversation_system";
+import { streamingConversation } from "./streaming_conversation";
 
 // Import Python module interfaces
 interface MemoryUpdate {
