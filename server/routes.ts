@@ -9,6 +9,7 @@ import { emotionDetector } from "./emotion_detection";
 import { advancedAI } from "./advanced_ai_engine";
 import { replikaEngine } from "./replika_engine";
 import { llmEngine } from "./llm_conversation_engine";
+import { enhancedConversationSystem } from "./enhanced_conversation_system";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -392,18 +393,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze emotion first for context
       const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
-      // Use LLM engine for highest quality responses
-      const llmResponse = await llmEngine.generateStreamingResponse(
+      // Use enhanced conversation system for Replika-quality responses
+      const enhancedResponse = await enhancedConversationSystem.generateAdvancedResponse(
         message,
         personaId,
         userId,
         messageHistory
       );
 
-      // Create AI message with LLM response
+      // Create AI message with enhanced response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: llmResponse.response,
+        content: enhancedResponse.response,
         sender: 'ai',
         emotionDetected: 'empathetic'
       });
@@ -436,11 +437,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         crisisDetected,
         followUpQuestions,
         therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
-        personalityInsight: llmResponse.memoryUpdate.personalityProfile,
-        memoryReferences: llmResponse.memoryUpdate.significantMoments,
-        relationshipDepth: llmResponse.emotionalResonance,
-        emotionalResonance: llmResponse.emotionalResonance,
-        conversationInsights: llmResponse.conversationInsights
+        personalityInsight: enhancedResponse.personalizedInsights,
+        memoryReferences: enhancedResponse.memoryUpdates.significantMoments,
+        relationshipDepth: enhancedResponse.emotionalResonance,
+        emotionalResonance: enhancedResponse.emotionalResonance,
+        conversationInsights: enhancedResponse.personalizedInsights,
+        engagementLevel: enhancedResponse.engagementLevel,
+        moodInsights: enhancedResponse.moodInsights
       });
 
     } catch (error) {
