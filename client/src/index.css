@@ -24,13 +24,25 @@
   --ring: hsl(262.1, 83.3%, 57.8%);
   --radius: 0.75rem;
   
-  /* SoulSense AI Custom Colors */
+  /* SoulSense AI Custom Colors - Calming Lavender Theme */
   --therapeutic: hsl(162, 63%, 41%);
   --therapeutic-foreground: hsl(0, 0%, 100%);
   --persona-sarah: hsl(262, 83%, 67%);
   --persona-alex: hsl(38, 92%, 50%);
   --persona-marcus: hsl(0, 84%, 60%);
   --persona-maya: hsl(162, 63%, 41%);
+  
+  /* Lavender Color Palette */
+  --lavender-50: hsl(270, 100%, 98%);
+  --lavender-100: hsl(269, 100%, 95%);
+  --lavender-200: hsl(269, 100%, 89%);
+  --lavender-300: hsl(269, 100%, 82%);
+  --lavender-400: hsl(269, 100%, 73%);
+  --lavender-500: hsl(269, 100%, 63%);
+  --lavender-600: hsl(269, 100%, 53%);
+  --lavender-700: hsl(269, 100%, 43%);
+  --lavender-800: hsl(269, 100%, 33%);
+  --lavender-900: hsl(269, 100%, 23%);
   
   /* Chat Interface Colors */
   --chat-bg: linear-gradient(135deg, hsl(210, 40%, 98%) 0%, hsl(214, 42%, 94%) 100%);
@@ -140,6 +152,31 @@
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
   }
+  
+  /* Lavender color utilities */
+  .bg-lavender-50 { background-color: var(--lavender-50); }
+  .bg-lavender-100 { background-color: var(--lavender-100); }
+  .bg-lavender-200 { background-color: var(--lavender-200); }
+  .bg-lavender-300 { background-color: var(--lavender-300); }
+  .bg-lavender-400 { background-color: var(--lavender-400); }
+  .bg-lavender-500 { background-color: var(--lavender-500); }
+  .bg-lavender-600 { background-color: var(--lavender-600); }
+  
+  .text-lavender-400 { color: var(--lavender-400); }
+  .text-lavender-500 { color: var(--lavender-500); }
+  .text-lavender-600 { color: var(--lavender-600); }
+  .text-lavender-700 { color: var(--lavender-700); }
+  
+  .from-lavender-50 { --tw-gradient-from: var(--lavender-50); }
+  .from-lavender-200 { --tw-gradient-from: var(--lavender-200); }
+  .from-lavender-400 { --tw-gradient-from: var(--lavender-400); }
+  .from-lavender-500 { --tw-gradient-from: var(--lavender-500); }
+  
+  .to-lavender-500 { --tw-gradient-to: var(--lavender-500); }
+  .to-lavender-600 { --tw-gradient-to: var(--lavender-600); }
+  
+  .border-lavender-100 { border-color: var(--lavender-100); }
+  .border-lavender-200 { border-color: var(--lavender-200); }
 }
 
 @keyframes typing {
