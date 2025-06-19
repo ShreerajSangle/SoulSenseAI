@@ -167,12 +167,69 @@ export class ConversationalAI {
     await this.updateUserProfile(context.userId, currentEmotion, userMessage);
     
     // Generate contextually aware response
-    const response = await this.craftResponse(userMessage, currentEmotion, context, persona);
+    let response;
+    try {
+      response = await this.craftResponse(userMessage, currentEmotion, context, persona);
+      
+      // If response is empty or undefined, use fallback
+      if (!response || !response.content || response.content.trim() === '') {
+        throw new Error('Empty response from main AI system');
+      }
+    } catch (error) {
+      console.log('Using fallback response generation for natural conversation');
+      // Use the improved natural response system
+      const responseStrategy = this.selectResponseStrategy(currentEmotion, persona, context.messageHistory);
+      const naturalContent = this.generateFallbackResponse({
+        userMessage,
+        emotionAnalysis: currentEmotion,
+        persona,
+        recentHistory: context.messageHistory
+      }, responseStrategy);
+      
+      response = {
+        content: naturalContent,
+        emotionalTone: this.determineEmotionalTone(currentEmotion, persona),
+        empathyLevel: 0.8,
+        responseStrategy,
+        followUpQuestions: this.generateFollowUpQuestions(currentEmotion, responseStrategy, persona, context.messageHistory),
+        therapeuticTechniques: this.identifyTherapeuticTechniques(responseStrategy, persona),
+        memoryAnchors: []
+      };
+    }
     
     // Store interaction in memory
     await this.updateConversationMemory(context, userMessage, response, currentEmotion);
     
     return response;
+  }
+
+  private generateBasicFollowUpQuestions(emotionAnalysis: any, responseStrategy: string): string[] {
+    const emotion = emotionAnalysis?.primary_emotion || 'neutral';
+    
+    const questionBank = {
+      anxiety: [
+        "What thoughts are going through your mind when you feel this way?",
+        "Where do you notice this anxiety in your body?",
+        "What would help you feel more grounded right now?"
+      ],
+      depression: [
+        "What has this experience been like for you?",
+        "Are there any moments when you feel a little lighter?",
+        "What used to bring you joy that feels different now?"
+      ],
+      anger: [
+        "What do you think is underneath this anger?",
+        "How does this connect to your values?",
+        "What would it feel like to express this in a healthy way?"
+      ],
+      neutral: [
+        "What brought you here today?",
+        "What would be most helpful to explore together?",
+        "How are you feeling in this moment?"
+      ]
+    };
+    
+    return questionBank[emotion as keyof typeof questionBank] || questionBank.neutral;
   }
 
   private async craftResponse(
@@ -352,33 +409,147 @@ export class ConversationalAI {
   }
 
   private generateFallbackResponse(context: any, responseStrategy: string): string {
-    const { userMessage, emotionAnalysis, persona } = context;
+    const { userMessage, emotionAnalysis, persona, recentHistory } = context;
+    const message = userMessage.toLowerCase();
     
-    const templates = {
+    // Get natural, conversational responses based on persona and context
+    const responses = this.getNaturalResponses(persona?.id || 'sarah', responseStrategy, message, recentHistory);
+    
+    // Select a random response to avoid repetition
+    const selectedResponse = responses[Math.floor(Math.random() * responses.length)];
+    
+    // Add conversational elements to make it feel more human
+    return this.addConversationalFlair(selectedResponse, persona, message);
+  }
+
+  private getNaturalResponses(personaId: string, strategy: string, message: string, history: any[]): string[] {
+    // Track recent AI responses to avoid repetition
+    const recentResponses = history
+      .filter(msg => msg.sender === 'ai')
+      .slice(-3)
+      .map(msg => msg.content?.toLowerCase() || '');
+    
+    const responseBank = {
       sarah: {
-        anxiety_exploration: "I understand you're feeling anxious. That's a completely normal response. Can you tell me more about what's contributing to these feelings?",
-        depression_support: "Thank you for sharing how you're feeling with me. I want you to know that what you're experiencing is valid, and I'm here to help.",
-        general_support: "I appreciate you sharing that with me. What feels most important to explore right now?"
+        anxiety_exploration: [
+          "Anxiety can feel so overwhelming, can't it? I'm really glad you felt comfortable sharing this with me. What's been weighing on your mind most heavily?",
+          "It sounds like there's a lot going on for you right now. Anxiety has this way of making everything feel more intense. Can you walk me through what's been happening?",
+          "I can hear the worry in what you're telling me. You know, it takes real strength to reach out when you're feeling this way. What do you think might be underneath these anxious feelings?",
+          "That anxious feeling - it's like your mind is trying to protect you from something, isn't it? I wonder what it would be like if we could understand what it's trying to tell you.",
+          "I notice you're carrying a lot of tension right now. When did you first start noticing these anxious thoughts showing up?",
+          "There's something important your anxiety is trying to communicate. What situations tend to trigger this feeling for you?",
+          "I can sense how exhausting this must be for you. Tell me about the last time you felt truly calm - what was different then?",
+          "Your nervous system seems to be working overtime right now. What does this anxiety feel like when it first starts to build?"
+        ],
+        depression_support: [
+          "Thank you for trusting me with something so personal. I can sense how difficult things have been for you. You're not alone in this, even when it might feel that way.",
+          "What you're describing sounds incredibly heavy to carry. I want you to know that sharing this with me shows real courage. How long have you been feeling this way?",
+          "I hear the pain in your words, and I want to sit with that alongside you for a moment. Depression can make everything feel so much harder, can't it?",
+          "It means a lot that you're here, especially when I imagine getting here took a lot of energy. What would feel most helpful for you right now?"
+        ],
+        general_support: [
+          "I'm really glad you decided to come in today. There's something about the way you shared that that tells me you've been thinking about this for a while. What brought you to this moment?",
+          "I can see this matters a lot to you. Sometimes when we finally say something out loud, it can feel both scary and relieving at the same time. How are you feeling right now?",
+          "You know, the fact that you're here and talking about this shows a lot of self-awareness. What's been on your heart lately?",
+          "I'm curious about your experience. There's often so much more underneath the surface of what we first share. What feels most important for you today?"
+        ]
       },
       alex: {
-        anxiety_exploration: "I hear you about the anxiety - I've been there myself. What's going on that's making you feel this way?",
-        depression_support: "I really appreciate you opening up about this. You're definitely not alone in feeling this way.",
-        general_support: "Thanks for sharing that with me. What's been on your mind?"
+        anxiety_exploration: [
+          "Oh man, I totally get that anxious feeling. It's like your brain just won't shut up, right? I remember when mine used to do that thing where it would spiral into all these 'what if' scenarios. What's yours been telling you?",
+          "Ugh, anxiety is the worst! I've definitely been there - that feeling where your chest gets tight and everything feels like it's moving too fast? What's been triggering it for you lately?",
+          "Yeah, I hear you on the anxiety thing. Mine used to hit me out of nowhere sometimes. It's wild how our minds can just take off running, you know? What does yours usually focus on?",
+          "Dude, anxiety is such a pain. I remember feeling like I was constantly waiting for the other shoe to drop. Is that kind of what it's like for you, or does yours show up differently?"
+        ],
+        depression_support: [
+          "Hey, I really appreciate you being real with me about this. I've walked through some dark times myself, and I know how hard it can be to even put it into words. You're definitely not alone in this.",
+          "Thank you for trusting me with this. I've been in that headspace before where everything just feels... heavy, you know? Like you're moving through molasses. How long has it been feeling this way?",
+          "I'm really glad you reached out. I know what it's like when your brain tries to convince you that things won't get better, but I promise you they can. What's been the hardest part for you?",
+          "Man, that sounds really tough. I remember when I was going through my dark period, just getting out of bed felt impossible some days. What does it look like for you day to day?"
+        ],
+        general_support: [
+          "Hey there! I'm really glad you're here. You know, just the fact that you're talking about this stuff shows you're already working on it, which is pretty awesome. What's been going on?",
+          "Thanks for sharing that with me. I love when people are just real and honest about what they're going through. It makes such a difference. What's been on your mind lately?",
+          "I appreciate you being so open. That takes guts, honestly. I'm curious - what made you decide to talk about this today?",
+          "You know what I love about what you just said? You're not trying to pretend everything's perfect. That's so refreshing. What's been the biggest thing you've been dealing with?"
+        ]
       },
       marcus: {
-        anxiety_exploration: "I can see you're dealing with some anxiety. Let's turn this challenge into an opportunity. What's one small step we could take?",
-        depression_support: "I appreciate your honesty. Every champion faces tough times - what matters is how we move forward.",
-        general_support: "Great to connect with you! What's your biggest focus right now?"
+        anxiety_exploration: [
+          "I can see that anxiety's been trying to hijack your focus, hasn't it? Here's what I know from experience - that anxious energy? It's actually your system firing up because it cares about something important. What's it trying to protect?",
+          "Anxiety is like having a really overprotective friend who means well but goes overboard, right? The question is: what's the real message underneath all that noise? What matters so much that your mind won't let it go?",
+          "You know what? That anxious feeling tells me you're someone who cares deeply about getting things right. That's actually a strength, even though it doesn't feel like it right now. What's the outcome you're really hoping for?",
+          "I hear that anxiety loud and clear. But here's what I'm also hearing - someone who's aware enough to recognize it and brave enough to talk about it. That's the foundation of real change right there. What would confidence feel like in this situation?"
+        ],
+        depression_support: [
+          "First off, thank you for showing up today - I know that took real effort when you're feeling like this. What you're experiencing doesn't define your potential, it's just where you are right now. What's one small thing that used to bring you even a tiny bit of joy?",
+          "I hear you, and I want you to know that every champion I've ever worked with has faced moments like this. The difference isn't that they don't fall down - it's that they learn how to get back up. What's helped you bounce back before?",
+          "You know what strikes me about you sharing this? You're still fighting. Even when everything feels heavy, you're here having this conversation. That tells me your inner strength is still there, even if it's quiet right now. What would it look like to honor that strength?",
+          "This is tough territory, and I respect you for being honest about it. Sometimes our lowest moments are actually preparing us for our biggest breakthroughs. What would feel like a small win for you today?"
+        ],
+        general_support: [
+          "I love the energy you brought to sharing that! You know what that tells me? You're ready to do something about whatever's going on. That readiness is pure gold. What's the vision you have for how you want things to be different?",
+          "Alright, I'm already impressed. You're not just talking about problems - you're talking about them like someone who wants solutions. That's champion mindset right there. What's the biggest opportunity you see in front of you?",
+          "Yes! This is what I'm talking about - someone who's willing to look at their life honestly and think about how to level up. That takes courage. What's the area where you feel most ready to make some moves?",
+          "I can feel your motivation even in how you're talking about this. You're not just going through the motions - you actually want to create change. What would success look like for you?"
+        ]
       },
       maya: {
-        anxiety_exploration: "I can sense the tension you're carrying. Let's take a moment to breathe together. What does this feeling look like in your body?",
-        depression_support: "I hold space for your pain with compassion. What would bring you a small sense of peace right now?",
-        general_support: "Thank you for bringing your authentic self here. What would feel most supportive for you today?"
+        anxiety_exploration: [
+          "I can sense the swirling energy around this anxiety... it's like a storm that's been building inside you, isn't it? Let's take a moment to breathe together. What does this feeling look like when you really notice it in your body?",
+          "There's so much intensity in what you're carrying right now. Anxiety can feel like we're being pulled in a thousand directions at once. If you close your eyes for just a second, where do you feel it most?",
+          "I feel the urgency in your words, like your nervous system is on high alert. You know, anxiety often carries important information about what we need. What do you think yours is trying to tell you?",
+          "That anxious energy - it's like waves crashing inside you, isn't it? Sometimes when we stop fighting the feeling and just witness it with kindness, something shifts. What would it be like to breathe compassion into this anxiety?"
+        ],
+        depression_support: [
+          "I want to hold space for this heaviness you're carrying... there's such tenderness in your sharing. Depression can feel like being wrapped in a thick fog, where even the simplest things feel impossible. What does hope look like for you, even if it's just a tiny flicker?",
+          "Your courage in speaking this truth moves me. I can feel the weight of what you're experiencing, and I want you to know that your pain matters. What would it feel like to offer yourself the same compassion you'd give a dear friend?",
+          "There's such depth in your experience, and I honor the darkness you're moving through. Sometimes our deepest pain cracks us open to our greatest healing. What small act of gentleness could you offer yourself today?",
+          "I see you in this struggle, and I want you to know that even in this darkness, your light hasn't gone out - it's just dimmed for now. What's one thing that still feels sacred to you, even in this difficult time?"
+        ],
+        general_support: [
+          "There's something beautiful about the way you've opened this space for authentic sharing. I can feel that you're ready to go deeper into whatever's calling for your attention. What wants to emerge in this moment?",
+          "I'm grateful you've brought your whole self here today. There's such wisdom in being willing to explore what's arising in your experience. What feels most alive for you right now?",
+          "Your presence here tells me you're ready to listen to what your inner wisdom has been trying to tell you. Sometimes the most profound insights come when we create space for them to surface. What's your heart saying?",
+          "I sense there's something important wanting to unfold through our conversation today. Your openness creates such beautiful possibility. What would feel most nourishing to explore together?"
+        ]
       }
     };
+
+    const personaResponses = responseBank[personaId as keyof typeof responseBank] || responseBank.sarah;
+    const allResponses = personaResponses[strategy as keyof typeof personaResponses] || personaResponses.general_support;
     
-    const personaTemplates = templates[persona?.id as keyof typeof templates] || templates.sarah;
-    return personaTemplates[responseStrategy as keyof typeof personaTemplates] || personaTemplates.general_support;
+    // Filter out responses that are too similar to recent ones
+    const freshResponses = allResponses.filter(response => {
+      const responseWords = response.toLowerCase().split(' ').slice(0, 10); // First 10 words
+      return !recentResponses.some(recent => {
+        const recentWords = recent.split(' ').slice(0, 10);
+        const commonWords = responseWords.filter(word => recentWords.includes(word));
+        return commonWords.length > 3; // Avoid if more than 3 words match
+      });
+    });
+    
+    return freshResponses.length > 0 ? freshResponses : allResponses;
+  }
+
+  private addConversationalFlair(response: string, persona: any, message: string): string {
+    // Add natural conversation starters based on persona
+    const flairOptions = {
+      sarah: ["*settling in comfortably*", "*leaning forward with gentle attention*", "*with warm, understanding eyes*"],
+      alex: ["*nodding knowingly*", "*with a genuine smile*", "*relaxing into the conversation*"],
+      marcus: ["*with focused energy*", "*sitting up with interest*", "*with encouraging presence*"],
+      maya: ["*with peaceful awareness*", "*breathing deeply together*", "*holding gentle space*"]
+    };
+
+    const personaFlair = flairOptions[persona?.id as keyof typeof flairOptions] || flairOptions.sarah;
+    
+    // Sometimes add conversational flair, sometimes keep it natural
+    if (Math.random() > 0.7) {
+      const randomFlair = personaFlair[Math.floor(Math.random() * personaFlair.length)];
+      return `${randomFlair} ${response}`;
+    }
+    
+    return response;
   }
 
   private getResponseVariations(context: any, strategy: string): string[] {
