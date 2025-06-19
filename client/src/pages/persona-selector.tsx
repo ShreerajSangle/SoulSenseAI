@@ -14,17 +14,17 @@ const personaIcons = {
 };
 
 const personaGradients = {
-  "sarah": "from-purple-500 to-indigo-600",
-  "alex": "from-orange-400 to-red-500",
-  "marcus": "from-blue-500 to-purple-600",
-  "maya": "from-green-500 to-emerald-600",
+  "sarah": "from-pink-500 to-purple-600",
+  "alex": "from-purple-400 to-pink-500",
+  "marcus": "from-pink-600 to-purple-700",
+  "maya": "from-purple-500 to-pink-600",
 };
 
 const personaAccents = {
-  "sarah": "text-purple-600 bg-purple-50 border-purple-100",
-  "alex": "text-rose-600 bg-rose-50 border-rose-100",
-  "marcus": "text-indigo-600 bg-indigo-50 border-indigo-100",
-  "maya": "text-emerald-600 bg-emerald-50 border-emerald-100",
+  "sarah": "text-purple-600 bg-pink-50 border-pink-100",
+  "alex": "text-pink-600 bg-purple-50 border-purple-100",
+  "marcus": "text-purple-700 bg-pink-50 border-pink-100",
+  "maya": "text-pink-700 bg-purple-50 border-purple-100",
 };
 
 export default function PersonaSelector() {
@@ -50,39 +50,39 @@ export default function PersonaSelector() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-lavender-100 via-lavender-50 to-purple-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-purple-300 via-purple-200 to-purple-400 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-lavender-300 to-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-24 h-24 bg-gradient-to-r from-violet-300 to-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-rose-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-40 animate-pulse delay-2000"></div>
-        <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-gradient-to-r from-lavender-200 to-violet-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-3000"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-24 h-24 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-pulse delay-2000"></div>
+        <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-gradient-to-r from-pink-200 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-3000"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-8 py-16 max-w-7xl">
         {/* Hero Section */}
         <div className="text-center mb-20">
           <div className="mb-12">
-            <div className="w-32 h-32 mx-auto bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+            <div className="w-32 h-32 mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
               <Sparkles className="text-white text-4xl animate-pulse" />
             </div>
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-slate-800 via-purple-700 to-indigo-800 bg-clip-text text-transparent mb-6">
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-900 via-purple-800 to-purple-900 bg-clip-text text-transparent mb-6">
               SoulSense AI
             </h1>
             <p className="text-2xl text-slate-600 mb-8 max-w-4xl mx-auto leading-relaxed">
               Your personalized mental wellness companion. Choose an AI therapist that resonates with your needs today.
             </p>
-            <div className="flex items-center justify-center gap-12 text-base text-slate-600">
+            <div className="flex items-center justify-center gap-12 text-base text-purple-800">
               <div className="flex items-center gap-3">
-                <Star className="w-5 h-5 text-yellow-500" />
+                <Star className="w-5 h-5 text-pink-500" />
                 <span>24/7 Available</span>
               </div>
               <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-red-500" />
+                <Heart className="w-5 h-5 text-pink-600" />
                 <span>Empathetic AI</span>
               </div>
               <div className="flex items-center gap-3">
-                <Brain className="w-5 h-5 text-blue-500" />
+                <Brain className="w-5 h-5 text-pink-500" />
                 <span>Scientifically Backed</span>
               </div>
             </div>
@@ -138,11 +138,11 @@ export default function PersonaSelector() {
         {/* Quick Access Features */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-20">
           <Card 
-            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/85 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
+            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
             onClick={() => setLocation('/diary')}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
                 <BookOpen className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">Daily Journal</h3>
@@ -151,7 +151,7 @@ export default function PersonaSelector() {
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/85 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
+            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
             onClick={() => setLocation('/memory')}
           >
             <CardContent className="p-8 text-center">
@@ -164,11 +164,11 @@ export default function PersonaSelector() {
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/85 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
+            className="cursor-pointer hover:shadow-xl transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm hover:bg-white/95 transform hover:-translate-y-2"
             onClick={() => setLocation('/profile')}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-pink-600 to-purple-700 rounded-2xl flex items-center justify-center mb-6">
                 <Settings className="text-white text-2xl" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-3">Profile Settings</h3>
