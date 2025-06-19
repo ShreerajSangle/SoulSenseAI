@@ -8,6 +8,7 @@ import { conversationalAI } from "./conversational_ai";
 import { emotionDetector } from "./emotion_detection";
 import { advancedAI } from "./advanced_ai_engine";
 import { replikaEngine } from "./replika_engine";
+import { llmEngine } from "./llm_conversation_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -391,19 +392,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze emotion first for context
       const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
-      // Use enhanced Replika-quality conversation engine
-      const replikaResponse = await replikaEngine.generateReplikaResponse(
+      // Use LLM engine for highest quality responses
+      const llmResponse = await llmEngine.generateStreamingResponse(
         message,
         personaId,
         userId,
-        messageHistory,
-        emotionAnalysis
+        messageHistory
       );
 
-      // Create AI message with Replika-quality response
+      // Create AI message with LLM response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: replikaResponse.response,
+        content: llmResponse.response,
         sender: 'ai',
         emotionDetected: 'empathetic'
       });
@@ -436,11 +436,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         crisisDetected,
         followUpQuestions,
         therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
-        personalityInsight: replikaResponse.personalityShift,
-        memoryReferences: replikaResponse.memoryEvolution,
-        relationshipDepth: replikaResponse.relationshipDepth,
-        emotionalResonance: replikaResponse.emotionalResonance,
-        conversationInsights: replikaResponse.conversationInsights
+        personalityInsight: llmResponse.memoryUpdate.personalityProfile,
+        memoryReferences: llmResponse.memoryUpdate.significantMoments,
+        relationshipDepth: llmResponse.emotionalResonance,
+        emotionalResonance: llmResponse.emotionalResonance,
+        conversationInsights: llmResponse.conversationInsights
       });
 
     } catch (error) {
