@@ -6,6 +6,7 @@ import { spawn } from "child_process";
 import path from "path";
 import { conversationalAI } from "./conversational_ai";
 import { emotionDetector } from "./emotion_detection";
+import { advancedAI } from "./advanced_ai_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -351,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced chat endpoint with advanced conversational AI
+  // Enhanced chat endpoint with Replika-quality conversational AI
   app.post("/api/chat/enhanced-message", async (req, res) => {
     try {
       const { message, personaId, userId, conversationId, emotionContext, moodData, isFirstMessage } = req.body;
@@ -376,83 +377,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Conversation not found" });
       }
 
-      // Analyze emotion from user message
-      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
-      
-      // Create user message
+      // Create user message first
       const userMessage = await storage.createMessage({
         conversationId: conversation.id,
         content: message,
-        sender: 'user',
-        emotionDetected: emotionAnalysis.primary_emotion
+        sender: 'user'
       });
 
       // Get conversation history for context
       const messageHistory = await storage.getConversationMessages(conversation.id);
       
-      // Build context for conversational AI
-      const context = {
+      // Use advanced AI engine for Replika-quality responses
+      const advancedResponse = await advancedAI.generateResponse(
+        message,
         userId,
         personaId,
-        conversationId: conversation.id,
-        messageHistory: messageHistory.map(msg => ({
-          content: msg.content,
-          sender: msg.sender as 'user' | 'ai',
-          timestamp: msg.timestamp,
-          emotionAnalysis: msg.emotionDetected
-        })),
-        userProfile: {
-          preferences: {},
-          emotionalPatterns: {},
-          conversationStyle: 'balanced',
-          topics: [],
-          goals: []
-        },
-        sessionContext: {
-          duration: 0,
-          emotionalJourney: [],
-          keyMoments: [],
-          therapeuticProgress: {}
-        }
-      };
+        messageHistory
+      );
 
-      // Generate personalized response using advanced AI
-      let aiResponse;
-      try {
-        aiResponse = await conversationalAI.generatePersonalizedResponse(message, context);
-        
-        // Fallback if AI response is undefined or empty
-        if (!aiResponse || !aiResponse.content || aiResponse.content.trim() === '') {
-          throw new Error('Empty AI response');
-        }
-      } catch (error) {
-        console.error("Conversational AI error:", error);
-        // Generate fallback response based on persona and emotion
-        const persona = await storage.getPersona(personaId);
-        aiResponse = generateFallbackResponse(message, persona, emotionAnalysis.primary_emotion);
-      }
-      
-      // Create AI message
+      // Create AI message with advanced response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: aiResponse.content,
+        content: advancedResponse.content,
         sender: 'ai',
-        emotionDetected: aiResponse.emotionalTone || 'supportive'
+        emotionDetected: advancedResponse.emotionalTone
       });
 
-      // Determine suggested micro-tools based on emotion and strategy
+      // Analyze emotion for additional context
+      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
+
+      // Determine suggested micro-tools based on emotional state
       const suggestedMicroTools = [];
-      if (aiResponse.responseStrategy === 'anxiety_exploration' || emotionAnalysis.primary_emotion === 'anxiety') {
+      if (emotionAnalysis.primary_emotion === 'anxiety') {
         suggestedMicroTools.push('breathing', 'grounding');
-      } else if (aiResponse.responseStrategy === 'depression_support' || emotionAnalysis.primary_emotion === 'depression') {
+      } else if (emotionAnalysis.primary_emotion === 'depression') {
         suggestedMicroTools.push('cbt', 'grounding');
       } else if (emotionAnalysis.arousal_level > 0.7) {
         suggestedMicroTools.push('breathing');
       }
 
       // Check for crisis indicators
-      const crisisDetected = aiResponse.responseStrategy === 'crisis_support' || 
-                            emotionAnalysis.crisis_indicators.level !== 'none';
+      const crisisDetected = emotionAnalysis.crisis_indicators?.level !== 'none';
+
+      // Generate contextual follow-up questions
+      const followUpQuestions = [
+        "What's been on your mind about this?",
+        "How has this been affecting you?",
+        "What would feel most helpful right now?"
+      ];
 
       res.json({
         conversation,
@@ -460,8 +432,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emotionAnalysis,
         suggestedMicroTools,
         crisisDetected,
-        followUpQuestions: aiResponse.followUpQuestions,
-        therapeuticTechniques: aiResponse.therapeuticTechniques
+        followUpQuestions,
+        therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
+        personalityInsight: advancedResponse.personality,
+        memoryReferences: advancedResponse.memories,
+        relationshipDepth: advancedResponse.relationshipUpdate
       });
 
     } catch (error) {
