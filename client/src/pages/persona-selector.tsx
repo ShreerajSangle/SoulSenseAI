@@ -1,22 +1,30 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, User, Trophy, Leaf } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Heart, User, Trophy, Leaf, Sparkles, Brain, MessageCircle, Calendar, BookOpen, Settings, ChevronRight, Star } from "lucide-react";
 import { usePersonas } from "@/hooks/use-chat";
 import { useLocation } from "wouter";
 import type { Persona } from "@shared/schema";
 
 const personaIcons = {
-  "dr-sarah": User,
-  "alex": User,
+  "sarah": Brain,
+  "alex": Heart,
   "marcus": Trophy,
   "maya": Leaf,
 };
 
-const personaColors = {
-  "dr-sarah": "border-purple-300 hover:border-purple-500",
-  "alex": "border-amber-300 hover:border-amber-500",
-  "marcus": "border-red-300 hover:border-red-500",
-  "maya": "border-green-300 hover:border-green-500",
+const personaGradients = {
+  "sarah": "from-purple-500 to-indigo-600",
+  "alex": "from-amber-500 to-orange-600",
+  "marcus": "from-red-500 to-pink-600",
+  "maya": "from-green-500 to-emerald-600",
+};
+
+const personaAccents = {
+  "sarah": "text-purple-600 bg-purple-50 border-purple-200",
+  "alex": "text-amber-600 bg-amber-50 border-amber-200",
+  "marcus": "text-red-600 bg-red-50 border-red-200",
+  "maya": "text-green-600 bg-green-50 border-green-200",
 };
 
 export default function PersonaSelector() {
@@ -29,62 +37,144 @@ export default function PersonaSelector() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
-            <Heart className="text-white text-2xl" />
+          <div className="w-24 h-24 mx-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl animate-pulse">
+            <Sparkles className="text-white text-3xl" />
           </div>
-          <p className="text-slate-600">Loading personas...</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">SoulSense AI</h2>
+          <p className="text-slate-600">Loading your therapeutic companions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl animate-fade-in">
-        <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="w-20 h-20 mx-auto bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-              <Heart className="text-white text-2xl" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-24 h-24 bg-gradient-to-r from-blue-200 to-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-green-200 to-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse delay-2000"></div>
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-12 max-w-6xl">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <div className="mb-8">
+            <div className="w-24 h-24 mx-auto bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl transform hover:scale-105 transition-all duration-300">
+              <Sparkles className="text-white text-3xl animate-pulse" />
             </div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-3">SoulSense AI</h1>
-            <p className="text-lg text-slate-600">Choose your therapeutic companion for today's session</p>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 bg-clip-text text-transparent mb-4">
+              SoulSense AI
+            </h1>
+            <p className="text-xl text-slate-600 mb-6 max-w-2xl mx-auto leading-relaxed">
+              Your personalized mental wellness companion. Choose an AI therapist that resonates with your needs today.
+            </p>
+            <div className="flex items-center justify-center gap-6 text-sm text-slate-500">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-500" />
+                <span>24/7 Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Heart className="w-4 h-4 text-red-500" />
+                <span>Empathetic AI</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Brain className="w-4 h-4 text-blue-500" />
+                <span>Scientifically Backed</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Personas Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {personas.map((persona) => {
-            const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || User;
-            const borderColor = personaColors[persona.id as keyof typeof personaColors] || "border-slate-300 hover:border-slate-500";
+            const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || Brain;
+            const gradient = personaGradients[persona.id as keyof typeof personaGradients] || "from-slate-500 to-slate-600";
+            const accent = personaAccents[persona.id as keyof typeof personaAccents] || "text-slate-600 bg-slate-50 border-slate-200";
             
             return (
               <Card
                 key={persona.id}
-                className={`persona-card cursor-pointer border-2 border-transparent hover:shadow-xl transition-all duration-300 ${borderColor}`}
+                className="group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white/80 backdrop-blur-sm"
                 onClick={() => handlePersonaSelect(persona)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <img 
-                      src={persona.avatarUrl} 
-                      alt={`${persona.name} - ${persona.role}`}
-                      className="w-16 h-16 rounded-full object-cover mr-4"
-                    />
-                    <div>
-                      <h3 className="text-xl font-semibold text-slate-800">{persona.name}</h3>
-                      <p className="font-medium" style={{ color: persona.color }}>{persona.role}</p>
+                <CardContent className="p-8">
+                  <div className="flex items-start mb-6">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${gradient} flex items-center justify-center mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="text-white text-2xl" />
                     </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-slate-800 mb-1 group-hover:text-slate-900">{persona.name}</h3>
+                      <Badge className={`${accent} border font-medium mb-2`}>
+                        {persona.role}
+                      </Badge>
+                    </div>
+                    <ChevronRight className="w-6 h-6 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1 transition-all duration-300" />
                   </div>
-                  <p className="text-slate-600 mb-4">{persona.description}</p>
-                  <div className="flex items-center text-sm text-slate-500">
-                    <IconComponent className="w-4 h-4 mr-2" />
-                    <span>{persona.specialty}</span>
+                  
+                  <p className="text-slate-600 mb-4 leading-relaxed">{persona.description}</p>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <div className="flex items-center text-sm text-slate-500">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      <span>{persona.specialty}</span>
+                    </div>
+                    <Button 
+                      className={`bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0 shadow-md group-hover:shadow-lg transition-all duration-300`}
+                      size="sm"
+                    >
+                      Start Session
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             );
           })}
+        </div>
+
+        {/* Quick Access Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 backdrop-blur-sm"
+            onClick={() => setLocation('/diary')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 mx-auto bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-4">
+                <BookOpen className="text-white text-xl" />
+              </div>
+              <h3 className="font-semibold text-slate-800 mb-2">Daily Journal</h3>
+              <p className="text-sm text-slate-600">Track your thoughts and emotions</p>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 backdrop-blur-sm"
+            onClick={() => setLocation('/memory')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 mx-auto bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+                <Calendar className="text-white text-xl" />
+              </div>
+              <h3 className="font-semibold text-slate-800 mb-2">Session History</h3>
+              <p className="text-sm text-slate-600">Review past conversations</p>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 backdrop-blur-sm"
+            onClick={() => setLocation('/profile')}
+          >
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 mx-auto bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4">
+                <Settings className="text-white text-xl" />
+              </div>
+              <h3 className="font-semibold text-slate-800 mb-2">Profile Settings</h3>
+              <p className="text-sm text-slate-600">Customize your experience</p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
