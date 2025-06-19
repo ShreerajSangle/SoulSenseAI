@@ -277,7 +277,7 @@ export class ConversationalAI {
     userProfile: any,
     memories: any[],
     conversationHistory: any[]
-  ): string {
+  ): Promise<string> {
     // Build comprehensive conversation context
     const context = this.buildAdvancedContext(
       userMessage,
