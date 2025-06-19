@@ -467,6 +467,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Diary entry routes
+  app.post('/api/diary-entries', async (req, res) => {
+    try {
+      const entry = await storage.createDiaryEntry(req.body);
+      res.json(entry);
+    } catch (error) {
+      console.error("Error creating diary entry:", error);
+      res.status(500).json({ message: "Failed to create diary entry" });
+    }
+  });
+
+  app.get('/api/diary-entries', async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      const entries = await storage.getDiaryEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching diary entries:", error);
+      res.status(500).json({ message: "Failed to fetch diary entries" });
+    }
+  });
+
+  app.put('/api/diary-entries/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedEntry = await storage.updateDiaryEntry(id, req.body);
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error("Error updating diary entry:", error);
+      res.status(500).json({ message: "Failed to update diary entry" });
+    }
+  });
+
+  app.delete('/api/diary-entries/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDiaryEntry(id);
+      res.json({ message: "Diary entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting diary entry:", error);
+      res.status(500).json({ message: "Failed to delete diary entry" });
+    }
+  });
+
+  // User profile routes
+  app.get('/api/profile/:userId', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const profile = await storage.getUserProfile(userId);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.put('/api/profile/:userId', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const updatedProfile = await storage.updateUserProfile(userId, req.body);
+      res.json(updatedProfile);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

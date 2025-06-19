@@ -8,6 +8,8 @@ import {
   moodEntries,
   microToolUsage,
   messageFeedback,
+  diaryEntries,
+  userProfiles,
   type User,
   type UpsertUser,
   type Persona,

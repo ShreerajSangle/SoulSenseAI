@@ -8,6 +8,8 @@ import ChatScreen from "@/pages/chat-screen";
 import EnhancedChatScreen from "@/pages/enhanced-chat-screen";
 import MemoryScreen from "@/pages/memory-screen";
 import SessionSummary from "@/pages/session-summary";
+import DiaryScreen from "@/pages/diary-screen";
+import ProfileScreen from "@/pages/profile-screen";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,8 +19,8 @@ function Router() {
       <Route path="/chat" component={EnhancedChatScreen} />
       <Route path="/chat/:persona" component={EnhancedChatScreen} />
       <Route path="/memory" component={MemoryScreen} />
-      <Route path="/diary" component={() => <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold text-slate-800 mb-2">Diary Feature</h2><p className="text-slate-600">Coming soon...</p></div></div>} />
-      <Route path="/profile" component={() => <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center"><div className="text-center"><h2 className="text-2xl font-bold text-slate-800 mb-2">Profile Feature</h2><p className="text-slate-600">Coming soon...</p></div></div>} />
+      <Route path="/diary" component={DiaryScreen} />
+      <Route path="/profile" component={ProfileScreen} />
       <Route path="/session-summary" component={SessionSummary} />
       <Route component={NotFound} />
     </Switch>
