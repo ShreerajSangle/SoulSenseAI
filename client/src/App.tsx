@@ -13,6 +13,7 @@ import ProfileScreen from "@/pages/profile-screen";
 import ClinicalAssessment from "@/pages/clinical-assessment";
 import TherapeuticJourney from "@/pages/therapeutic-journey";
 import NotFound from "@/pages/not-found";
+import ReplikaQualityDemo from "@/pages/replika-quality-demo";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/" component={PersonaSelector} />
       <Route path="/chat" component={EnhancedChatScreen} />
       <Route path="/chat/:persona" component={EnhancedChatScreen} />
+      <Route path="/replika-demo" component={ReplikaQualityDemo} />
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={DiaryScreen} />
       <Route path="/profile" component={ProfileScreen} />
