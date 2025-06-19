@@ -8,6 +8,7 @@ import {
   moodEntries,
   microToolUsage,
   messageFeedback,
+  sessionFeedback,
   diaryEntries,
   userProfiles,
   type User,
@@ -60,6 +61,9 @@ export interface IStorage {
   
   // Message feedback
   createMessageFeedback(feedback: any): Promise<any>;
+  
+  // Session feedback
+  createSessionFeedback(feedback: any): Promise<any>;
   
   // Diary entries
   createDiaryEntry(entry: any): Promise<any>;
@@ -334,6 +338,23 @@ export class DatabaseStorage implements IStorage {
         userId: feedback.userId,
         rating: feedback.rating,
         feedback: feedback.feedback,
+      })
+      .returning();
+    return feedbackEntry;
+  }
+
+  // Session feedback
+  async createSessionFeedback(feedback: any): Promise<any> {
+    const [feedbackEntry] = await db
+      .insert(sessionFeedback)
+      .values({
+        conversationId: feedback.conversationId,
+        personaId: feedback.personaId,
+        rating: feedback.rating,
+        feedback: feedback.feedback,
+        helpfulness: feedback.helpfulness,
+        wouldRecommend: feedback.wouldRecommend,
+        sessionDuration: feedback.sessionDuration,
       })
       .returning();
     return feedbackEntry;

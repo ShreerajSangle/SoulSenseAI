@@ -147,6 +147,22 @@ export const microToolUsage = pgTable("micro_tool_usage", {
   index("idx_micro_tool_type").on(table.toolType),
 ]);
 
+// Session feedback table
+export const sessionFeedback = pgTable("session_feedback", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id),
+  personaId: varchar("persona_id", { length: 50 }).notNull(),
+  rating: integer("rating").notNull(),
+  feedback: text("feedback"),
+  helpfulness: integer("helpfulness").notNull(),
+  wouldRecommend: boolean("would_recommend").notNull(),
+  sessionDuration: varchar("session_duration", { length: 50 }),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_session_feedback_conversation").on(table.conversationId),
+  index("idx_session_feedback_persona").on(table.personaId),
+]);
+
 // Feedback and learning
 export const messageFeedback = pgTable("message_feedback", {
   id: serial("id").primaryKey(),
@@ -262,6 +278,10 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
 // User authentication types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Session feedback types
+export type InsertSessionFeedback = typeof sessionFeedback.$inferInsert;
+export type SessionFeedback = typeof sessionFeedback.$inferSelect;
 
 // Core application types
 export type Persona = typeof personas.$inferSelect;
