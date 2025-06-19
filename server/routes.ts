@@ -680,7 +680,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messageHistory = await storage.getConversationMessages(conversation.id);
 
       // Analyze emotion and context
-      const emotionAnalysis = emotionDetector.detectEmotions(message);
+      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
       // Generate specialized response using domain expertise
       const specializedResponse = await specializedPersonaEngine.generateSpecializedResponse(
