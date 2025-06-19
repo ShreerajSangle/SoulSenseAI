@@ -619,6 +619,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // Session feedback endpoint
+  app.post('/api/session-feedback', async (req, res) => {
+    try {
+      const { conversationId, personaId, rating, feedback, helpfulness, wouldRecommend, sessionDuration } = req.body;
+      
+      const feedbackEntry = await storage.createSessionFeedback({
+        conversationId,
+        personaId,
+        rating,
+        feedback,
+        helpfulness,
+        wouldRecommend,
+        sessionDuration,
+        submittedAt: new Date()
+      });
+
+      res.json(feedbackEntry);
+    } catch (error) {
+      console.error("Session feedback error:", error);
+      res.status(500).json({ error: "Failed to save session feedback" });
+    }
+  });
+
   // Register advanced clinical and personalization routes
   registerClinicalRoutes(app);
 

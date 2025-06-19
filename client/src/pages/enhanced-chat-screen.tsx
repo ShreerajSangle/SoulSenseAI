@@ -12,6 +12,7 @@ import { MoodCheckInWidget, MoodCheckInData } from "@/components/mood-checkin-wi
 import { BreathingExercise, GroundingTechnique, CBTJournal } from "@/components/micro-tools";
 import { MoodTrackerDashboard } from "@/components/mood-tracker-dashboard";
 import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components/voice-interface";
+import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,10 @@ export default function EnhancedChatScreen() {
   // Mood check-in state
   const [showMoodCheckIn, setShowMoodCheckIn] = useState(true);
   const [sessionMoodData, setSessionMoodData] = useState<MoodCheckInData | null>(null);
+  
+  // Session feedback state
+  const [showSessionFeedback, setShowSessionFeedback] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<Date>(new Date());
   const [showMoodCheckOut, setShowMoodCheckOut] = useState(false);
 
   // Micro-tools state
@@ -260,7 +265,34 @@ export default function EnhancedChatScreen() {
   };
 
   const handleEndSession = () => {
-    setShowMoodCheckOut(true);
+    setShowSessionFeedback(true);
+  };
+
+  const handleSessionFeedbackSubmit = async (feedback: any) => {
+    try {
+      // Submit session feedback using useMutation for proper React Query integration
+      const response = await fetch('/api/session-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId,
+          personaId,
+          ...feedback,
+          sessionDuration: getSessionDuration()
+        })
+      });
+      
+      if (!response.ok) throw new Error('Failed to submit feedback');
+    } catch (error) {
+      console.error('Failed to submit session feedback:', error);
+    }
+  };
+
+  const getSessionDuration = () => {
+    const duration = Date.now() - sessionStartTime.getTime();
+    const minutes = Math.floor(duration / 60000);
+    const seconds = Math.floor((duration % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
   };
 
   const handleMoodCheckOutComplete = async (moodData: MoodCheckInData) => {
@@ -478,6 +510,15 @@ export default function EnhancedChatScreen() {
           </Button>
         </div>
       </div>
+
+      {/* Session Feedback Dialog */}
+      <SessionFeedbackDialog
+        open={showSessionFeedback}
+        onClose={() => setShowSessionFeedback(false)}
+        personaName={persona.name}
+        sessionDuration={getSessionDuration()}
+        onSubmit={handleSessionFeedbackSubmit}
+      />
     </div>
   );
 }
