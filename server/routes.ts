@@ -4,6 +4,11 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { spawn } from "child_process";
 import path from "path";
+import { conversationalAI } from "./conversational_ai";
+import { emotionDetector } from "./emotion_detection";
+import { z } from "zod";
+import * as fs from "fs";
+import * as yaml from "js-yaml";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -28,13 +33,9 @@ interface GoalTracker {
   generate_journey_dashboard: (userId: string) => any;
   suggest_new_goals: (userId: string, context: any) => any;
 }
-import { emotionDetector } from "./emotion_detection";
-import { conversationalAI } from "./conversational_ai";
+
 import { registerClinicalRoutes } from "./clinical_routes";
-import { z } from "zod";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
-import fs from "fs";
-import yaml from "js-yaml";
 
 const createChatMessageRequestSchema = z.object({
   message: z.string().min(1),
@@ -193,10 +194,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for crisis indicators
       const crisisDetected = detectCrisisKeywords(message);
       
-      // Generate AI response based on persona
+      // Generate AI response using advanced conversational AI
       const persona = await storage.getPersona(personaId);
       const userMemories = await storage.getUserMemories(userId);
-      const aiResponse = await generatePersonaResponse(message, persona!, personaId, userMemories, userMood, isFirstMessage);
+      const conversationHistory = await storage.getConversationMessages(currentConversationId);
+      
+      // Build conversation context
+      const conversationContext = {
+        userId,
+        personaId,
+        conversationId: currentConversationId,
+        messageHistory: conversationHistory.map(msg => ({
+          content: msg.content,
+          sender: msg.sender as 'user' | 'ai',
+          timestamp: msg.timestamp,
+          emotionAnalysis: msg.emotionDetected
+        })),
+        userProfile: {
+          preferences: {},
+          emotionalPatterns: {},
+          conversationStyle: 'exploratory',
+          topics: [],
+          goals: []
+        },
+        sessionContext: {
+          duration: 0,
+          emotionalJourney: [],
+          keyMoments: [],
+          therapeuticProgress: {}
+        }
+      };
+
+      // Generate personalized response using advanced AI
+      const aiResponse = await conversationalAI.generatePersonalizedResponse(message, conversationContext);
       
       // Save user memory for context
       if (isFirstMessage && userMood) {
@@ -212,16 +242,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: currentConversationId,
         content: aiResponse.content,
         sender: "ai",
-        emotionDetected: aiResponse.emotionDetected,
+        emotionDetected: JSON.stringify({
+          tone: aiResponse.emotionalTone,
+          empathy: aiResponse.empathyLevel,
+          strategy: aiResponse.responseStrategy
+        }),
       });
 
       res.json({
         conversationId: currentConversationId,
         message: aiMessage,
         aiResponse: aiResponse.content,
-        emotionDetected: aiResponse.emotionDetected,
+        emotionDetected: aiResponse.emotionalTone,
         crisisDetected: crisisDetected,
-        suggestSessionEnd: aiResponse.suggestSessionEnd || false,
+        suggestSessionEnd: false,
+        followUpQuestions: aiResponse.followUpQuestions,
+        therapeuticTechniques: aiResponse.therapeuticTechniques
       });
     } catch (error) {
       console.error("Error processing chat message:", error);
