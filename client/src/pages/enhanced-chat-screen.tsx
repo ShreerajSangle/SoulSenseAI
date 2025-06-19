@@ -385,44 +385,7 @@ export default function EnhancedChatScreen() {
           onBack={() => setLocation("/")}
         />
         
-        {/* Emotion & Tools Bar */}
-        {(emotionContext || suggestedTools.length > 0) && (
-          <div className="px-4 py-2 bg-blue-50 border-t">
-            <div className="flex items-center gap-2 flex-wrap">
-              {emotionContext && (
-                <Badge variant="outline" className="bg-white">
-                  <Heart className="w-3 h-3 mr-1" />
-                  {emotionContext.primary_emotion}
-                </Badge>
-              )}
-              
-              {suggestedTools.map((tool, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveMicroTool(tool as any)}
-                  className="h-7 text-xs"
-                >
-                  {tool === 'breathing' && <Wind className="w-3 h-3 mr-1" />}
-                  {tool === 'grounding' && <Target className="w-3 h-3 mr-1" />}
-                  {tool === 'cbt' && <Brain className="w-3 h-3 mr-1" />}
-                  {tool.charAt(0).toUpperCase() + tool.slice(1)}
-                </Button>
-              ))}
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDashboard(true)}
-                className="h-7 text-xs ml-auto"
-              >
-                <BarChart3 className="w-3 h-3 mr-1" />
-                Dashboard
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Hidden Emotion & Tools Bar - emotion detection indicators removed */}
       </div>
 
       {/* Messages */}

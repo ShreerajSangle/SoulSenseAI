@@ -39,11 +39,7 @@ export function MessageBubble({ message, persona, isUser }: MessageBubbleProps) 
             {format(new Date(message.timestamp), "h:mm a")}
           </div>
           
-          {message.emotionDetected && (
-            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700">
-              {message.emotionDetected} detected
-            </Badge>
-          )}
+          {/* Emotion detection badge removed */}
         </div>
       </div>
     </div>
