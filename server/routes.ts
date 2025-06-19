@@ -2,6 +2,32 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { spawn } from "child_process";
+import path from "path";
+
+// Import Python module interfaces
+interface MemoryUpdate {
+  update_emotional_pattern: (userId: string, emotion: string, intensity: number, context: string, triggers?: string[]) => void;
+  get_emotional_insights: (userId: string) => any;
+  get_personalized_recommendations: (userId: string) => any;
+}
+
+interface ClinicalOutcomes {
+  process_phq9_assessment: (userId: string, responses: Record<string, number>) => any;
+  process_gad7_assessment: (userId: string, responses: Record<string, number>) => any;
+  generate_clinical_insights: (userId: string) => any;
+}
+
+interface DialogueManager {
+  make_clinical_decision: (userContext: any) => any;
+  explain_intervention: (intervention: string, userContext: any) => any;
+}
+
+interface GoalTracker {
+  create_personalized_goal: (userId: string, goalType: string, userInput: any) => any;
+  generate_journey_dashboard: (userId: string) => any;
+  suggest_new_goals: (userId: string, context: any) => any;
+}
 import { emotionDetector } from "./emotion_detection";
 import { conversationalAI } from "./conversational_ai";
 import { z } from "zod";
@@ -67,6 +93,13 @@ try {
   personaConfig = yaml.load(configFile) as any;
 } catch (error) {
   console.warn('Could not load persona config:', error);
+}
+
+// Helper function to call Python modules (simplified for Node.js integration)
+async function callPythonFunction(modulePath: string, functionName: string, args: any[]): Promise<any> {
+  // For now, we'll implement the core functionality in TypeScript
+  // In production, this would interface with the Python modules
+  return null;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
