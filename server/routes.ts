@@ -30,6 +30,7 @@ interface GoalTracker {
 }
 import { emotionDetector } from "./emotion_detection";
 import { conversationalAI } from "./conversational_ai";
+import { registerAdvancedRoutes } from "./advanced_routes";
 import { z } from "zod";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import fs from "fs";
@@ -574,6 +575,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
+
+  // Register advanced clinical and personalization routes
+  registerAdvancedRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
