@@ -7,6 +7,7 @@ import path from "path";
 import { conversationalAI } from "./conversational_ai";
 import { emotionDetector } from "./emotion_detection";
 import { advancedAI } from "./advanced_ai_engine";
+import { replikaEngine } from "./replika_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -390,8 +391,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze emotion first for context
       const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
-      // Use advanced AI engine for Replika-quality responses
-      const advancedResponse = await advancedAI.generateResponse(
+      // Use enhanced Replika-quality conversation engine
+      const replikaResponse = await replikaEngine.generateReplikaResponse(
         message,
         personaId,
         userId,
@@ -399,10 +400,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         emotionAnalysis
       );
 
-      // Create AI message with advanced response
+      // Create AI message with Replika-quality response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: advancedResponse.response,
+        content: replikaResponse.response,
         sender: 'ai',
         emotionDetected: 'empathetic'
       });
@@ -435,9 +436,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         crisisDetected,
         followUpQuestions,
         therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
-        personalityInsight: advancedResponse.personalityInsight,
-        memoryReferences: advancedResponse.memoryReferences,
-        relationshipDepth: advancedResponse.relationshipDepth
+        personalityInsight: replikaResponse.personalityShift,
+        memoryReferences: replikaResponse.memoryEvolution,
+        relationshipDepth: replikaResponse.relationshipDepth,
+        emotionalResonance: replikaResponse.emotionalResonance,
+        conversationInsights: replikaResponse.conversationInsights
       });
 
     } catch (error) {
