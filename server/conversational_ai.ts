@@ -327,6 +327,12 @@ export class ConversationalAI {
 
   private generateDynamicResponse(context: any, responseStrategy: string): string {
     const responseVariations = this.getResponseVariations(context, responseStrategy);
+    
+    // Generate fallback if no variations exist
+    if (!responseVariations || responseVariations.length === 0) {
+      return this.generateFallbackResponse(context, responseStrategy);
+    }
+    
     const selectedVariation = this.selectOptimalVariation(responseVariations, context);
     
     // Apply personality-specific modifications
@@ -341,7 +347,38 @@ export class ConversationalAI {
     // Ensure response variety
     response = this.ensureResponseVariety(response, context);
     
-    return response;
+    // Return fallback if response is still empty
+    return response || this.generateFallbackResponse(context, responseStrategy);
+  }
+
+  private generateFallbackResponse(context: any, responseStrategy: string): string {
+    const { userMessage, emotionAnalysis, persona } = context;
+    
+    const templates = {
+      sarah: {
+        anxiety_exploration: "I understand you're feeling anxious. That's a completely normal response. Can you tell me more about what's contributing to these feelings?",
+        depression_support: "Thank you for sharing how you're feeling with me. I want you to know that what you're experiencing is valid, and I'm here to help.",
+        general_support: "I appreciate you sharing that with me. What feels most important to explore right now?"
+      },
+      alex: {
+        anxiety_exploration: "I hear you about the anxiety - I've been there myself. What's going on that's making you feel this way?",
+        depression_support: "I really appreciate you opening up about this. You're definitely not alone in feeling this way.",
+        general_support: "Thanks for sharing that with me. What's been on your mind?"
+      },
+      marcus: {
+        anxiety_exploration: "I can see you're dealing with some anxiety. Let's turn this challenge into an opportunity. What's one small step we could take?",
+        depression_support: "I appreciate your honesty. Every champion faces tough times - what matters is how we move forward.",
+        general_support: "Great to connect with you! What's your biggest focus right now?"
+      },
+      maya: {
+        anxiety_exploration: "I can sense the tension you're carrying. Let's take a moment to breathe together. What does this feeling look like in your body?",
+        depression_support: "I hold space for your pain with compassion. What would bring you a small sense of peace right now?",
+        general_support: "Thank you for bringing your authentic self here. What would feel most supportive for you today?"
+      }
+    };
+    
+    const personaTemplates = templates[persona?.id as keyof typeof templates] || templates.sarah;
+    return personaTemplates[responseStrategy as keyof typeof personaTemplates] || personaTemplates.general_support;
   }
 
   private getResponseVariations(context: any, strategy: string): string[] {

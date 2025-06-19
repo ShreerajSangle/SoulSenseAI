@@ -417,14 +417,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Generate personalized response using advanced AI
-      const aiResponse = await conversationalAI.generatePersonalizedResponse(message, context);
+      let aiResponse;
+      try {
+        aiResponse = await conversationalAI.generatePersonalizedResponse(message, context);
+        
+        // Fallback if AI response is undefined or empty
+        if (!aiResponse || !aiResponse.content || aiResponse.content.trim() === '') {
+          throw new Error('Empty AI response');
+        }
+      } catch (error) {
+        console.error("Conversational AI error:", error);
+        // Generate fallback response based on persona and emotion
+        const persona = await storage.getPersona(personaId);
+        aiResponse = generateFallbackResponse(message, persona, emotionAnalysis.primary_emotion);
+      }
       
       // Create AI message
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
         content: aiResponse.content,
         sender: 'ai',
-        emotionDetected: aiResponse.emotionalTone
+        emotionDetected: aiResponse.emotionalTone || 'supportive'
       });
 
       // Determine suggested micro-tools based on emotion and strategy
