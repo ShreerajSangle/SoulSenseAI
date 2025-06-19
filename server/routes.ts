@@ -226,7 +226,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Generate personalized response using advanced AI
-      const aiResponse = await conversationalAI.generatePersonalizedResponse(message, conversationContext);
+      let aiResponse;
+      try {
+        aiResponse = await conversationalAI.generatePersonalizedResponse(message, conversationContext);
+        
+        // Fallback if AI response is undefined or empty
+        if (!aiResponse || !aiResponse.content || aiResponse.content.includes('undefined')) {
+          aiResponse = generateFallbackResponse(message, persona, userMood);
+        }
+      } catch (error) {
+        console.error("Conversational AI error:", error);
+        aiResponse = generateFallbackResponse(message, persona, userMood);
+      }
       
       // Save user memory for context
       if (isFirstMessage && userMood) {
@@ -617,6 +628,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Generate fallback response when AI fails
+function generateFallbackResponse(message: string, persona: any, userMood?: string): any {
+  const responses = {
+    sarah: {
+      greeting: "Hello, I'm Dr. Sarah. I understand you're reaching out today, and I want you to know that I'm here to listen and support you.",
+      anxiety: "I hear that you're feeling anxious right now. That takes courage to share. Can you tell me a bit more about what's contributing to these feelings?",
+      depression: "Thank you for trusting me with how you're feeling. Depression can feel overwhelming, but you've taken an important step by reaching out.",
+      general: "I appreciate you sharing that with me. As your therapist, I want to understand your experience better. What would be most helpful for us to focus on today?"
+    },
+    alex: {
+      greeting: "Hey there! I'm Alex, and I'm really glad you decided to reach out today. I've been through some tough times myself, so I get it.",
+      anxiety: "I totally understand that anxious feeling - it's like your mind won't stop racing, right? I've been there too. What's going on?",
+      depression: "I hear you, and I want you to know you're not alone in feeling this way. I've walked through similar struggles myself.",
+      general: "Thanks for sharing that with me. I really appreciate your openness. What's been on your mind lately?"
+    },
+    marcus: {
+      greeting: "Hey! I'm Marcus, your life coach. I'm excited to work with you on turning challenges into opportunities for growth.",
+      anxiety: "I can see you're dealing with some anxiety, and that's totally normal. Let's channel that energy into something positive. What's one small step we could take today?",
+      depression: "I appreciate you being honest about how you're feeling. Every champion faces tough times - what matters is how we bounce back. What's one thing that usually brings you a little joy?",
+      general: "Great to connect with you! I'm all about helping you unlock your potential. What goals are you working toward right now?"
+    },
+    maya: {
+      greeting: "Welcome, I'm Maya. I'm here to guide you toward inner peace and mindfulness. Take a deep breath with me - you're in a safe space.",
+      anxiety: "I can sense the tension you're carrying. Let's start by taking three deep breaths together. Anxiety is temporary, but your inner strength is constant.",
+      depression: "I hold space for your pain with compassion. Sometimes we need to sit with difficult emotions before we can transform them. You are not your thoughts.",
+      general: "Thank you for sharing your experience with me. In this moment, you are exactly where you need to be. What would bring you a sense of peace right now?"
+    }
+  };
+
+  const personaResponses = responses[persona?.id as keyof typeof responses] || responses.sarah;
+  
+  // Determine response type based on message content
+  let responseType = 'general';
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes('anxious') || lowerMessage.includes('anxiety') || lowerMessage.includes('worried') || lowerMessage.includes('nervous')) {
+    responseType = 'anxiety';
+  } else if (lowerMessage.includes('depressed') || lowerMessage.includes('sad') || lowerMessage.includes('down') || lowerMessage.includes('hopeless')) {
+    responseType = 'depression';
+  } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+    responseType = 'greeting';
+  }
+
+  return {
+    content: personaResponses[responseType as keyof typeof personaResponses],
+    emotionalTone: responseType === 'anxiety' ? 'calm and reassuring' : responseType === 'depression' ? 'warm and supportive' : 'welcoming and empathetic',
+    empathyLevel: 0.8,
+    responseStrategy: responseType === 'anxiety' ? 'anxiety_support' : responseType === 'depression' ? 'depression_support' : 'general_support',
+    followUpQuestions: responseType === 'anxiety' ? 
+      ["What thoughts are going through your mind right now?", "Where do you feel this anxiety in your body?"] :
+      responseType === 'depression' ?
+      ["What has this experience been like for you?", "Are there any moments when you feel a little lighter?"] :
+      ["What brought you here today?", "What would be most helpful to explore together?"],
+    therapeuticTechniques: responseType === 'anxiety' ? 
+      ["mindfulness", "cognitive reframing", "breathing techniques"] :
+      responseType === 'depression' ?
+      ["validation", "behavioral activation", "cognitive restructuring"] :
+      ["active listening", "empathetic responding", "collaborative exploration"]
+  };
 }
 
 // Helper function to generate personalized greetings

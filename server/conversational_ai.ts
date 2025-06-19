@@ -547,6 +547,8 @@ export class ConversationalAI {
   }
 
   private addWarmthCues(response: string): string {
+    if (!response || typeof response !== 'string') return response || '';
+    
     const warmthCues = ['really', 'truly', 'genuinely'];
     const randomCue = warmthCues[Math.floor(Math.random() * warmthCues.length)];
     
