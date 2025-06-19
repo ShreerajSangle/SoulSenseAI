@@ -11,6 +11,8 @@ import { replikaEngine } from "./replika_engine";
 import { llmEngine } from "./llm_conversation_engine";
 import { enhancedConversationSystem } from "./enhanced_conversation_system";
 import { streamingConversation } from "./streaming_conversation";
+import { specializedPersonaEngine } from "./specialized_persona_engine";
+import { personaKnowledgeModules } from "./persona_knowledge_modules";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -639,6 +641,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Session feedback error:", error);
       res.status(500).json({ error: "Failed to save session feedback" });
+    }
+  });
+
+  // Specialized persona chat with domain expertise
+  app.post('/api/chat/specialized-message', async (req, res) => {
+    try {
+      const { message, personaId, userId, conversationId, isFirstMessage } = req.body;
+
+      if (!message || !personaId || !userId) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Get or create conversation
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Specialized Session with ${personaId}`
+        });
+      }
+
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversation not found' });
+      }
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user'
+      });
+
+      // Get conversation history
+      const messageHistory = await storage.getConversationMessages(conversation.id);
+
+      // Analyze emotion and context
+      const emotionAnalysis = emotionDetector.detectEmotions(message);
+
+      // Generate specialized response using domain expertise
+      const specializedResponse = await specializedPersonaEngine.generateSpecializedResponse(
+        message,
+        personaId,
+        userId,
+        messageHistory,
+        emotionAnalysis
+      );
+
+      // Get domain-specific knowledge for additional insights
+      const knowledgeModule = personaKnowledgeModules.getKnowledgeModule(personaId);
+      const responseTemplates = personaKnowledgeModules.getResponseTemplate(personaId, 'validation');
+
+      // Create AI message with specialized response
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: specializedResponse.response,
+        sender: 'ai',
+        emotionDetected: emotionAnalysis.primary_emotion
+      });
+
+      // Get persona insights for learning
+      const personaInsights = specializedPersonaEngine.getPersonaInsights(personaId, userId);
+
+      res.json({
+        conversation,
+        userMessage,
+        aiMessage,
+        emotionAnalysis,
+        specializedResponse: {
+          domainExpertise: specializedResponse.personaSpecialization,
+          therapeuticApproach: specializedResponse.therapeuticApproach,
+          adaptiveLearning: specializedResponse.adaptiveLearning
+        },
+        personaInsights,
+        knowledgeBase: {
+          availableInterventions: Object.keys(knowledgeModule?.interventionLibrary || {}),
+          responseTemplates: responseTemplates.slice(0, 2),
+          crisisProtocols: Object.keys(knowledgeModule?.crisisProtocols || {})
+        }
+      });
+
+    } catch (error) {
+      console.error("Specialized chat error:", error);
+      res.status(500).json({ error: "Failed to process specialized message" });
     }
   });
 
