@@ -138,7 +138,7 @@ export default function DiaryScreen() {
   const filteredEntries = entries.filter((entry: DiaryEntry) => {
     const matchesSearch = entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          entry.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMood = !filterMood || entry.moodRating.toString() === filterMood;
+    const matchesMood = !filterMood || filterMood === "all" || entry.moodRating.toString() === filterMood;
     return matchesSearch && matchesMood;
   });
 
@@ -292,7 +292,7 @@ export default function DiaryScreen() {
                   <SelectValue placeholder="Filter by mood" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All moods</SelectItem>
+                  <SelectItem value="all">All moods</SelectItem>
                   <SelectItem value="1">1-2 (Very Low)</SelectItem>
                   <SelectItem value="3">3-4 (Low)</SelectItem>
                   <SelectItem value="5">5-6 (Neutral)</SelectItem>
