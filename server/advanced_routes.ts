@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { storage } from "./storage";
+import { generatePersonaRecommendationsForAssessment, generateGoalSuggestionsForAssessment } from "./assessment_enhancement";
 
 // ADVANCED CLINICAL REASONING AND PERSONALIZATION ENDPOINTS
 
@@ -75,8 +76,8 @@ function registerAdvancedRoutes(app: Express) {
         clinicalReasoning,
         nextSteps: generateNextSteps(severity, suicideRisk),
         followUpRecommended: determineFollowUpSchedule(severity, suicideRisk),
-        recommendedPersonas: generatePersonaRecommendations('depression', severity, totalScore),
-        suggestedGoals: generateGoalSuggestions('depression', severity, responses)
+        recommendedPersonas: generatePersonaRecommendationsForAssessment('depression', severity, totalScore),
+        suggestedGoals: generateGoalSuggestionsForAssessment('depression', severity, responses)
       });
 
     } catch (error) {
