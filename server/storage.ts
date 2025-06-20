@@ -598,74 +598,75 @@ export class DatabaseStorage implements IStorage {
   }
 
   private generateCreativeSessionName(persona: Persona | undefined, messages: Message[]): string {
-    if (!persona || messages.length === 0) {
+    if (!persona || messages.length < 2) {
       return `Session - ${new Date().toLocaleDateString()}`;
     }
 
-    const now = new Date();
-    const date = now.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-
-    // Analyze message content for tone
-    const userMessages = messages.filter(m => m.sender === 'user').map(m => m.content.toLowerCase());
-    const allText = userMessages.join(' ');
-
-    // Detect emotional themes
-    const themes = {
-      anxiety: ['anxious', 'worried', 'nervous', 'stress', 'panic', 'overwhelmed'],
-      sadness: ['sad', 'depressed', 'down', 'hopeless', 'lonely', 'grief'],
-      anger: ['angry', 'frustrated', 'mad', 'irritated', 'furious'],
-      motivation: ['motivated', 'goal', 'achieve', 'improve', 'better', 'progress'],
-      gratitude: ['grateful', 'thankful', 'blessed', 'appreciate'],
-      relationships: ['relationship', 'partner', 'friend', 'family', 'love'],
-      work: ['work', 'job', 'career', 'boss', 'colleague'],
-      self_care: ['self-care', 'meditation', 'mindful', 'relax', 'peace']
+    // Analyze session content for creative naming
+    const userMessages = messages.filter(m => m.sender === 'user');
+    const lastUserMessage = userMessages[userMessages.length - 1]?.content.toLowerCase() || '';
+    
+    // Session type detection
+    const sessionTypes = {
+      vent: ['frustrated', 'angry', 'upset', 'annoyed', 'stressed', 'overwhelmed', 'vent', 'rant'],
+      motivation: ['goal', 'achieve', 'motivation', 'inspire', 'success', 'progress', 'accomplish'],
+      anxiety: ['anxious', 'worry', 'nervous', 'panic', 'scared', 'afraid', 'anxiety'],
+      support: ['help', 'support', 'lonely', 'sad', 'depressed', 'down', 'difficult'],
+      mindfulness: ['calm', 'peace', 'meditate', 'breathe', 'mindful', 'relax', 'center']
     };
 
-    let detectedTheme = 'general';
-    let maxMatches = 0;
-
-    for (const [theme, keywords] of Object.entries(themes)) {
-      const matches = keywords.filter(keyword => allText.includes(keyword)).length;
-      if (matches > maxMatches) {
-        maxMatches = matches;
-        detectedTheme = theme;
+    let sessionType = 'chat';
+    for (const [type, keywords] of Object.entries(sessionTypes)) {
+      if (keywords.some(keyword => lastUserMessage.includes(keyword))) {
+        sessionType = type;
+        break;
       }
     }
 
-    // Generate creative names based on persona and theme
+    // Generate creative names based on persona and session type
     const nameTemplates = {
-      'dr-sarah': {
-        anxiety: [`Anxiety Breakthrough - ${date}`, `Calming Session - ${date}`, `Stress Relief with Dr. Sarah - ${date}`],
-        sadness: [`Healing Hearts - ${date}`, `Processing Emotions - ${date}`, `Therapeutic Reflection - ${date}`],
-        motivation: [`Growth Session - ${date}`, `Therapeutic Progress - ${date}`, `Building Resilience - ${date}`],
-        general: [`Therapy Session - ${date}`, `Clinical Check-in - ${date}`, `Therapeutic Journey - ${date}`]
+      sarah: {
+        vent: ['Therapeutic Vent', 'Processing Session', 'Emotional Release'],
+        motivation: ['Growth Session', 'Therapeutic Progress', 'Healing Journey'],
+        anxiety: ['Anxiety Support', 'Calming Session', 'Coping Strategies'],
+        support: ['Supportive Chat', 'Clinical Check-in', 'Therapeutic Support'],
+        mindfulness: ['Mindful Moment', 'Grounding Session', 'Peaceful Chat']
       },
-      'alex': {
-        anxiety: [`Vent Session - ${date}`, `Real Talk with Alex - ${date}`, `Anxiety Chat - ${date}`],
-        sadness: [`Heart to Heart - ${date}`, `Tough Times Talk - ${date}`, `Support Session - ${date}`],
-        motivation: [`Motivation Boost - ${date}`, `Pep Talk - ${date}`, `Confidence Building - ${date}`],
-        general: [`Casual Chat - ${date}`, `Friend Session - ${date}`, `Support Circle - ${date}`]
+      alex: {
+        vent: ['Vent with Alex', 'Real Talk', 'Honest Chat'],
+        motivation: ['Motivation Session', 'Peer Support', 'Encouragement Chat'],
+        anxiety: ['Anxiety Check-in', 'Peer Counseling', 'Support Session'],
+        support: ['Heart-to-Heart', 'Supportive Chat', 'Understanding Session'],
+        mindfulness: ['Mindful Chat', 'Peaceful Moment', 'Calming Talk']
       },
-      'marcus': {
-        motivation: [`Champion Session - ${date}`, `Goal Crushing - ${date}`, `Victory Planning - ${date}`],
-        work: [`Career Coaching - ${date}`, `Success Strategy - ${date}`, `Professional Growth - ${date}`],
-        general: [`Coaching Session - ${date}`, `Motivation Monday - ${date}`, `Growth Mindset - ${date}`]
+      marcus: {
+        vent: ['Energy Release', 'Power Session', 'Breakthrough Chat'],
+        motivation: ['Goal Session', 'Achievement Talk', 'Success Planning'],
+        anxiety: ['Confidence Building', 'Strength Session', 'Empowerment Chat'],
+        support: ['Coaching Session', 'Life Chat', 'Growth Talk'],
+        mindfulness: ['Focus Session', 'Centered Chat', 'Mindful Coaching']
       },
-      'maya': {
-        anxiety: [`Mindful Moments - ${date}`, `Peaceful Practice - ${date}`, `Calm Cultivation - ${date}`],
-        self_care: [`Self-Care Sunday - ${date}`, `Wellness Check - ${date}`, `Mindful Healing - ${date}`],
-        general: [`Mindfulness Session - ${date}`, `Inner Peace - ${date}`, `Spiritual Check-in - ${date}`]
+      maya: {
+        vent: ['Mindful Venting', 'Emotional Flow', 'Release Session'],
+        motivation: ['Mindful Goals', 'Intentional Growth', 'Peaceful Progress'],
+        anxiety: ['Calming Practice', 'Peaceful Session', 'Anxiety Relief'],
+        support: ['Gentle Support', 'Mindful Care', 'Compassionate Chat'],
+        mindfulness: ['Meditation Chat', 'Mindful Moment', 'Zen Session']
       }
     };
 
-    const personaTemplates = nameTemplates[persona.id as keyof typeof nameTemplates] || nameTemplates['dr-sarah'];
-    const themeTemplates = personaTemplates[detectedTheme as keyof typeof personaTemplates] || personaTemplates.general;
+    const personaTemplates = nameTemplates[persona.id as keyof typeof nameTemplates] || nameTemplates.sarah;
+    const templates = personaTemplates[sessionType as keyof typeof personaTemplates] || personaTemplates.support;
+    const baseName = templates[Math.floor(Math.random() * templates.length)];
     
-    return themeTemplates[Math.floor(Math.random() * themeTemplates.length)];
+    // Add date for uniqueness
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    return `${baseName} - ${dateStr}`;
   }
 }
 
