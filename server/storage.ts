@@ -630,33 +630,37 @@ export class DatabaseStorage implements IStorage {
         motivation: ['Growth Session', 'Therapeutic Progress', 'Healing Journey'],
         anxiety: ['Anxiety Support', 'Calming Session', 'Coping Strategies'],
         support: ['Supportive Chat', 'Clinical Check-in', 'Therapeutic Support'],
-        mindfulness: ['Mindful Moment', 'Grounding Session', 'Peaceful Chat']
+        mindfulness: ['Mindful Moment', 'Grounding Session', 'Peaceful Chat'],
+        chat: ['Therapy Session', 'Clinical Chat', 'Supportive Talk']
       },
       alex: {
         vent: ['Vent with Alex', 'Real Talk', 'Honest Chat'],
         motivation: ['Motivation Session', 'Peer Support', 'Encouragement Chat'],
         anxiety: ['Anxiety Check-in', 'Peer Counseling', 'Support Session'],
         support: ['Heart-to-Heart', 'Supportive Chat', 'Understanding Session'],
-        mindfulness: ['Mindful Chat', 'Peaceful Moment', 'Calming Talk']
+        mindfulness: ['Mindful Chat', 'Peaceful Moment', 'Calming Talk'],
+        chat: ['Peer Session', 'Friend Chat', 'Support Talk']
       },
       marcus: {
         vent: ['Energy Release', 'Power Session', 'Breakthrough Chat'],
         motivation: ['Goal Session', 'Achievement Talk', 'Success Planning'],
         anxiety: ['Confidence Building', 'Strength Session', 'Empowerment Chat'],
         support: ['Coaching Session', 'Life Chat', 'Growth Talk'],
-        mindfulness: ['Focus Session', 'Centered Chat', 'Mindful Coaching']
+        mindfulness: ['Focus Session', 'Centered Chat', 'Mindful Coaching'],
+        chat: ['Coaching Session', 'Growth Chat', 'Success Talk']
       },
       maya: {
         vent: ['Mindful Venting', 'Emotional Flow', 'Release Session'],
         motivation: ['Mindful Goals', 'Intentional Growth', 'Peaceful Progress'],
         anxiety: ['Calming Practice', 'Peaceful Session', 'Anxiety Relief'],
         support: ['Gentle Support', 'Mindful Care', 'Compassionate Chat'],
-        mindfulness: ['Meditation Chat', 'Mindful Moment', 'Zen Session']
+        mindfulness: ['Meditation Chat', 'Mindful Moment', 'Zen Session'],
+        chat: ['Mindful Session', 'Peaceful Chat', 'Zen Talk']
       }
     };
 
     const personaTemplates = nameTemplates[persona.id as keyof typeof nameTemplates] || nameTemplates.sarah;
-    const templates = personaTemplates[sessionType as keyof typeof personaTemplates] || personaTemplates.support;
+    const templates = personaTemplates[sessionType as keyof typeof personaTemplates] || personaTemplates.chat;
     const baseName = templates[Math.floor(Math.random() * templates.length)];
     
     // Add date for uniqueness
