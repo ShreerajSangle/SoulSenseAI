@@ -102,13 +102,13 @@ export default function SpecializedPersonaDemo() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/chat/specialized-message', {
+      const response = await fetch('/api/chat/soulsense-message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: messageText,
           personaId: selectedPersona,
-          userId: `specialized-demo-${selectedPersona}`,
+          userId: `soulsense-demo-${selectedPersona}`,
           isFirstMessage: conversationHistory.length === 0
         })
       });
@@ -121,7 +121,7 @@ export default function SpecializedPersonaDemo() {
           body: JSON.stringify({
             message: messageText,
             personaId: selectedPersona,
-            userId: `specialized-demo-${selectedPersona}`,
+            userId: `soulsense-demo-${selectedPersona}`,
             isFirstMessage: conversationHistory.length === 0
           })
         });
@@ -129,15 +129,15 @@ export default function SpecializedPersonaDemo() {
         const data = await fallbackResponse.json();
         setLastResponse({
           ...data,
-          specializedResponse: {
-            domainExpertise: selectedPersona,
+          soulSenseResponse: {
+            emotionalTone: 'warm and supportive',
+            memoryIntegration: { relationshipDepth: 0.3 },
             therapeuticApproach: currentPersona.methods,
-            adaptiveLearning: { fallbackUsed: true }
           },
-          knowledgeBase: {
-            availableInterventions: currentPersona.expertise,
-            responseTemplates: [`Specialized ${currentPersona.role} response`],
-            crisisProtocols: ['Assessment', 'Intervention', 'Follow-up']
+          personalizedInsights: {
+            emotionalPatterns: 'building trust',
+            newInsights: ['Establishing therapeutic rapport'],
+            connectionStrength: 30
           }
         });
       } else {

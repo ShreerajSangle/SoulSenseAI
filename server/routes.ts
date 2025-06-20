@@ -731,6 +731,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SoulSense AI - Advanced persona with emotional intelligence and memory
+  app.post('/api/chat/soulsense-message', async (req, res) => {
+    try {
+      const { message, personaId, userId, isFirstMessage } = req.body;
+
+      if (!message || !personaId || !userId) {
+        return res.status(400).json({ error: 'Message, personaId, and userId are required' });
+      }
+
+      // Get or create conversation
+      let conversation;
+      try {
+        conversation = await storage.getConversationByUserAndPersona?.(userId, personaId);
+      } catch (error) {
+        // Method may not exist, create new conversation
+        conversation = null;
+      }
+      
+      if (!conversation) {
+        const persona = await storage.getPersona(personaId);
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Session with ${persona?.name || personaId}`,
+        });
+      }
+
+      // Store user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user',
+        emotionDetected: null,
+      });
+
+      // Get conversation history for context
+      const messageHistory = await storage.getConversationMessages(conversation.id);
+
+      // Analyze emotion and context
+      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
+
+      // Generate SoulSense persona response with memory and emotional intelligence
+      const soulSenseResponse = await soulSensePersonaEngine.generatePersonaResponse(
+        message,
+        personaId,
+        userId,
+        emotionAnalysis,
+        messageHistory
+      );
+
+      // Store AI response
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: soulSenseResponse.response,
+        sender: 'ai',
+        emotionDetected: soulSenseResponse.emotionalTone,
+      });
+
+      res.json({
+        conversation,
+        userMessage,
+        aiMessage,
+        emotionAnalysis,
+        soulSenseResponse: {
+          emotionalTone: soulSenseResponse.emotionalTone,
+          memoryIntegration: soulSenseResponse.memoryUpdates,
+          therapeuticApproach: soulSenseResponse.therapeuticApproach,
+          relationshipDepth: soulSenseResponse.memoryUpdates.relationshipDepth
+        },
+        followUpQuestions: soulSenseResponse.followUpQuestions,
+        personalizedInsights: {
+          emotionalPatterns: soulSenseResponse.memoryUpdates.emotionalPattern,
+          newInsights: soulSenseResponse.memoryUpdates.newInsights,
+          connectionStrength: Math.round(soulSenseResponse.memoryUpdates.relationshipDepth * 100)
+        }
+      });
+
+    } catch (error) {
+      console.error('SoulSense chat error:', error);
+      res.status(500).json({ error: 'Failed to process SoulSense message' });
+    }
+  });
+
   // Register advanced clinical and personalization routes
   registerClinicalRoutes(app);
 
