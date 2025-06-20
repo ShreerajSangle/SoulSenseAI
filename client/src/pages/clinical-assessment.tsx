@@ -445,9 +445,17 @@ export default function ClinicalAssessment() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-4 leading-relaxed">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-800 leading-relaxed">
+                    Question {currentQuestion + 1} of {questions.length}
+                  </h3>
+                  <span className="text-sm text-purple-600 font-medium">
+                    {Math.round(((currentQuestion + 1) / questions.length) * 100)}% Complete
+                  </span>
+                </div>
+                <h4 className="text-base text-gray-600 mb-2">
                   Over the last 2 weeks, how often have you been bothered by:
-                </h3>
+                </h4>
                 <p className="text-lg text-gray-700 font-medium mb-6">
                   {question.text}
                 </p>
