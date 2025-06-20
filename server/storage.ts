@@ -11,6 +11,7 @@ import {
   sessionFeedback,
   diaryEntries,
   userProfiles,
+  goals,
   type User,
   type UpsertUser,
   type Persona,
@@ -21,6 +22,8 @@ import {
   type InsertMessage,
   type Session,
   type InsertSession,
+  type Goal,
+  type InsertGoal,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -75,6 +78,14 @@ export interface IStorage {
   getUserProfile(userId: string): Promise<any>;
   createUserProfile(profile: any): Promise<any>;
   updateUserProfile(userId: string, updates: any): Promise<any>;
+  
+  // Goals
+  createGoal(goal: InsertGoal): Promise<Goal>;
+  getUserGoals(userId: string): Promise<Goal[]>;
+  getGoal(id: number): Promise<Goal | undefined>;
+  updateGoal(id: number, updates: Partial<Goal>): Promise<Goal>;
+  deleteGoal(id: number): Promise<void>;
+  updateGoalStatus(id: number, status: string, completedDate?: Date): Promise<Goal>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -487,6 +498,73 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userProfiles.userId, userId))
       .returning();
     return updatedProfile;
+  }
+
+  // Goals
+  async createGoal(goal: InsertGoal): Promise<Goal> {
+    const [newGoal] = await db
+      .insert(goals)
+      .values({
+        ...goal,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newGoal;
+  }
+
+  async getUserGoals(userId: string): Promise<Goal[]> {
+    const userGoals = await db
+      .select()
+      .from(goals)
+      .where(eq(goals.userId, userId))
+      .orderBy(desc(goals.createdAt));
+    return userGoals;
+  }
+
+  async getGoal(id: number): Promise<Goal | undefined> {
+    const [goal] = await db
+      .select()
+      .from(goals)
+      .where(eq(goals.id, id));
+    return goal;
+  }
+
+  async updateGoal(id: number, updates: Partial<Goal>): Promise<Goal> {
+    const [updatedGoal] = await db
+      .update(goals)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(goals.id, id))
+      .returning();
+    return updatedGoal;
+  }
+
+  async deleteGoal(id: number): Promise<void> {
+    await db
+      .delete(goals)
+      .where(eq(goals.id, id));
+  }
+
+  async updateGoalStatus(id: number, status: string, completedDate?: Date): Promise<Goal> {
+    const updateData: any = {
+      status,
+      updatedAt: new Date(),
+    };
+    
+    if (status === 'completed' && completedDate) {
+      updateData.completedDate = completedDate;
+      updateData.progress = 100;
+    }
+    
+    const [updatedGoal] = await db
+      .update(goals)
+      .set(updateData)
+      .where(eq(goals.id, id))
+      .returning();
+    return updatedGoal;
   }
 }
 

@@ -814,6 +814,179 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Goal Management Routes
+  app.post('/api/goals', async (req, res) => {
+    try {
+      const { userId = "anonymous", title, description, category, type, personaId, priority, targetDate, tags, metadata } = req.body;
+      
+      if (!title || !category || !type) {
+        return res.status(400).json({ error: 'Title, category, and type are required' });
+      }
+
+      const goal = await storage.createGoal({
+        userId,
+        title,
+        description,
+        category,
+        type,
+        personaId,
+        priority: priority || 'medium',
+        targetDate: targetDate ? new Date(targetDate) : null,
+        tags: tags || [],
+        metadata: metadata || {},
+        status: 'active',
+        progress: 0,
+        milestones: []
+      });
+
+      res.json(goal);
+    } catch (error) {
+      console.error("Error creating goal:", error);
+      res.status(500).json({ error: "Failed to create goal" });
+    }
+  });
+
+  app.get('/api/goals', async (req, res) => {
+    try {
+      const userId = req.query.userId as string || "anonymous";
+      const status = req.query.status as string;
+      
+      let goals = await storage.getUserGoals(userId);
+      
+      if (status) {
+        goals = goals.filter(goal => goal.status === status);
+      }
+
+      res.json(goals);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      res.status(500).json({ error: "Failed to fetch goals" });
+    }
+  });
+
+  app.get('/api/goals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid goal ID" });
+      }
+
+      const goal = await storage.getGoal(id);
+      if (!goal) {
+        return res.status(404).json({ error: "Goal not found" });
+      }
+
+      res.json(goal);
+    } catch (error) {
+      console.error("Error fetching goal:", error);
+      res.status(500).json({ error: "Failed to fetch goal" });
+    }
+  });
+
+  app.put('/api/goals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid goal ID" });
+      }
+
+      const updates = req.body;
+      const updatedGoal = await storage.updateGoal(id, updates);
+      
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error("Error updating goal:", error);
+      res.status(500).json({ error: "Failed to update goal" });
+    }
+  });
+
+  app.put('/api/goals/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid goal ID" });
+      }
+
+      if (!status) {
+        return res.status(400).json({ error: "Status is required" });
+      }
+
+      const completedDate = status === 'completed' ? new Date() : undefined;
+      const updatedGoal = await storage.updateGoalStatus(id, status, completedDate);
+      
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error("Error updating goal status:", error);
+      res.status(500).json({ error: "Failed to update goal status" });
+    }
+  });
+
+  app.delete('/api/goals/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid goal ID" });
+      }
+
+      await storage.deleteGoal(id);
+      res.json({ message: "Goal deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting goal:", error);
+      res.status(500).json({ error: "Failed to delete goal" });
+    }
+  });
+
+  // Goal Dashboard with Analytics
+  app.get('/api/goals/dashboard/:userId', async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const goals = await storage.getUserGoals(userId);
+      
+      const overview = {
+        totalGoals: goals.length,
+        activeGoals: goals.filter(g => g.status === 'active').length,
+        completedGoals: goals.filter(g => g.status === 'completed').length,
+        inProgressGoals: goals.filter(g => g.status === 'in_progress').length,
+        pausedGoals: goals.filter(g => g.status === 'paused').length
+      };
+
+      const goalsByCategory = goals.reduce((acc, goal) => {
+        acc[goal.category] = (acc[goal.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const goalsByType = goals.reduce((acc, goal) => {
+        acc[goal.type] = (acc[goal.type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const recentGoals = goals
+        .filter(g => g.createdAt && new Date(g.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        .length;
+
+      const completionRate = overview.totalGoals > 0 
+        ? Math.round((overview.completedGoals / overview.totalGoals) * 100) 
+        : 0;
+
+      res.json({
+        overview,
+        analytics: {
+          goalsByCategory,
+          goalsByType,
+          recentGoals,
+          completionRate
+        },
+        activeGoals: goals.filter(g => g.status === 'active').slice(0, 5),
+        recentlyCompleted: goals.filter(g => g.status === 'completed').slice(0, 3)
+      });
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      res.status(500).json({ error: "Failed to generate dashboard" });
+    }
+  });
+
   // Register advanced clinical and personalization routes
   registerClinicalRoutes(app);
 
