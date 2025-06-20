@@ -31,8 +31,14 @@ interface DiaryEntry {
 export default function DiaryScreen() {
   const [selectedEntry, setSelectedEntry] = useState<DiaryEntry | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMood, setFilterMood] = useState<string>("");
+  const [sortBy, setSortBy] = useState<"date" | "mood" | "title">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [editingEntry, setEditingEntry] = useState<DiaryEntry | null>(null);
   const [newEntry, setNewEntry] = useState({
     title: "",
     content: "",
@@ -85,9 +91,28 @@ export default function DiaryScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
+      setIsEditDialogOpen(false);
+      setEditingEntry(null);
       toast({
         title: "Entry updated",
         description: "Your diary entry has been updated successfully.",
+      });
+    }
+  });
+
+  // Delete diary entry mutation
+  const deleteEntryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest(`/api/diary-entries/${id}`, "DELETE");
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
+      setIsViewDialogOpen(false);
+      setSelectedEntry(null);
+      toast({
+        title: "Entry deleted",
+        description: "Your diary entry has been deleted.",
       });
     }
   });
@@ -135,12 +160,88 @@ export default function DiaryScreen() {
     }
   };
 
-  const filteredEntries = entries.filter((entry: DiaryEntry) => {
-    const matchesSearch = entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         entry.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMood = !filterMood || filterMood === "all" || entry.moodRating.toString() === filterMood;
-    return matchesSearch && matchesMood;
-  });
+  // Auto-save functionality
+  const triggerAutoSave = (entry: Partial<DiaryEntry> & { id: number }) => {
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      updateEntryMutation.mutate(entry);
+    }, 3000); // Auto-save after 3 seconds of no typing
+    
+    setAutoSaveTimeout(timeout);
+  };
+
+  // Open entry for editing
+  const openEntryForEdit = (entry: DiaryEntry) => {
+    setEditingEntry(entry);
+    setIsEditDialogOpen(true);
+  };
+
+  // Open entry for viewing
+  const openEntryForView = (entry: DiaryEntry) => {
+    setSelectedEntry(entry);
+    setIsViewDialogOpen(true);
+  };
+
+  // Update editing entry with auto-save
+  const updateEditingEntry = (field: string, value: any) => {
+    if (!editingEntry) return;
+    
+    const updatedEntry = { ...editingEntry, [field]: value };
+    setEditingEntry(updatedEntry);
+    
+    // Trigger auto-save
+    triggerAutoSave(updatedEntry);
+  };
+
+  // Handle editing emotion toggle
+  const handleEditEmotionToggle = (emotion: string) => {
+    if (!editingEntry) return;
+    
+    const emotions = editingEntry.emotions.includes(emotion)
+      ? editingEntry.emotions.filter(e => e !== emotion)
+      : [...editingEntry.emotions, emotion];
+    
+    updateEditingEntry('emotions', emotions);
+  };
+
+  // Save edited entry manually
+  const handleSaveEdit = () => {
+    if (!editingEntry) return;
+    updateEntryMutation.mutate(editingEntry);
+  };
+
+  const filteredAndSortedEntries = entries
+    .filter((entry: DiaryEntry) => {
+      const matchesSearch = entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           entry.content.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesMood = !filterMood || filterMood === "all" || 
+        (filterMood === "1" && entry.moodRating <= 2) ||
+        (filterMood === "3" && entry.moodRating >= 3 && entry.moodRating <= 4) ||
+        (filterMood === "5" && entry.moodRating >= 5 && entry.moodRating <= 6) ||
+        (filterMood === "7" && entry.moodRating >= 7 && entry.moodRating <= 8) ||
+        (filterMood === "9" && entry.moodRating >= 9);
+      return matchesSearch && matchesMood;
+    })
+    .sort((a: DiaryEntry, b: DiaryEntry) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case "date":
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "mood":
+          comparison = a.moodRating - b.moodRating;
+          break;
+        case "title":
+          comparison = a.title.localeCompare(b.title);
+          break;
+      }
+      
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
 
   const emotionOptions = [
     "Happy", "Sad", "Anxious", "Excited", "Calm", "Frustrated", 
@@ -272,11 +373,11 @@ export default function DiaryScreen() {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Enhanced Filters */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+              <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <Input
@@ -287,8 +388,9 @@ export default function DiaryScreen() {
                   />
                 </div>
               </div>
+              
               <Select value={filterMood} onValueChange={setFilterMood}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger>
                   <SelectValue placeholder="Filter by mood" />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,6 +402,28 @@ export default function DiaryScreen() {
                   <SelectItem value="9">9-10 (Excellent)</SelectItem>
                 </SelectContent>
               </Select>
+
+              <div className="flex gap-2">
+                <Select value={sortBy} onValueChange={(value: "date" | "mood" | "title") => setSortBy(value)}>
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="mood">Mood</SelectItem>
+                    <SelectItem value="title">Title</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  className="shrink-0"
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -310,7 +434,7 @@ export default function DiaryScreen() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="text-slate-600 mt-4">Loading your diary entries...</p>
           </div>
-        ) : filteredEntries.length === 0 ? (
+        ) : filteredAndSortedEntries.length === 0 ? (
           <div className="text-center py-12">
             <BookOpen className="w-16 h-16 text-slate-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-slate-700 mb-2">No entries found</h3>
@@ -326,8 +450,8 @@ export default function DiaryScreen() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredEntries.map((entry: DiaryEntry) => (
-              <Card key={entry.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+            {filteredAndSortedEntries.map((entry: DiaryEntry) => (
+              <Card key={entry.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => openEntryForView(entry)}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <CardTitle className="text-lg line-clamp-2">{entry.title}</CardTitle>
