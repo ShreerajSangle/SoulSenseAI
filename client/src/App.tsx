@@ -15,6 +15,7 @@ import TherapeuticJourney from "@/pages/therapeutic-journey";
 import NotFound from "@/pages/not-found";
 import ReplikaQualityDemo from "@/pages/replika-quality-demo";
 import SpecializedPersonaDemo from "@/pages/specialized-persona-demo";
+import SoulSenseAIDemo from "@/pages/soulsense-ai-demo";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/chat/:persona" component={EnhancedChatScreen} />
       <Route path="/replika-demo" component={ReplikaQualityDemo} />
       <Route path="/specialized-demo" component={SpecializedPersonaDemo} />
+      <Route path="/soulsense-demo" component={SoulSenseAIDemo} />
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={DiaryScreen} />
       <Route path="/profile" component={ProfileScreen} />
