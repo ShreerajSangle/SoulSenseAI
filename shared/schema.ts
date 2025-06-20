@@ -193,6 +193,41 @@ export const crisisInterventions = pgTable("crisis_interventions", {
   index("idx_crisis_severity").on(table.severityLevel),
 ]);
 
+// Goals tracking table
+export const goals = pgTable("goals", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  personaId: varchar("persona_id"),
+  title: text("title").notNull(),
+  description: text("description"),
+  category: varchar("category").notNull(), // 'predefined', 'personalized', 'specialized'
+  type: varchar("type").notNull(), // 'Overcome Anxiety', 'Build Confidence', 'Manage Panic Episodes', etc.
+  status: varchar("status").notNull().default('active'), // 'active', 'in_progress', 'paused', 'completed', 'archived'
+  priority: varchar("priority").notNull().default('medium'), // 'low', 'medium', 'high'
+  targetDate: timestamp("target_date"),
+  completedDate: timestamp("completed_date"),
+  milestones: json("milestones").$type<{
+    id: string;
+    title: string;
+    completed: boolean;
+    completedDate?: string;
+  }[]>(),
+  progress: integer("progress").default(0), // 0-100 percentage
+  tags: json("tags").$type<string[]>(),
+  metadata: jsonb("metadata").$type<{
+    difficulty?: string;
+    estimatedDuration?: string;
+    resources?: string[];
+    notes?: string;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_goals_user_id").on(table.userId),
+  index("idx_goals_status").on(table.status),
+  index("idx_goals_type").on(table.type),
+]);
+
 // Daily check-ins and notifications
 export const dailyCheckIns = pgTable("daily_check_ins", {
   id: serial("id").primaryKey(),
@@ -274,6 +309,11 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
   id: true,
   createdAt: true,
 });
+export const insertGoalSchema = createInsertSchema(goals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // User authentication types
 export type UpsertUser = typeof users.$inferInsert;
@@ -282,6 +322,10 @@ export type User = typeof users.$inferSelect;
 // Session feedback types
 export type InsertSessionFeedback = typeof sessionFeedback.$inferInsert;
 export type SessionFeedback = typeof sessionFeedback.$inferSelect;
+
+// Goal types
+export type InsertGoal = typeof goals.$inferInsert;
+export type Goal = typeof goals.$inferSelect;
 
 // Core application types
 export type Persona = typeof personas.$inferSelect;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Plus, Search, Filter, BookOpen, Heart, Brain, Target } from "lucide-react";
+import { Calendar, Plus, Search, Filter, BookOpen, Heart, Brain, Target, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -513,6 +513,223 @@ export default function DiaryScreen() {
             ))}
           </div>
         )}
+
+        {/* Entry Viewing Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>{selectedEntry?.title}</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (selectedEntry) {
+                        openEntryForEdit(selectedEntry);
+                        setIsViewDialogOpen(false);
+                      }
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => selectedEntry && deleteEntryMutation.mutate(selectedEntry.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedEntry && (
+              <div className="space-y-6 py-4">
+                <div className="flex items-center gap-4">
+                  <Badge className={`${getMoodColor(selectedEntry.moodRating)}`}>
+                    Mood: {selectedEntry.moodRating}/10
+                  </Badge>
+                  <p className="text-sm text-slate-500">
+                    {new Date(selectedEntry.createdAt).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric'
+                    })}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Content</h4>
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-slate-700 whitespace-pre-wrap">{selectedEntry.content}</p>
+                  </div>
+                </div>
+
+                {selectedEntry.emotions.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Emotions</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedEntry.emotions.map(emotion => (
+                        <Badge key={emotion} variant="secondary">
+                          {emotion}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedEntry.gratitude && (
+                  <div>
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      Gratitude
+                    </h4>
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="text-slate-700">{selectedEntry.gratitude}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedEntry.goals && (
+                  <div>
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Goals & Intentions
+                    </h4>
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="text-slate-700">{selectedEntry.goals}</p>
+                    </div>
+                  </div>
+                )}
+
+                {selectedEntry.reflections && (
+                  <div>
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Brain className="w-4 h-4" />
+                      Reflections
+                    </h4>
+                    <div className="bg-slate-50 p-4 rounded-lg">
+                      <p className="text-slate-700">{selectedEntry.reflections}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Entry Editing Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Edit Entry</span>
+                <div className="text-sm text-slate-500">
+                  {autoSaveTimeout ? "Auto-saving..." : "Changes saved"}
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {editingEntry && (
+              <div className="space-y-6 py-4">
+                <div>
+                  <Label htmlFor="edit-title">Title</Label>
+                  <Input
+                    id="edit-title"
+                    value={editingEntry.title}
+                    onChange={(e) => updateEditingEntry('title', e.target.value)}
+                    placeholder="What's on your mind today?"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-content">Content</Label>
+                  <Textarea
+                    id="edit-content"
+                    value={editingEntry.content}
+                    onChange={(e) => updateEditingEntry('content', e.target.value)}
+                    placeholder="Write about your day, thoughts, or feelings..."
+                    rows={6}
+                  />
+                </div>
+
+                <div>
+                  <Label>Mood Rating: {editingEntry.moodRating}/10</Label>
+                  <Slider
+                    value={[editingEntry.moodRating]}
+                    onValueChange={(value) => updateEditingEntry('moodRating', value[0])}
+                    max={10}
+                    min={1}
+                    step={1}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label>Emotions</Label>
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {emotionOptions.map(emotion => (
+                      <Button
+                        key={emotion}
+                        variant={editingEntry.emotions.includes(emotion) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handleEditEmotionToggle(emotion)}
+                      >
+                        {emotion}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-gratitude">Gratitude</Label>
+                  <Textarea
+                    id="edit-gratitude"
+                    value={editingEntry.gratitude || ""}
+                    onChange={(e) => updateEditingEntry('gratitude', e.target.value)}
+                    placeholder="What are you grateful for today?"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-goals">Goals & Intentions</Label>
+                  <Textarea
+                    id="edit-goals"
+                    value={editingEntry.goals || ""}
+                    onChange={(e) => updateEditingEntry('goals', e.target.value)}
+                    placeholder="What do you want to focus on or achieve?"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-reflections">Reflections</Label>
+                  <Textarea
+                    id="edit-reflections"
+                    value={editingEntry.reflections || ""}
+                    onChange={(e) => updateEditingEntry('reflections', e.target.value)}
+                    placeholder="Any insights or lessons learned?"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveEdit} disabled={updateEntryMutation.isPending}>
+                    {updateEntryMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
