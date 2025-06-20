@@ -51,6 +51,24 @@ export default function TherapeuticJourney() {
     retry: false,
   });
 
+  // Provide safe defaults for dashboard
+  const safeDashboard = dashboard || {
+    overview: {
+      totalGoals: 0,
+      activeGoals: 0,
+      completedGoals: 0,
+      overallProgress: 0
+    },
+    activeGoals: [],
+    recentAchievements: [],
+    upcomingMilestones: [],
+    progressTrends: {
+      moodTrend: "insufficient_data",
+      consistency: 0
+    },
+    recommendations: ["Consider setting your first therapeutic goal"]
+  };
+
   const createGoal = useMutation({
     mutationFn: async (data: { goalType: string; customizations?: any }) => {
       const response = await apiRequest("/api/goals", "POST", data);
@@ -228,7 +246,7 @@ export default function TherapeuticJourney() {
         </Card>
 
         {/* Overview Stats */}
-        {dashboard && (
+        {safeDashboard && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
@@ -236,7 +254,7 @@ export default function TherapeuticJourney() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Total Goals</p>
-                      <p className="text-3xl font-bold text-gray-800">{dashboard.overview.totalGoals}</p>
+                      <p className="text-3xl font-bold text-gray-800">{safeDashboard.overview.totalGoals}</p>
                     </div>
                     <Target className="w-8 h-8 text-purple-500" />
                   </div>
@@ -248,7 +266,7 @@ export default function TherapeuticJourney() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Active Goals</p>
-                      <p className="text-3xl font-bold text-blue-600">{dashboard.overview.activeGoals}</p>
+                      <p className="text-3xl font-bold text-blue-600">{safeDashboard.overview.activeGoals}</p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-blue-500" />
                   </div>
@@ -260,7 +278,7 @@ export default function TherapeuticJourney() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Completed</p>
-                      <p className="text-3xl font-bold text-green-600">{dashboard.overview.completedGoals}</p>
+                      <p className="text-3xl font-bold text-green-600">{safeDashboard.overview.completedGoals}</p>
                     </div>
                     <Award className="w-8 h-8 text-green-500" />
                   </div>
@@ -272,8 +290,8 @@ export default function TherapeuticJourney() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">Overall Progress</p>
-                      <p className={`text-3xl font-bold ${getProgressColor(dashboard.overview.overallProgress)}`}>
-                        {Math.round(dashboard.overview.overallProgress)}%
+                      <p className={`text-3xl font-bold ${getProgressColor(safeDashboard.overview.overallProgress)}`}>
+                        {Math.round(safeDashboard.overview.overallProgress)}%
                       </p>
                     </div>
                     <Star className="w-8 h-8 text-yellow-500" />
@@ -290,7 +308,7 @@ export default function TherapeuticJourney() {
               </TabsList>
 
               <TabsContent value="goals" className="space-y-6">
-                {dashboard.activeGoals.length === 0 ? (
+                {safeDashboard.activeGoals.length === 0 ? (
                   <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                     <CardContent className="p-8 text-center">
                       <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -308,7 +326,7 @@ export default function TherapeuticJourney() {
                   </Card>
                 ) : (
                   <div className="grid gap-6">
-                    {dashboard.activeGoals.map((goal) => (
+                    {safeDashboard.activeGoals.map((goal) => (
                       <Card key={goal.goalId} className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
                         <CardHeader>
                           <div className="flex items-start justify-between">
@@ -388,21 +406,21 @@ export default function TherapeuticJourney() {
                       <CardTitle className="text-lg text-gray-800">Progress Trends</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {dashboard.progressTrends ? (
+                      {safeDashboard.progressTrends ? (
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Mood Trend</span>
                             <Badge variant={
-                              dashboard.progressTrends.moodTrend === "improving" ? "default" :
-                              dashboard.progressTrends.moodTrend === "stable" ? "secondary" : "destructive"
+                              safeDashboard.progressTrends.moodTrend === "improving" ? "default" :
+                              safeDashboard.progressTrends.moodTrend === "stable" ? "secondary" : "destructive"
                             }>
-                              {dashboard.progressTrends.moodTrend}
+                              {safeDashboard.progressTrends.moodTrend}
                             </Badge>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Consistency</span>
                             <span className="text-gray-800 font-semibold">
-                              {Math.round(dashboard.progressTrends.consistency * 100)}%
+                              {Math.round(safeDashboard.progressTrends.consistency * 100)}%
                             </span>
                           </div>
                         </div>
@@ -417,9 +435,9 @@ export default function TherapeuticJourney() {
                       <CardTitle className="text-lg text-gray-800">Recommendations</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {dashboard.recommendations && dashboard.recommendations.length > 0 ? (
+                      {safeDashboard.recommendations && safeDashboard.recommendations.length > 0 ? (
                         <ul className="space-y-2">
-                          {dashboard.recommendations.map((rec, index) => (
+                          {safeDashboard.recommendations.map((rec, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start">
                               <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0" />
                               {rec}
@@ -440,9 +458,9 @@ export default function TherapeuticJourney() {
                     <CardTitle className="text-lg text-gray-800">Recent Achievements</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {dashboard.recentAchievements.length > 0 ? (
+                    {safeDashboard.recentAchievements.length > 0 ? (
                       <div className="space-y-4">
-                        {dashboard.recentAchievements.map((achievement, index) => (
+                        {safeDashboard.recentAchievements.map((achievement, index) => (
                           <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
                             <Award className="w-6 h-6 text-green-500" />
                             <div>
@@ -466,9 +484,9 @@ export default function TherapeuticJourney() {
                     <CardTitle className="text-lg text-gray-800">Upcoming Milestones</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {dashboard.upcomingMilestones.length > 0 ? (
+                    {safeDashboard.upcomingMilestones.length > 0 ? (
                       <div className="space-y-3">
-                        {dashboard.upcomingMilestones.map((milestone, index) => (
+                        {safeDashboard.upcomingMilestones.map((milestone, index) => (
                           <div key={index} className="flex items-center justify-between p-3 border border-purple-200 rounded-lg">
                             <div>
                               <p className="font-medium text-gray-800">{milestone.title}</p>
