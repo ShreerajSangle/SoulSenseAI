@@ -13,6 +13,7 @@ import { enhancedConversationSystem } from "./enhanced_conversation_system";
 import { streamingConversation } from "./streaming_conversation";
 import { specializedPersonaEngine } from "./specialized_persona_engine";
 import { personaKnowledgeModules } from "./persona_knowledge_modules";
+import { soulSensePersonaEngine } from "./soulSense_persona_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
