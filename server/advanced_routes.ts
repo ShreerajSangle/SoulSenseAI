@@ -74,7 +74,9 @@ function registerAdvancedRoutes(app: Express) {
         suicideRisk,
         clinicalReasoning,
         nextSteps: generateNextSteps(severity, suicideRisk),
-        followUpRecommended: determineFollowUpSchedule(severity, suicideRisk)
+        followUpRecommended: determineFollowUpSchedule(severity, suicideRisk),
+        recommendedPersonas: generatePersonaRecommendations('depression', severity, totalScore),
+        suggestedGoals: generateGoalSuggestions('depression', severity, responses)
       });
 
     } catch (error) {

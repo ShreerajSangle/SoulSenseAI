@@ -742,8 +742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get or create conversation
       let conversation;
-      const existingConversations = await storage.getUserConversations(userId);
-      conversation = existingConversations.find(c => c.personaId === personaId && c.status === 'active');
+      conversation = await storage.getConversationByUserAndPersona(userId, personaId);
       
       if (!conversation) {
         const persona = await storage.getPersona(personaId);

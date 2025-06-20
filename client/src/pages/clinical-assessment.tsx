@@ -215,12 +215,14 @@ export default function ClinicalAssessment() {
   const handleAnswer = (value: number) => {
     const questionId = questions[currentQuestion].id;
     setResponses(prev => ({ ...prev, [questionId]: value }));
+  };
 
+  const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       // Assessment complete
-      submitAssessment.mutate({ responses: { ...responses, [questionId]: value } });
+      submitAssessment.mutate({ responses });
     }
   };
 
@@ -338,8 +340,64 @@ export default function ClinicalAssessment() {
                 </Card>
               )}
 
+              {/* Persona Suggestions Box */}
+              {results.recommendedPersonas && results.recommendedPersonas.length > 0 && (
+                <Card className="border-purple-200 bg-purple-50">
+                  <CardHeader>
+                    <CardTitle className="text-purple-800 text-lg">Recommended Support</CardTitle>
+                    <CardDescription>Based on your assessment, these personas may be most helpful</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-3">
+                      {results.recommendedPersonas.map((persona: any) => (
+                        <div key={persona.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                          <div>
+                            <div className="font-medium text-gray-800">{persona.name}</div>
+                            <div className="text-sm text-gray-600">{persona.reason}</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => window.location.href = `/chat?persona=${persona.id}`}
+                            className="bg-purple-600 hover:bg-purple-700"
+                          >
+                            Start Session
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Goal Suggestions */}
+              {results.suggestedGoals && results.suggestedGoals.length > 0 && (
+                <Card className="border-pink-200 bg-pink-50">
+                  <CardHeader>
+                    <CardTitle className="text-pink-800 text-lg">Suggested Goals</CardTitle>
+                    <CardDescription>Consider these therapeutic goals based on your assessment</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-2">
+                      {results.suggestedGoals.map((goal: string, index: number) => (
+                        <div key={index} className="flex items-center p-2 bg-white rounded border">
+                          <div className="w-2 h-2 bg-pink-500 rounded-full mr-3 flex-shrink-0" />
+                          <span className="text-gray-700 text-sm">{goal}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                <Button 
+                  onClick={() => window.location.href = '/'}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Home
+                </Button>
                 <Button 
                   onClick={() => {
                     setAssessmentType(null);
@@ -353,10 +411,10 @@ export default function ClinicalAssessment() {
                   Take Another Assessment
                 </Button>
                 <Button 
-                  onClick={() => window.location.href = '/chat'}
+                  onClick={() => window.location.href = '/therapeutic-journey'}
                   className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
-                  Start Therapeutic Session
+                  Start Therapeutic Journey
                 </Button>
               </div>
             </CardContent>
@@ -396,6 +454,7 @@ export default function ClinicalAssessment() {
               </div>
 
               <RadioGroup 
+                value={responses[question.id]?.toString() || ""}
                 onValueChange={(value) => handleAnswer(parseInt(value))}
                 className="space-y-4"
               >
@@ -411,6 +470,27 @@ export default function ClinicalAssessment() {
                   </div>
                 ))}
               </RadioGroup>
+
+              <div className="flex justify-between items-center mt-8">
+                <Button
+                  variant="outline"
+                  onClick={() => currentQuestion > 0 ? setCurrentQuestion(prev => prev - 1) : setAssessmentType(null)}
+                  className="px-6"
+                >
+                  {currentQuestion > 0 ? "Previous" : "Back"}
+                </Button>
+                
+                <Button
+                  onClick={handleNext}
+                  disabled={responses[question.id] === undefined || submitAssessment.isPending}
+                  className="px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  {currentQuestion === questions.length - 1 
+                    ? (submitAssessment.isPending ? "Processing..." : "Complete Assessment")
+                    : "Next"
+                  }
+                </Button>
+              </div>
 
               <div className="text-xs text-gray-500 mt-6 p-3 bg-gray-50 rounded-lg">
                 This assessment uses validated clinical screening tools. Results provide insight into symptom severity but do not constitute a diagnosis. Professional evaluation is recommended for comprehensive assessment.

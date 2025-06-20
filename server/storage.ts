@@ -610,7 +610,7 @@ export class DatabaseStorage implements IStorage {
     });
 
     // Analyze message content for tone
-    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
+    const userMessages = messages.filter(m => m.sender === 'user').map(m => m.content.toLowerCase());
     const allText = userMessages.join(' ');
 
     // Detect emotional themes
