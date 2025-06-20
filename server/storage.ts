@@ -42,6 +42,8 @@ export interface IStorage {
   getConversation(id: number): Promise<Conversation | undefined>;
   getUserConversations(userId: string): Promise<Conversation[]>;
   updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined>;
+  getConversationByUserAndPersona(userId: string, personaId: string): Promise<Conversation | undefined>;
+  endConversation(id: number): Promise<Conversation | undefined>;
   
   // Messages
   createMessage(message: InsertMessage): Promise<Message>;
@@ -565,6 +567,105 @@ export class DatabaseStorage implements IStorage {
       .where(eq(goals.id, id))
       .returning();
     return updatedGoal;
+  }
+
+  // Session History Management
+  async getConversationByUserAndPersona(userId: string, personaId: string): Promise<Conversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, userId) && eq(conversations.personaId, personaId))
+      .orderBy(desc(conversations.updatedAt));
+    return conversation;
+  }
+
+  async endConversation(id: number): Promise<Conversation | undefined> {
+    const messages = await this.getConversationMessages(id);
+    const persona = await this.getPersona((await this.getConversation(id))?.personaId || '');
+    
+    // Generate creative session name
+    const creativeName = this.generateCreativeSessionName(persona, messages);
+    
+    const [updatedConversation] = await db
+      .update(conversations)
+      .set({
+        title: creativeName,
+        updatedAt: new Date(),
+      })
+      .where(eq(conversations.id, id))
+      .returning();
+    return updatedConversation;
+  }
+
+  private generateCreativeSessionName(persona: Persona | undefined, messages: Message[]): string {
+    if (!persona || messages.length === 0) {
+      return `Session - ${new Date().toLocaleDateString()}`;
+    }
+
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+
+    // Analyze message content for tone
+    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
+    const allText = userMessages.join(' ');
+
+    // Detect emotional themes
+    const themes = {
+      anxiety: ['anxious', 'worried', 'nervous', 'stress', 'panic', 'overwhelmed'],
+      sadness: ['sad', 'depressed', 'down', 'hopeless', 'lonely', 'grief'],
+      anger: ['angry', 'frustrated', 'mad', 'irritated', 'furious'],
+      motivation: ['motivated', 'goal', 'achieve', 'improve', 'better', 'progress'],
+      gratitude: ['grateful', 'thankful', 'blessed', 'appreciate'],
+      relationships: ['relationship', 'partner', 'friend', 'family', 'love'],
+      work: ['work', 'job', 'career', 'boss', 'colleague'],
+      self_care: ['self-care', 'meditation', 'mindful', 'relax', 'peace']
+    };
+
+    let detectedTheme = 'general';
+    let maxMatches = 0;
+
+    for (const [theme, keywords] of Object.entries(themes)) {
+      const matches = keywords.filter(keyword => allText.includes(keyword)).length;
+      if (matches > maxMatches) {
+        maxMatches = matches;
+        detectedTheme = theme;
+      }
+    }
+
+    // Generate creative names based on persona and theme
+    const nameTemplates = {
+      'dr-sarah': {
+        anxiety: [`Anxiety Breakthrough - ${date}`, `Calming Session - ${date}`, `Stress Relief with Dr. Sarah - ${date}`],
+        sadness: [`Healing Hearts - ${date}`, `Processing Emotions - ${date}`, `Therapeutic Reflection - ${date}`],
+        motivation: [`Growth Session - ${date}`, `Therapeutic Progress - ${date}`, `Building Resilience - ${date}`],
+        general: [`Therapy Session - ${date}`, `Clinical Check-in - ${date}`, `Therapeutic Journey - ${date}`]
+      },
+      'alex': {
+        anxiety: [`Vent Session - ${date}`, `Real Talk with Alex - ${date}`, `Anxiety Chat - ${date}`],
+        sadness: [`Heart to Heart - ${date}`, `Tough Times Talk - ${date}`, `Support Session - ${date}`],
+        motivation: [`Motivation Boost - ${date}`, `Pep Talk - ${date}`, `Confidence Building - ${date}`],
+        general: [`Casual Chat - ${date}`, `Friend Session - ${date}`, `Support Circle - ${date}`]
+      },
+      'marcus': {
+        motivation: [`Champion Session - ${date}`, `Goal Crushing - ${date}`, `Victory Planning - ${date}`],
+        work: [`Career Coaching - ${date}`, `Success Strategy - ${date}`, `Professional Growth - ${date}`],
+        general: [`Coaching Session - ${date}`, `Motivation Monday - ${date}`, `Growth Mindset - ${date}`]
+      },
+      'maya': {
+        anxiety: [`Mindful Moments - ${date}`, `Peaceful Practice - ${date}`, `Calm Cultivation - ${date}`],
+        self_care: [`Self-Care Sunday - ${date}`, `Wellness Check - ${date}`, `Mindful Healing - ${date}`],
+        general: [`Mindfulness Session - ${date}`, `Inner Peace - ${date}`, `Spiritual Check-in - ${date}`]
+      }
+    };
+
+    const personaTemplates = nameTemplates[persona.id as keyof typeof nameTemplates] || nameTemplates['dr-sarah'];
+    const themeTemplates = personaTemplates[detectedTheme as keyof typeof personaTemplates] || personaTemplates.general;
+    
+    return themeTemplates[Math.floor(Math.random() * themeTemplates.length)];
   }
 }
 

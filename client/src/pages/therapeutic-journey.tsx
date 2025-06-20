@@ -417,7 +417,7 @@ export default function TherapeuticJourney() {
                       <CardTitle className="text-lg text-gray-800">Recommendations</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {dashboard.recommendations.length > 0 ? (
+                      {dashboard.recommendations && dashboard.recommendations.length > 0 ? (
                         <ul className="space-y-2">
                           {dashboard.recommendations.map((rec, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start">
