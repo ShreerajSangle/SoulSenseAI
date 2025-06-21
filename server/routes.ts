@@ -9,11 +9,11 @@ import { emotionDetector } from "./emotion_detection";
 import { advancedAI } from "./advanced_ai_engine";
 import { replikaEngine } from "./replika_engine";
 import { llmEngine } from "./llm_conversation_engine";
-import { enhancedConversationSystem } from "./enhanced_conversation_system";
 import { streamingConversation } from "./streaming_conversation";
 import { specializedPersonaEngine } from "./specialized_persona_engine";
 import { personaKnowledgeModules } from "./persona_knowledge_modules";
 import { soulSensePersonaEngine } from "./soulSense_persona_engine";
+import { enhancedConversationSystem } from "./enhanced_conversation_system";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -398,10 +398,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
       // Use enhanced conversation system for Replika-quality responses
-      const enhancedResponse = await enhancedConversationSystem.generateAdvancedResponse(
-        message,
+      const enhancedResponse = await enhancedConversationSystem.generateResponse(
         personaId,
         userId,
+        message,
         messageHistory
       );
 

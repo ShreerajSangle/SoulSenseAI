@@ -418,7 +418,7 @@ export default function TherapeuticJourney() {
                               safeDashboard.progressTrends.moodTrend === "improving" ? "default" :
                               safeDashboard.progressTrends.moodTrend === "stable" ? "secondary" : "destructive"
                             }>
-                              {safeDashboard.progressTrends.moodTrend}
+                              {safeDashboard.progressTrends.moodTrend || "No data"}
                             </Badge>
                           </div>
                           <div className="flex items-center justify-between">
