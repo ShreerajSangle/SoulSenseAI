@@ -234,14 +234,6 @@ export default function RedesignedProfile() {
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={() => setLocation('/diary')}
-              className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-indigo-200 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-xl"
-            >
-              <BookOpen className="w-4 h-4" />
-              Diary
-            </Button>
-            <Button
-              variant="outline"
               onClick={() => setLocation('/therapeutic-journey')}
               className="flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-pink-200 dark:border-pink-600 text-pink-700 dark:text-pink-300 hover:bg-pink-50 dark:hover:bg-pink-900/30 rounded-xl"
             >

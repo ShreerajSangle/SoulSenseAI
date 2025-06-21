@@ -69,14 +69,6 @@ export default function PersonaSelector() {
             <span className="text-2xl font-bold text-purple-900">SoulSense AI</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setLocation('/diary')}
-              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-700 hover:bg-purple-50"
-            >
-              <Heart className="w-4 h-4" />
-              Diary
-            </Button>
           </div>
         </div>
 

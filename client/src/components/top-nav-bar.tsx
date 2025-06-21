@@ -57,15 +57,7 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
               Memory
             </Button>
           </Link>
-          <Link href="/diary">
-            <Button 
-              variant={isActive("/diary") ? "default" : "ghost"} 
-              size="sm"
-              className={isActive("/diary") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
-            >
-              Diary
-            </Button>
-          </Link>
+
           <Link href="/profile">
             <Button 
               variant={isActive("/profile") ? "default" : "ghost"} 

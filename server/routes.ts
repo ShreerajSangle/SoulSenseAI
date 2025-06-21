@@ -668,40 +668,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get conversation history for context
       const messageHistory = await storage.getConversationMessages(conversation.id);
       
-      // Analyze emotion first for context
-      const emotionAnalysis = emotionDetector.analyzeEmotion(message);
-
-      // Generate basic therapeutic response for now
+      // Generate enhanced conversational response with natural flow
       const persona = await storage.getPersona(personaId);
-      const responseContent = generateBasicResponse(persona, message, emotionAnalysis);
+      
+      try {
+        const enhancedResponse = await enhancedConversationSystem.generateResponse(
+          personaId,
+          message,
+          messageHistory.map(m => ({
+            sender: m.sender,
+            content: m.content,
+            timestamp: m.timestamp
+          })),
+          moodData
+        );
 
-      // Create AI message with response
-      const aiMessage = await storage.createMessage({
-        conversationId: conversation.id,
-        content: responseContent,
-        sender: 'ai',
-        emotionDetected: 'empathetic'
-      });
+        // Create AI message with enhanced response
+        const aiMessage = await storage.createMessage({
+          conversationId: conversation.id,
+          content: enhancedResponse.content,
+          sender: 'ai',
+          emotionDetected: enhancedResponse.emotionalTone
+        });
 
-      // Determine suggested micro-tools based on emotional state
-      const suggestedMicroTools = [];
-      if (emotionAnalysis.primary_emotion === 'anxiety') {
-        suggestedMicroTools.push('breathing', 'grounding');
-      } else if (emotionAnalysis.primary_emotion === 'depression') {
-        suggestedMicroTools.push('cbt', 'grounding');
-      } else if (emotionAnalysis.arousal_level > 0.7) {
-        suggestedMicroTools.push('breathing');
+        // Update response data with enhanced insights
+        const emotionAnalysis = {
+          primary_emotion: enhancedResponse.emotionalTone,
+          arousal_level: 0.5,
+          crisis_indicators: { level: enhancedResponse.crisisDetected ? 'high' : 'none' }
+        };
+
+        const suggestedMicroTools = enhancedResponse.suggestedInterventions || [];
+        const crisisDetected = enhancedResponse.crisisDetected;
+        const followUpQuestions = enhancedResponse.followUpQuestions;
+
+        res.json({
+          conversation,
+          aiMessage,
+          emotionAnalysis,
+          suggestedMicroTools,
+          crisisDetected,
+          followUpQuestions,
+          therapeuticTechniques: enhancedResponse.therapeuticElements || ["active listening", "empathetic responding"],
+          personalityInsight: "supportive",
+          memoryReferences: [],
+          relationshipDepth: "developing",
+          emotionalResonance: "empathetic",
+          conversationInsights: [],
+          engagementLevel: "high",
+          moodInsights: []
+        });
+
+      } catch (error) {
+        console.error("Enhanced chat error:", error);
+        
+        // Fallback response if enhanced system fails
+        const persona = await storage.getPersona(personaId);
+        const fallbackContent = `Hello! I'm ${persona?.name || 'your AI companion'}. I'm here to support you. How are you feeling today?`;
+        
+        const aiMessage = await storage.createMessage({
+          conversationId: conversation.id,
+          content: fallbackContent,
+          sender: 'ai',
+          emotionDetected: 'welcoming'
+        });
+
+        res.json({
+          conversation,
+          aiMessage,
+          emotionAnalysis: { primary_emotion: 'neutral', arousal_level: 0.5, crisis_indicators: { level: 'none' } },
+          suggestedMicroTools: [],
+          crisisDetected: false,
+          followUpQuestions: ["How are you feeling today?", "What's on your mind?"],
+          therapeuticTechniques: ["active listening"],
+          personalityInsight: "welcoming",
+          memoryReferences: [],
+          relationshipDepth: "new",
+          emotionalResonance: "warm",
+          conversationInsights: [],
+          engagementLevel: "high",
+          moodInsights: []
+        });
       }
-
-      // Check for crisis indicators
-      const crisisDetected = emotionAnalysis.crisis_indicators?.level !== 'none';
-
-      // Generate contextual follow-up questions
-      const followUpQuestions = [
-        "What's been on your mind about this?",
-        "How has this been affecting you?",
-        "What would feel most helpful right now?"
-      ];
 
       res.json({
         conversation,
