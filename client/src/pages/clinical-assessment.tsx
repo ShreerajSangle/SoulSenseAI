@@ -411,7 +411,7 @@ export default function ClinicalAssessment() {
                   Take Another Assessment
                 </Button>
                 <Button 
-                  onClick={() => window.location.href = '/therapeutic-journey'}
+                  onClick={() => setLocation('/therapeutic-journey')}
                   className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                 >
                   Start Therapeutic Journey

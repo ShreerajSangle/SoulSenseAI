@@ -71,22 +71,26 @@ export default function TherapeuticJourney() {
 
   const createGoal = useMutation({
     mutationFn: async (data: { goalType: string; customizations?: any }) => {
-      const response = await apiRequest("/api/goals", "POST", data);
+      const response = await apiRequest("/api/goals", "POST", {
+        userId: "anonymous",
+        ...data
+      });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (goal) => {
       queryClient.invalidateQueries({ queryKey: ["/api/goals/dashboard/anonymous"] });
       setShowGoalCreation(false);
       setSelectedGoalType(null);
       toast({
         title: "Goal Created Successfully",
-        description: "Your therapeutic journey has been personalized based on evidence-based practices.",
+        description: `"${goal.title}" has been added to your therapeutic journey.`,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Goal creation error:", error);
       toast({
         title: "Goal Creation Failed",
-        description: "Unable to create goal. Please try again.",
+        description: "There was an issue creating your goal. Please try again.",
         variant: "destructive",
       });
     }
