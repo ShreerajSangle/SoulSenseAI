@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import ConversationHub from "@/pages/conversation-hub";
 import PersonaSelector from "@/pages/persona-selector";
 import ChatScreen from "@/pages/chat-screen";
 import EnhancedChatScreen from "@/pages/enhanced-chat-screen";
@@ -25,7 +26,8 @@ import GPT4oChat from "@/pages/gpt4o-chat";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={PersonaSelector} />
+      <Route path="/" component={ConversationHub} />
+      <Route path="/personas" component={PersonaSelector} />
       <Route path="/chat" component={EnhancedChatScreen} />
       <Route path="/chat/:persona" component={EnhancedChatScreen} />
       <Route path="/replika-demo" component={ReplikaQualityDemo} />
