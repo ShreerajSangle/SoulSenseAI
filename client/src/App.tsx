@@ -31,6 +31,7 @@ function Router() {
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={DiaryScreen} />
       <Route path="/profile" component={ProfileScreen} />
+      <Route path="/enhanced-profile" component={EnhancedProfileScreen} />
       <Route path="/clinical-assessment" component={ClinicalAssessment} />
       <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
