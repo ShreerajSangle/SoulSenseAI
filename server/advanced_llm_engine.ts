@@ -261,7 +261,7 @@ export class AdvancedLLMEngine extends EventEmitter {
     message: string,
     emotionalContext: EmotionalContext
   ): AsyncGenerator<StreamingResponse, void, unknown> {
-    const fallbackResponses = {
+    const fallbackResponses: Record<string, string> = {
       sarah: "I understand this is important to you. Let's take a moment to explore what you're experiencing right now.",
       maya: "I sense you're carrying something heavy. Would you like to breathe together and find some clarity?",
       alex: "Hey, I hear you. Sometimes life throws curveballs, but we'll figure this out together.",
@@ -489,7 +489,7 @@ Please respond as your persona, providing emotionally resonant support that ackn
   }
 
   private generateEmergencyResponse(persona: PersonaConfig, emotionalContext: EmotionalContext): string {
-    const emergencyResponses = {
+    const emergencyResponses: Record<string, string> = {
       sarah: "I want you to know that I'm here with you. Whatever you're going through, you don't have to face it alone.",
       maya: "Take a deep breath with me. In this moment, you are safe and supported.",
       alex: "Hey, I've got your back. Whatever's happening, we'll get through this together.",

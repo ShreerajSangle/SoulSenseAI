@@ -181,8 +181,11 @@ export function StreamingChatInterface({
         }
       }
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if ((error as Error).name !== 'AbortError') {
         console.error('Streaming error:', error);
+        
+        // Find the assistant message to replace
+        const assistantMessageId = `assistant-${Date.now()}`;
         
         // Add error message
         const errorMessage: StreamingMessage = {
@@ -194,7 +197,7 @@ export function StreamingChatInterface({
         };
         
         setMessages(prev => [
-          ...prev.filter(msg => msg.id !== assistantMessage.id),
+          ...prev.filter(msg => !msg.id.startsWith('assistant-')),
           errorMessage
         ]);
       }

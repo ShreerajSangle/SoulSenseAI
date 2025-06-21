@@ -18,6 +18,7 @@ import ReplikaQualityDemo from "@/pages/replika-quality-demo";
 import SpecializedPersonaDemo from "@/pages/specialized-persona-demo";
 import SoulSenseAIDemo from "@/pages/soulsense-ai-demo";
 import ModelComparison from "@/pages/model-comparison";
+import AdvancedChat from "@/pages/advanced-chat";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
       <Route path="/model-comparison" component={ModelComparison} />
+      <Route path="/advanced-chat/:persona" component={AdvancedChat} />
       <Route component={NotFound} />
     </Switch>
   );
