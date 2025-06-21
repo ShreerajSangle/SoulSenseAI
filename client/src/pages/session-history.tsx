@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MessageCircle, User, Calendar, Filter, Search, ChevronRight, Heart, Brain, Trophy, Leaf, Play, Eye } from "lucide-react";
+import { Clock, MessageCircle, User, Calendar, Filter, Search, ChevronRight, Heart, Brain, Trophy, Leaf, Play, Eye, ArrowLeft, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -51,10 +51,10 @@ const personaColors = {
 };
 
 const emotionColors = {
-  "positive": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  "neutral": "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  "anxious": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  "sad": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  "positive": "bg-green-100 text-green-800",
+  "neutral": "bg-gray-100 text-gray-800",
+  "anxious": "bg-yellow-100 text-yellow-800",
+  "sad": "bg-blue-100 text-blue-800",
 };
 
 export default function SessionHistory() {
@@ -179,279 +179,304 @@ export default function SessionHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 dark:bg-purple-900 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300 dark:bg-pink-900 rounded-full opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-300 dark:bg-indigo-900 rounded-full opacity-10 animate-pulse delay-500"></div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-300 via-purple-200 to-purple-400 relative overflow-hidden">
+      {/* Background Elements matching home page */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-24 h-24 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-pulse delay-2000"></div>
+        <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-gradient-to-r from-pink-200 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse delay-3000"></div>
       </div>
 
-      <div className="relative z-10 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-12 text-center">
-            <div className="inline-block p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mb-6 shadow-2xl">
-              <Clock className="w-12 h-12 text-white" />
+      <div className="relative z-10 container mx-auto px-6 py-12 max-w-7xl">
+        {/* Navigation Header matching home page */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center">
+              <Sparkles className="text-white text-xl" />
             </div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-              Session History
-            </h1>
-            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Review your past conversations, track your progress, and continue where you left off
-            </p>
+            <span className="text-2xl font-bold text-purple-900">SoulSense AI</span>
           </div>
-
-          {/* Search and Filter Controls */}
-          <div className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-200 dark:border-purple-800">
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                <Input
-                  placeholder="Search sessions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12"
-                />
-              </div>
-              
-              <Select value={filterPersona} onValueChange={setFilterPersona}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                  <SelectValue placeholder="Filter by persona" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
-                  <SelectItem value="all" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">All Personas</SelectItem>
-                  <SelectItem value="sarah" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Dr. Sarah</SelectItem>
-                  <SelectItem value="alex" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Alex</SelectItem>
-                  <SelectItem value="marcus" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Marcus</SelectItem>
-                  <SelectItem value="maya" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Maya</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={filterEmotion} onValueChange={setFilterEmotion}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                  <SelectValue placeholder="Filter by emotion" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
-                  <SelectItem value="all" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">All Emotions</SelectItem>
-                  <SelectItem value="positive" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Positive</SelectItem>
-                  <SelectItem value="neutral" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Neutral</SelectItem>
-                  <SelectItem value="anxious" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Anxious</SelectItem>
-                  <SelectItem value="sad" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Sad</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Sessions Grid */}
-          {filteredSessions.length === 0 ? (
-            <div className="text-center py-16 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl shadow-2xl">
-              <MessageCircle className="w-20 h-20 text-slate-400 mx-auto mb-6" />
-              <h3 className="text-2xl font-semibold text-slate-700 dark:text-slate-300 mb-4">No sessions found</h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg">
-                {searchQuery || filterPersona !== "all" || filterEmotion !== "all" 
-                  ? "Try adjusting your filters" 
-                  : "Start your first conversation to see sessions here"}
-              </p>
-              <Button 
-                onClick={() => setLocation('/personas')}
-                className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Start New Conversation
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {filteredSessions.map((session) => {
-                const PersonaIcon = getPersonaIcon(session.personaId);
-                const personaColor = getPersonaColor(session.personaId);
-                
-                return (
-                  <Card 
-                    key={session.id} 
-                    className="group hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-0 rounded-3xl overflow-hidden transform hover:scale-105"
-                    onClick={() => openSessionDetails(session)}
-                  >
-                    <CardHeader className={`pb-4 bg-gradient-to-r ${personaColor} text-white`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-white/20 rounded-xl">
-                            <PersonaIcon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg text-white">
-                              {session.personaName}
-                            </CardTitle>
-                            <p className="text-white/80 text-sm">
-                              {formatDate(session.startTime)}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge className={`${emotionColors[session.emotionalTone as keyof typeof emotionColors] || emotionColors.neutral} font-semibold`}>
-                          {session.emotionalTone}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-6">
-                      <div className="space-y-4">
-                        <p className="text-slate-600 dark:text-slate-300 line-clamp-3">
-                          {session.summary}
-                        </p>
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {session.topics.slice(0, 3).map((topic) => (
-                            <Badge key={topic} variant="secondary" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                              {topic}
-                            </Badge>
-                          ))}
-                          {session.topics.length > 3 && (
-                            <Badge variant="secondary" className="text-xs bg-slate-100 dark:bg-slate-700">
-                              +{session.topics.length - 3} more
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <MessageCircle className="w-4 h-4" />
-                              <span>{session.messageCount}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              <span>{formatDuration(session.duration)}</span>
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openSessionDetails(session);
-                              }}
-                              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                continueSession(session.id, session.personaId);
-                              }}
-                              className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 hover:text-green-700"
-                            >
-                              <Play className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+          <Button
+            onClick={() => setLocation('/')}
+            variant="outline"
+            className="bg-white/90 border-purple-200 text-purple-700 hover:bg-purple-50"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
         </div>
-      </div>
 
-      {/* Session Details Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-0 shadow-2xl rounded-3xl">
-          <DialogHeader className="border-b border-slate-200 dark:border-slate-700 pb-6">
-            <DialogTitle className="flex items-center justify-between text-2xl">
-              {selectedSession && (
-                <>
-                  <div className="flex items-center gap-4">
+        {/* Hero Section matching home page style */}
+        <div className="text-center mb-16">
+          <div className="w-32 h-32 mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-purple-700 rounded-3xl flex items-center justify-center mb-8 shadow-2xl animate-pulse">
+            <Clock className="text-white text-4xl" />
+          </div>
+          <h1 className="text-6xl font-bold text-purple-900 mb-6 leading-tight">
+            Your Journey
+            <span className="block text-5xl bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
+              Session History
+            </span>
+          </h1>
+          <p className="text-xl text-purple-800 max-w-3xl mx-auto leading-relaxed">
+            Review your therapeutic conversations, track emotional progress, and continue building meaningful connections with your AI companions
+          </p>
+        </div>
+
+        {/* Search and Filter Controls matching home page style */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/50 mb-12">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-purple-500 w-5 h-5" />
+              <Input
+                placeholder="Search your conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 h-14 bg-white border-2 border-purple-200 rounded-2xl text-lg focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300"
+              />
+            </div>
+            
+            <Select value={filterPersona} onValueChange={setFilterPersona}>
+              <SelectTrigger className="h-14 bg-white border-2 border-purple-200 rounded-2xl text-lg hover:border-purple-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300">
+                <SelectValue placeholder="Filter by AI companion" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-2 border-purple-200 rounded-2xl shadow-2xl">
+                <SelectItem value="all" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">All Companions</SelectItem>
+                <SelectItem value="sarah" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">🧠 Dr. Sarah</SelectItem>
+                <SelectItem value="alex" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">❤️ Alex</SelectItem>
+                <SelectItem value="marcus" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">🏆 Marcus</SelectItem>
+                <SelectItem value="maya" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">🍃 Maya</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterEmotion} onValueChange={setFilterEmotion}>
+              <SelectTrigger className="h-14 bg-white border-2 border-purple-200 rounded-2xl text-lg hover:border-purple-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300">
+                <SelectValue placeholder="Filter by mood" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border-2 border-purple-200 rounded-2xl shadow-2xl">
+                <SelectItem value="all" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">All Moods</SelectItem>
+                <SelectItem value="positive" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">😊 Positive</SelectItem>
+                <SelectItem value="neutral" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">😐 Neutral</SelectItem>
+                <SelectItem value="anxious" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">😰 Anxious</SelectItem>
+                <SelectItem value="sad" className="text-lg py-3 hover:bg-purple-50 focus:bg-purple-50">😔 Sad</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Sessions Grid */}
+        {filteredSessions.length === 0 ? (
+          <div className="text-center py-20 bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl">
+            <div className="w-32 h-32 mx-auto bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mb-8 animate-pulse">
+              <MessageCircle className="text-white text-4xl" />
+            </div>
+            <h3 className="text-3xl font-bold text-purple-900 mb-4">No conversations yet</h3>
+            <p className="text-xl text-purple-700 mb-10 max-w-md mx-auto">
+              {searchQuery || filterPersona !== "all" || filterEmotion !== "all" 
+                ? "Try adjusting your search filters" 
+                : "Begin your therapeutic journey with one of our AI companions"}
+            </p>
+            <Button 
+              onClick={() => setLocation('/personas')}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-2xl text-lg font-semibold shadow-xl transform hover:scale-105 transition-all duration-300"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Start Your First Session
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+            {filteredSessions.map((session) => {
+              const PersonaIcon = getPersonaIcon(session.personaId);
+              const personaColor = getPersonaColor(session.personaId);
+              
+              return (
+                <Card 
+                  key={session.id} 
+                  className="group hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/80 backdrop-blur-sm border-0 rounded-3xl overflow-hidden transform hover:scale-105"
+                  onClick={() => openSessionDetails(session)}
+                >
+                  <CardHeader className={`pb-4 bg-gradient-to-r ${personaColor} text-white`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-white/20 rounded-2xl">
+                          <PersonaIcon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white text-lg font-bold">{session.personaName}</CardTitle>
+                          <p className="text-white/80 text-sm">{formatDate(session.startTime)}</p>
+                        </div>
+                      </div>
+                      <Badge className={`${emotionColors[session.emotionalTone as keyof typeof emotionColors]} font-medium`}>
+                        {session.emotionalTone}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="p-6 space-y-4">
+                    <p className="text-purple-800 text-sm leading-relaxed line-clamp-3">{session.summary}</p>
+                    
+                    <div className="flex items-center gap-4 text-purple-600 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {formatDuration(session.duration)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
+                        {session.messageCount} messages
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {session.topics.slice(0, 3).map((topic, index) => (
+                        <Badge key={index} variant="outline" className="text-xs border-purple-200 text-purple-700">
+                          {topic}
+                        </Badge>
+                      ))}
+                      {session.topics.length > 3 && (
+                        <Badge variant="outline" className="text-xs border-purple-200 text-purple-700">
+                          +{session.topics.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex justify-between items-center pt-4 border-t border-purple-100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openSessionDetails(session);
+                        }}
+                        className="text-purple-600 hover:bg-purple-50"
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        View Details
+                      </Button>
+                      
+                      {session.status === "active" && (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            continueSession(session.id, session.personaId);
+                          }}
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Continue
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Session Details Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] bg-white rounded-3xl border-0 shadow-2xl">
+            <DialogHeader className="pb-6 border-b border-purple-100">
+              <DialogTitle className="text-2xl font-bold text-purple-900 flex items-center gap-3">
+                {selectedSession && (
+                  <>
                     <div className={`p-3 bg-gradient-to-r ${getPersonaColor(selectedSession.personaId)} rounded-2xl`}>
                       {(() => {
                         const PersonaIcon = getPersonaIcon(selectedSession.personaId);
                         return <PersonaIcon className="w-6 h-6 text-white" />;
                       })()}
                     </div>
-                    <div>
-                      <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Session with {selectedSession.personaName}
-                      </span>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
-                        {formatDate(selectedSession.startTime)}
-                      </p>
+                    Session with {selectedSession.personaName}
+                  </>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedSession && (
+              <ScrollArea className="max-h-96">
+                <div className="space-y-6 pr-4">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-purple-900">Session Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-purple-600">Duration:</span>
+                          <span className="font-medium">{formatDuration(selectedSession.duration)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-purple-600">Messages:</span>
+                          <span className="font-medium">{selectedSession.messageCount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-purple-600">Status:</span>
+                          <Badge className={selectedSession.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                            {selectedSession.status}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-purple-600">Emotional tone:</span>
+                          <Badge className={emotionColors[selectedSession.emotionalTone as keyof typeof emotionColors]}>
+                            {selectedSession.emotionalTone}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-purple-900">Topics Discussed</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedSession.topics.map((topic, index) => (
+                          <Badge key={index} variant="outline" className="border-purple-200 text-purple-700">
+                            {topic}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => continueSession(selectedSession.id, selectedSession.personaId)}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-2 rounded-xl font-semibold shadow-lg"
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    Continue
-                  </Button>
-                </>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedSession && (
-            <div className="space-y-6 py-6">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-5 h-5 text-blue-600" />
-                    <span className="font-semibold text-blue-700 dark:text-blue-300">Messages</span>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-purple-900">Summary</h4>
+                    <p className="text-purple-800 leading-relaxed bg-purple-50 p-4 rounded-2xl">
+                      {selectedSession.summary}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">{selectedSession.messageCount}</p>
-                </div>
-                
-                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-5 h-5 text-green-600" />
-                    <span className="font-semibold text-green-700 dark:text-green-300">Duration</span>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-purple-900">Last Message</h4>
+                    <p className="text-purple-700 italic bg-purple-25 p-4 rounded-2xl border-l-4 border-purple-300">
+                      "{selectedSession.lastMessage}"
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold text-green-800 dark:text-green-200">{formatDuration(selectedSession.duration)}</p>
-                </div>
-                
-                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Heart className="w-5 h-5 text-purple-600" />
-                    <span className="font-semibold text-purple-700 dark:text-purple-300">Emotion</span>
+                  
+                  <div className="flex justify-end gap-3 pt-6 border-t border-purple-100">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                      className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                    >
+                      Close
+                    </Button>
+                    {selectedSession.status === "active" && (
+                      <Button
+                        onClick={() => {
+                          continueSession(selectedSession.id, selectedSession.personaId);
+                          setIsDialogOpen(false);
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Continue Session
+                      </Button>
+                    )}
                   </div>
-                  <Badge className={`${emotionColors[selectedSession.emotionalTone as keyof typeof emotionColors] || emotionColors.neutral} text-lg px-3 py-1`}>
-                    {selectedSession.emotionalTone}
-                  </Badge>
                 </div>
-              </div>
-
-              <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl">
-                <h4 className="font-semibold mb-4 text-lg text-slate-700 dark:text-slate-300">Session Summary</h4>
-                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {selectedSession.summary}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-4 text-lg text-slate-700 dark:text-slate-300">Topics Discussed</h4>
-                <div className="flex flex-wrap gap-3">
-                  {selectedSession.topics.map((topic) => (
-                    <Badge key={topic} variant="secondary" className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-2 text-sm">
-                      {topic}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-2xl">
-                <h4 className="font-semibold mb-4 text-lg text-purple-700 dark:text-purple-300">Last Message</h4>
-                <p className="text-purple-700 dark:text-purple-300 italic">
-                  "{selectedSession.lastMessage}"
-                </p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
