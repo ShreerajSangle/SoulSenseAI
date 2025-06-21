@@ -17,6 +17,7 @@ import { enhancedConversationSystem } from "./enhanced_conversation_system";
 import { cakeChatEngine, type CakeChatResponse } from "./cakechat_engine";
 import { advancedLLMEngine } from "./advanced_llm_engine";
 import { emotionDetectionEngine } from "./emotion_detection_engine";
+import { gpt4oConversationSystem } from "./gpt4o_conversation_system";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -1868,6 +1869,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Continue with other routes...
+
+  // GPT-4o Streaming Chat Route
+  app.post('/api/chat/gpt4o-stream', async (req, res) => {
+    try {
+      const { userId = "anonymous", personaId, message, conversationId, isFirstMessage } = req.body;
+
+      if (!personaId || !message) {
+        return res.status(400).json({ error: "PersonaId and message are required" });
+      }
+
+      // Set headers for Server-Sent Events
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else if (isFirstMessage) {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Chat with ${personaId}`
+        });
+      }
+
+      if (!conversation) {
+        res.write(`data: ${JSON.stringify({ error: "Conversation not found" })}\n\n`);
+        res.end();
+        return;
+      }
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user'
+      });
+
+      // Get conversation history
+      const messageHistory = await storage.getConversationMessages(conversation.id);
+      const formattedHistory = messageHistory.map(m => ({
+        sender: m.sender,
+        content: m.content,
+        timestamp: m.timestamp.toISOString()
+      }));
+
+      // Send conversation ID if this was the first message
+      if (isFirstMessage) {
+        res.write(`data: ${JSON.stringify({ 
+          type: "conversation_created", 
+          conversation: { id: conversation.id, personaId } 
+        })}\n\n`);
+      }
+
+      // Generate streaming response with GPT-4o
+      const responseGenerator = await gpt4oConversationSystem.generateStreamingResponse(
+        userId,
+        personaId,
+        message,
+        formattedHistory
+      );
+
+      let fullResponse = "";
+      
+      for await (const chunk of responseGenerator) {
+        if (chunk.content) {
+          fullResponse += chunk.content;
+        }
+
+        // Send chunk to client
+        res.write(`data: ${JSON.stringify({
+          type: "chunk",
+          content: chunk.content,
+          isComplete: chunk.isComplete,
+          emotion: chunk.emotion,
+          confidence: chunk.confidence,
+          memoryUpdates: chunk.memoryUpdates,
+          thoughtProcess: chunk.thoughtProcess
+        })}\n\n`);
+
+        if (chunk.isComplete) {
+          // Save AI response to database
+          const aiMessage = await storage.createMessage({
+            conversationId: conversation.id,
+            content: fullResponse,
+            sender: 'ai',
+            emotionDetected: chunk.emotion
+          });
+
+          // Send final message with AI message ID
+          res.write(`data: ${JSON.stringify({
+            type: "complete",
+            aiMessage: { id: aiMessage.id },
+            memoryStats: gpt4oConversationSystem.getConversationMemoryStats(userId, personaId)
+          })}\n\n`);
+          break;
+        }
+      }
+
+      res.end();
+
+    } catch (error) {
+      console.error("GPT-4o streaming error:", error);
+      res.write(`data: ${JSON.stringify({ 
+        type: "error", 
+        error: "Failed to generate response" 
+      })}\n\n`);
+      res.end();
+    }
+  });
+
+  // Enhanced Chat Route (existing route updated)
+  app.post('/api/chat/enhanced-message', async (req, res) => {
+    try {
+      const { userId = "anonymous", personaId, message, conversationId, isFirstMessage, moodData } = req.body;
+
+      if (!personaId || !message) {
+        return res.status(400).json({ error: "PersonaId and message are required" });
+      }
+
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else if (isFirstMessage) {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Session with ${personaId}`
+        });
+      }
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Create user message first
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user'
+      });
+
+      // Get conversation history for context
+      const messageHistory = await storage.getConversationMessages(conversation.id);
+      
+      // Use GPT-4o system for enhanced responses
+      const formattedHistory = messageHistory.map(m => ({
+        sender: m.sender,
+        content: m.content,
+        timestamp: m.timestamp.toISOString()
+      }));
+
+      // Generate response using GPT-4o system
+      const responseGenerator = await gpt4oConversationSystem.generateStreamingResponse(
+        userId,
+        personaId,
+        message,
+        formattedHistory
+      );
+
+      let fullResponse = "";
+      let finalChunk;
+      
+      for await (const chunk of responseGenerator) {
+        if (chunk.content) {
+          fullResponse += chunk.content;
+        }
+        if (chunk.isComplete) {
+          finalChunk = chunk;
+          break;
+        }
+      }
+
+      // Create AI message with enhanced response
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: fullResponse,
+        sender: 'ai',
+        emotionDetected: finalChunk?.emotion || 'supportive'
+      });
+
+      // Get memory stats
+      const memoryStats = gpt4oConversationSystem.getConversationMemoryStats(userId, personaId);
+
+      res.json({
+        conversation: { id: conversation.id, personaId },
+        userMessage: { id: userMessage.id },
+        aiMessage: { id: aiMessage.id },
+        response: fullResponse,
+        emotionalAnalysis: {
+          primary_emotion: finalChunk?.emotion || 'supportive',
+          confidence: finalChunk?.confidence || 0.7,
+          memoryUpdates: finalChunk?.memoryUpdates || []
+        },
+        memoryStats
+      });
+
+    } catch (error) {
+      console.error("Enhanced chat error:", error);
+      res.status(500).json({ error: "Failed to process message" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

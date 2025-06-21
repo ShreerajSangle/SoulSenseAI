@@ -20,6 +20,7 @@ import SoulSenseAIDemo from "@/pages/soulsense-ai-demo";
 import ModelComparison from "@/pages/model-comparison";
 import AdvancedChat from "@/pages/advanced-chat";
 import SessionHistory from "@/pages/session-history";
+import GPT4oChat from "@/pages/gpt4o-chat";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/session-history" component={SessionHistory} />
       <Route path="/model-comparison" component={ModelComparison} />
       <Route path="/advanced-chat/:persona" component={AdvancedChat} />
+      <Route path="/gpt4o-chat" component={GPT4oChat} />
       <Route component={NotFound} />
     </Switch>
   );
