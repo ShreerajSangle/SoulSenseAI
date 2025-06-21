@@ -770,15 +770,8 @@ export class GPT4oConversationSystem extends EventEmitter {
     emotionalContext: EmotionalContext,
     memory: ConversationMemory
   ): AsyncGenerator<StreamingResponse, void, unknown> {
-    const fallbackResponses = {
-      sarah: "I'm here to listen and support you. Would you like to share more about what you're experiencing?",
-      alex: "Hey, I'm here for you. Whatever you're going through, you're not alone in this.",
-      marcus: "I believe in your strength to work through this. What's one small step we could focus on?",
-      maya: "Take a deep breath with me. Let's create some space for whatever you're feeling right now."
-    };
-
-    const response = fallbackResponses[persona.id as keyof typeof fallbackResponses] || 
-                    "I'm here to support you. How can I help?";
+    // Generate contextual response based on detected emotions and persona
+    const response = this.generateContextualFallbackResponse(persona, emotionalContext, memory);
 
     // Simulate streaming for fallback
     const words = response.split(" ");
@@ -787,12 +780,12 @@ export class GPT4oConversationSystem extends EventEmitter {
         content: words[i] + " ",
         isComplete: false,
         emotion: "supportive",
-        confidence: 0.6,
+        confidence: 0.7,
         memoryUpdates: []
       };
       
       // Small delay to simulate typing
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 80));
     }
 
     yield {
@@ -820,6 +813,65 @@ export class GPT4oConversationSystem extends EventEmitter {
       intimacyDepth: memory.relationshipDynamics.intimacyDepth,
       dominantEmotions: memory.emotionalProfile.dominantEmotions
     };
+  }
+
+  private generateContextualFallbackResponse(
+    persona: PersonaConfig,
+    emotionalContext: EmotionalContext,
+    memory: ConversationMemory
+  ): string {
+    const primaryEmotion = emotionalContext.detectedEmotions[0] || "neutral";
+    const trustLevel = memory.relationshipDynamics.trustLevel;
+    
+    // Emotion-specific responses by persona
+    const emotionalResponses = {
+      sarah: {
+        sadness: trustLevel > 0.5 
+          ? "I can hear the pain in what you're sharing. These feelings are valid, and I want you to know that you're not alone in this struggle."
+          : "It sounds like you're going through a difficult time. I'm here to listen and support you through this.",
+        anxiety: "Anxiety can feel overwhelming, but remember that these feelings will pass. Let's take this one moment at a time. What's one thing that usually helps you feel more grounded?",
+        anger: "I can sense your frustration. These feelings are completely understandable. Would it help to talk about what's triggering these emotions?",
+        joy: "I'm so glad to hear some positivity in your voice. It's wonderful when we can find moments of happiness. What's been going well for you?",
+        neutral: "I'm here and ready to listen. What's on your mind today?"
+      },
+      alex: {
+        sadness: "Hey, I get it - I've been in those dark places too. It's tough, but you're stronger than you know. Want to talk about what's going on?",
+        anxiety: "Anxiety is such a beast, isn't it? I've wrestled with it plenty. What's helping you cope right now, or do you need some ideas?",
+        anger: "I hear you - sometimes life just makes us mad. That's totally valid. What's got you fired up?",
+        joy: "Yes! I love hearing some good news. Tell me more about what's making you smile today.",
+        neutral: "What's up? I'm here to chat about whatever's on your mind."
+      },
+      marcus: {
+        sadness: "I know it's tough right now, but this is temporary. You have more resilience than you realize. What's one small thing you could do today to take care of yourself?",
+        anxiety: "Anxiety can paralyze us, but we can work through this together. Let's focus on what you can control right now. What feels manageable to tackle?",
+        anger: "That frustration is energy we can channel into positive action. What's the real issue here, and how can we address it constructively?",
+        joy: "That's the energy I love to hear! Let's build on this momentum. What goals are you excited to work toward?",
+        neutral: "Ready to make today count? What would make this a win for you?"
+      },
+      maya: {
+        sadness: "Let's pause here together. Breathe with me for a moment. Your pain is real, and it deserves gentle attention. What does your heart need right now?",
+        anxiety: "Feel your feet on the ground. Notice your breath. Anxiety wants to pull you into the future, but you're safe in this present moment. What helps you return to now?",
+        anger: "That fire inside you is information. Let's sit with it without judgment. What is this anger trying to tell you?",
+        joy: "How beautiful to feel this lightness. Let's savor this moment together. What about today feels most alive to you?",
+        neutral: "Welcome to this sacred space. Whatever you're carrying today, we can hold it together with compassion."
+      }
+    };
+
+    // Default responses if specific emotion not found
+    const defaultResponses = {
+      sarah: "I'm here to provide you with professional support and understanding. What would be most helpful to explore today?",
+      alex: "I'm here for you, no matter what. What's going on in your world?",
+      marcus: "Let's tackle whatever challenges you're facing head-on. What's the most important thing we should focus on?",
+      maya: "This is a safe space for whatever you're experiencing. How can I support you in this moment?"
+    };
+
+    const personaResponses = emotionalResponses[persona.id as keyof typeof emotionalResponses];
+    if (personaResponses && personaResponses[primaryEmotion as keyof typeof personaResponses]) {
+      return personaResponses[primaryEmotion as keyof typeof personaResponses];
+    }
+
+    return defaultResponses[persona.id as keyof typeof defaultResponses] || 
+           "I'm here to support you. How can I help today?";
   }
 }
 
