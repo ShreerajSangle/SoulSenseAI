@@ -119,7 +119,7 @@ async function callPythonFunction(modulePath: string, functionName: string, args
   return null;
 }
 
-async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize auth system (commented for now to focus on core functionality)
   // await setupAuth(app);
 
@@ -3017,5 +3017,3 @@ function generateMindfulnessResponse(message: string, emotion?: string, memories
 
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
-
-
