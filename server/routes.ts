@@ -15,6 +15,8 @@ import { personaKnowledgeModules } from "./persona_knowledge_modules";
 import { soulSensePersonaEngine } from "./soulSense_persona_engine";
 import { enhancedConversationSystem } from "./enhanced_conversation_system";
 import { cakeChatEngine, type CakeChatResponse } from "./cakechat_engine";
+import { advancedLLMEngine } from "./advanced_llm_engine";
+import { emotionDetectionEngine } from "./emotion_detection_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -1652,6 +1654,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Enhanced CakeChat conversation error:", error);
       res.status(500).json({ error: "Failed to process message with CakeChat integration" });
+    }
+  });
+
+  // Advanced streaming chat routes
+  app.post('/api/chat/streaming', async (req, res) => {
+    const { message, personaId, userId, conversationHistory } = req.body;
+
+    try {
+      // Set up Server-Sent Events
+      res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      // Analyze emotion first
+      const emotionAnalysis = await emotionDetectionEngine.analyzeEmotion(
+        message,
+        userId,
+        conversationHistory || []
+      );
+
+      // Send emotion analysis
+      res.write(`data: ${JSON.stringify({
+        type: 'emotion',
+        primary: emotionAnalysis.primary,
+        intensity: emotionAnalysis.intensity,
+        urgency: emotionAnalysis.urgency,
+        supportNeeds: emotionAnalysis.supportNeeds
+      })}\n\n`);
+
+      // Generate streaming response
+      const responseStream = await advancedLLMEngine.generateStreamingResponse(
+        personaId,
+        message,
+        emotionAnalysis,
+        conversationHistory || [],
+        userId
+      );
+
+      for await (const chunk of responseStream) {
+        if (chunk.isComplete) {
+          res.write(`data: ${JSON.stringify({
+            type: 'complete',
+            content: chunk.content,
+            emotion: chunk.emotion,
+            confidence: chunk.confidence,
+            memoryUpdates: chunk.memoryUpdates
+          })}\n\n`);
+        } else {
+          res.write(`data: ${JSON.stringify({
+            type: 'content',
+            content: chunk.content,
+            emotion: chunk.emotion,
+            confidence: chunk.confidence
+          })}\n\n`);
+        }
+      }
+
+      res.end();
+    } catch (error) {
+      console.error('Streaming chat error:', error);
+      res.write(`data: ${JSON.stringify({
+        type: 'error',
+        message: 'Failed to generate response'
+      })}\n\n`);
+      res.end();
+    }
+  });
+
+  // Emotion insights endpoint
+  app.get('/api/emotion/insights/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const insights = emotionDetectionEngine.getEmotionalInsights(userId);
+      res.json({ success: true, insights });
+    } catch (error) {
+      console.error('Emotion insights error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get emotional insights'
+      });
+    }
+  });
+
+  // Memory stats endpoint  
+  app.get('/api/memory/stats/:userId/:personaId', async (req, res) => {
+    try {
+      const { userId, personaId } = req.params;
+      const stats = advancedLLMEngine.getConversationMemoryStats(userId, personaId);
+      res.json({ success: true, stats });
+    } catch (error) {
+      console.error('Memory stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get memory stats'
+      });
     }
   });
 
