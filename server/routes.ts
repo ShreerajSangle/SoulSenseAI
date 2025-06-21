@@ -117,6 +117,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // await setupAuth(app);
 
   // Auth routes (placeholder for now)
+  // Profile management routes
+  app.get('/api/profile', async (req, res) => {
+    try {
+      // For now, return a basic profile structure
+      const profile = {
+        id: "user-1",
+        name: "User",
+        email: "user@example.com",
+        bio: "Tell us about yourself...",
+        preferences: {
+          preferredPersona: "dr-sarah",
+          voiceEnabled: false,
+          darkMode: false,
+          notifications: {
+            dailyCheckins: true,
+            sessionReminders: true,
+            progressUpdates: true,
+          },
+          privacy: {
+            shareAnalytics: true,
+            dataRetention: "2 Years",
+          },
+        },
+        goals: [],
+        interests: [],
+        stats: {
+          sessions: 0,
+          dayStreak: 0,
+          messages: 0,
+          avgMood: 5,
+          memberSince: "21/06/2025",
+          lastActive: "21/06/2025",
+          favoritePersona: "sarah",
+        },
+      };
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ error: "Failed to fetch profile" });
+    }
+  });
+
+  app.put('/api/profile', async (req, res) => {
+    try {
+      const updatedProfile = req.body;
+      
+      // Return the updated profile
+      res.json({ success: true, profile: updatedProfile });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
   app.get('/api/auth/user', async (req: any, res) => {
     // Return anonymous user for now
     res.json({ id: 'anonymous', email: null });

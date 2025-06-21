@@ -60,6 +60,26 @@ export default function PersonaSelector() {
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-12 max-w-7xl">
+        {/* Navigation Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-xl flex items-center justify-center">
+              <Sparkles className="text-white text-xl" />
+            </div>
+            <span className="text-2xl font-bold text-purple-900">SoulSense AI</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setLocation('/profile')}
+              className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-700 hover:bg-purple-50"
+            >
+              <Settings className="w-4 h-4" />
+              My Profile
+            </Button>
+          </div>
+        </div>
+
         {/* Hero Section - Centered and Compact */}
         <div className="text-center mb-16">
           <div className="w-24 h-24 mx-auto bg-gradient-to-r from-purple-600 via-pink-500 to-purple-700 rounded-2xl flex items-center justify-center mb-6 shadow-xl transform hover:scale-105 transition-all duration-300">
