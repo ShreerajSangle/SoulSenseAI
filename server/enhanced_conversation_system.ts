@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { emotionEngine } from './emotion_engine';
+import { therapeuticEngine } from './therapeutic_engine';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -255,16 +255,37 @@ Focus on:
     const persona = personaProfiles[personaId as keyof typeof personaProfiles];
     if (!persona) throw new Error(`Unknown persona: ${personaId}`);
 
+    // Analyze message using therapeutic engine with dataset insights
+    const emotionAnalysis = therapeuticEngine.analyzeMessage(message);
+    const crisisAssessment = therapeuticEngine.assessCrisisRisk(message);
+    const therapeuticResponse = therapeuticEngine.generatePersonaResponse(
+      emotionAnalysis.primary_emotion,
+      emotionAnalysis.intensity,
+      personaId,
+      message
+    );
+
     const systemPrompt = `You are ${persona.name}, ${persona.role}.
 
 Your approach: ${persona.approach}
 Your specialties: ${persona.specialties.join(', ')}
 
-EMOTIONAL CONTEXT:
-- Primary emotion: ${emotionalAnalysis.primary}
-- Intensity: ${Math.round(emotionalAnalysis.intensity * 100)}%
-- Context: ${emotionalAnalysis.context}
-- Needs support: ${emotionalAnalysis.needsSupport ? 'Yes' : 'No'}
+EMOTIONAL ANALYSIS (GoEmotions & DAIC-WOZ insights):
+- Primary emotion: ${emotionAnalysis.primary_emotion}
+- Intensity: ${Math.round(emotionAnalysis.intensity * 100)}%
+- Clinical risk: ${emotionAnalysis.clinical_risk_level}
+- Therapeutic indicators: ${emotionAnalysis.therapeutic_indicators.join(', ') || 'None detected'}
+- Response style: ${emotionAnalysis.suggested_response_style}
+
+THERAPEUTIC GUIDANCE:
+- Base response template: ${therapeuticResponse.response}
+- Empathy level: ${Math.round(therapeuticResponse.empathy_level * 100)}%
+- Suggested tools: ${therapeuticResponse.suggested_tools.join(', ')}
+
+CRISIS ASSESSMENT:
+- Risk level: ${crisisAssessment.risk_level}
+- Immediate action needed: ${crisisAssessment.immediate_action_needed ? 'YES - Priority response required' : 'No'}
+- Risk indicators: ${crisisAssessment.indicators.join(', ') || 'None'}
 
 RELATIONSHIP DYNAMICS:
 - Trust level: ${Math.round(memory.relationshipDynamics.trustLevel * 100)}%
@@ -280,13 +301,16 @@ ${memory.therapeuticProgress.workingGoals.length > 0 ?
   'Building therapeutic rapport and identifying goals'}
 
 RESPONSE REQUIREMENTS:
-1. Match the emotional tone and intensity appropriately
-2. Use your specialized knowledge and approach
-3. Reference relationship history when relevant
-4. Provide genuine empathy and understanding
-5. Include therapeutic elements suited to your role
-6. Ask thoughtful follow-up questions
-7. Suggest appropriate interventions if needed
+1. Use the therapeutic guidance template as your foundation
+2. Adapt the response to your persona's unique style and expertise
+3. Match the required empathy level and emotional tone
+4. If crisis indicators present, prioritize safety and immediate support
+5. Include persona-specific wisdom and approach
+6. Reference relationship dynamics appropriately
+7. Suggest follow-up questions that deepen understanding
+8. Recommend specific therapeutic tools when appropriate
+
+IMPORTANT: If immediate action is needed (crisis), your response should prioritize safety, validation, and connection over all other considerations.
 
 Respond as ${persona.name} with authentic emotional intelligence, drawing on your specialized training and the depth of relationship you've built with this person.`;
 
@@ -305,17 +329,17 @@ Respond as ${persona.name} with authentic emotional intelligence, drawing on you
       }
       const responseText = content.text;
       
-      // Extract therapeutic elements and follow-up questions
+      // Extract therapeutic elements and follow-up questions using dataset insights
       const therapeuticElements = this.extractTherapeuticElements(responseText, persona);
-      const followUpQuestions = this.generateFollowUpQuestions(personaId, emotionalAnalysis);
-      const suggestedInterventions = this.suggestInterventions(emotionalAnalysis, persona);
+      const followUpQuestions = this.generateFollowUpQuestions(personaId, emotionAnalysis, emotionalAnalysis);
+      const suggestedInterventions = therapeuticResponse.suggested_tools;
 
       return {
         content: responseText,
-        emotionalTone: emotionalAnalysis.primary,
+        emotionalTone: emotionAnalysis.primary_emotion,
         therapeuticElements,
         followUpQuestions,
-        crisisDetected: emotionalAnalysis.crisisIndicators.length > 0,
+        crisisDetected: crisisAssessment.immediate_action_needed,
         suggestedInterventions
       };
     } catch (error) {
@@ -345,7 +369,7 @@ Respond as ${persona.name} with authentic emotional intelligence, drawing on you
     return elements;
   }
 
-  private generateFollowUpQuestions(personaId: string, emotionalAnalysis: EmotionalIntelligence): string[] {
+  private generateFollowUpQuestions(personaId: string, emotionAnalysis: any, emotionalAnalysis: EmotionalIntelligence): string[] {
     const questionSets = {
       sarah: [
         "What thoughts are going through your mind about this?",
