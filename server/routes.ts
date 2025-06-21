@@ -408,7 +408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create AI message with enhanced response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: enhancedResponse.response,
+        content: enhancedResponse.content || "I understand how you're feeling. Let's work through this together.",
         sender: 'ai',
         emotionDetected: 'empathetic'
       });
