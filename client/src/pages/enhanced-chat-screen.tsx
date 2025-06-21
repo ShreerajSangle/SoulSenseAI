@@ -51,6 +51,15 @@ export default function EnhancedChatScreen() {
   const [sessionEnded, setSessionEnded] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Therapeutic panel state
+  const [showTherapeuticPanel, setShowTherapeuticPanel] = useState(true);
+  const [analysisStage, setAnalysisStage] = useState<string>("");
+  const [crisisAlert, setCrisisAlert] = useState<string>("");
+  const [therapeuticInsights, setTherapeuticInsights] = useState<any>(null);
+  const [currentTherapeuticContext, setCurrentTherapeuticContext] = useState<any>(null);
+  const [moodHistory, setMoodHistory] = useState<Array<{emotion: string, intensity: number, timestamp: Date}>>([]);
+  const [memoryStats, setMemoryStats] = useState<any>(null);
+
   // Mood check-in state
   const [showMoodCheckIn, setShowMoodCheckIn] = useState(true);
   const [sessionMoodData, setSessionMoodData] = useState<MoodCheckInData | null>(null);
@@ -592,6 +601,22 @@ export default function EnhancedChatScreen() {
     );
   }
 
+  const getEmotionColor = (emotion: string) => {
+    const colors = {
+      happy: "bg-yellow-500",
+      sad: "bg-blue-500",
+      angry: "bg-red-500",
+      anxious: "bg-orange-500",
+      calm: "bg-green-500",
+      excited: "bg-purple-500",
+      neutral: "bg-gray-500",
+      content: "bg-emerald-500",
+      frustrated: "bg-red-600",
+      hopeful: "bg-sky-500"
+    };
+    return colors[emotion as keyof typeof colors] || "bg-gray-500";
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Crisis Alert */}
@@ -606,12 +631,228 @@ export default function EnhancedChatScreen() {
           onBack={() => setLocation("/")}
         />
         
-        {/* Hidden Emotion & Tools Bar - emotion detection indicators removed */}
+        {/* Therapeutic Panel Toggle */}
+        <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTherapeuticPanel(!showTherapeuticPanel)}
+              className="flex items-center gap-2"
+            >
+              <Brain className="w-4 h-4" />
+              {showTherapeuticPanel ? "Hide" : "Show"} Therapeutic Insights
+            </Button>
+            {memoryStats && (
+              <div className="flex gap-2 text-xs">
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  Trust: {Math.round(memoryStats.trustLevel * 100)}%
+                </Badge>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                  Connection: {Math.round(memoryStats.intimacyDepth * 100)}%
+                </Badge>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scroll-smooth">
-        <div className="max-w-4xl mx-auto space-y-4">
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Therapeutic Insights Panel */}
+        {showTherapeuticPanel && (
+          <div className="w-80 bg-white border-r overflow-y-auto p-4 space-y-4">
+            {/* Real-time Analysis */}
+            <Card className="border-purple-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-600" />
+                  Live Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Analysis Stage */}
+                {analysisStage && (
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 text-sm text-blue-700">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      {analysisStage}
+                    </div>
+                  </div>
+                )}
+
+                {/* Crisis Alert */}
+                {crisisAlert && (
+                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div className="flex items-center gap-2 text-sm text-red-700 font-medium">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      {crisisAlert}
+                    </div>
+                  </div>
+                )}
+
+                {/* Current Mood */}
+                {currentTherapeuticContext && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Detected Emotion</span>
+                      <Badge variant="secondary" className={`text-white ${getEmotionColor(currentTherapeuticContext.primaryEmotion)}`}>
+                        {currentTherapeuticContext.primaryEmotion}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>Intensity</span>
+                        <span>{Math.round(currentTherapeuticContext.intensity * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${currentTherapeuticContext.intensity * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mood History Chart */}
+                {moodHistory.length > 0 && (
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium">Mood Trend</span>
+                    <div className="h-16 flex items-end gap-1 p-2 bg-gray-50 rounded">
+                      {moodHistory.slice(-8).map((mood, index) => (
+                        <div
+                          key={index}
+                          className={`w-4 rounded-t ${getEmotionColor(mood.emotion)}`}
+                          style={{ height: `${mood.intensity * 100}%` }}
+                          title={`${mood.emotion} (${Math.round(mood.intensity * 100)}%)`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Clinical Assessment */}
+            {therapeuticInsights?.clinical && (
+              <Card className="border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-red-500" />
+                    Mental Health
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Depression Score */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Depression</span>
+                      <Badge variant={therapeuticInsights.clinical.depression.severity === 'minimal' ? 'default' : 'destructive'}>
+                        {therapeuticInsights.clinical.depression.severity}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>PHQ-9 Score</span>
+                        <span>{therapeuticInsights.clinical.depression.score}/27</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-red-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${(therapeuticInsights.clinical.depression.score / 27) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Anxiety Score */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Anxiety</span>
+                      <Badge variant={therapeuticInsights.clinical.anxiety.severity === 'minimal' ? 'default' : 'destructive'}>
+                        {therapeuticInsights.clinical.anxiety.severity}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span>GAD-7 Score</span>
+                        <span>{therapeuticInsights.clinical.anxiety.score}/21</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-orange-600 h-2 rounded-full transition-all duration-300" 
+                          style={{ width: `${(therapeuticInsights.clinical.anxiety.score / 21) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Suicide Risk */}
+                  {therapeuticInsights.clinical.suicideRisk && (
+                    <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                      <div className="text-sm text-red-700 font-medium">
+                        Elevated Risk Detected
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recommended Interventions */}
+            {therapeuticInsights?.interventions && therapeuticInsights.interventions.length > 0 && (
+              <Card className="border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-green-600" />
+                    Suggested Tools
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {therapeuticInsights.interventions.slice(0, 3).map((intervention: any, index: number) => (
+                    <div key={index} className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-green-800">
+                          {intervention.name}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          {intervention.duration}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-green-700">
+                        {intervention.type} technique
+                      </p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Journaling Prompts */}
+            {therapeuticInsights?.journalingPrompts && therapeuticInsights.journalingPrompts.length > 0 && (
+              <Card className="border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-blue-600" />
+                    Reflection Prompts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {therapeuticInsights.journalingPrompts.slice(0, 2).map((prompt: string, index: number) => (
+                    <div key={index} className="p-2 bg-blue-50 rounded text-sm text-blue-800">
+                      {prompt}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scroll-smooth">
+          <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 && (
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
@@ -660,6 +901,7 @@ export default function EnhancedChatScreen() {
             </div>
           )}
           <div ref={messagesEndRef} className="h-4" />
+          </div>
         </div>
       </div>
 
