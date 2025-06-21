@@ -235,8 +235,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { title, content, mood, tags, emotions, gratitude, goals, reflections } = req.body;
       
-      console.log('Received diary request body:', req.body);
-      
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
       }
@@ -261,19 +259,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const moodRating = moodToRating[mood?.toLowerCase()] || 5;
-      console.log('Mood received:', mood, 'Mapped to rating:', moodRating);
-
-      console.log('Creating diary entry with data:', {
-        userId: 'user-1',
-        title,
-        content,
-        moodRating,
-        emotions: emotions || [],
-        gratitude: gratitude || null,
-        goals: goals || null,
-        reflections: reflections || null,
-        tags: tags || [],
-      });
 
       const entry = await storage.createDiaryEntry({
         userId: 'user-1', // Using default user for now
@@ -348,17 +333,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/goals', async (req, res) => {
     try {
-      const { title, description, category, targetDate, personaId } = req.body;
+      const { title, description, category, type, targetDate, personaId } = req.body;
       
       if (!title || !category) {
         return res.status(400).json({ error: 'Title and category are required' });
       }
+
+      // Map category to type if type not provided
+      const goalType = type || category || 'general';
 
       const goal = await storage.createGoal({
         userId: 'user-1', // Using default user for now
         title,
         description: description || '',
         category,
+        type: goalType,
         targetDate: targetDate ? new Date(targetDate) : undefined,
         personaId,
         status: 'active',
