@@ -233,17 +233,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/diary', async (req, res) => {
     try {
-      const { title, content, mood, tags } = req.body;
+      const { title, content, mood, tags, emotions, gratitude, goals, reflections } = req.body;
+      
+      console.log('Received diary request body:', req.body);
       
       if (!title || !content) {
         return res.status(400).json({ error: 'Title and content are required' });
       }
 
+      // Convert mood string to rating (1-10 scale)
+      const moodToRating = {
+        'very_sad': 1,
+        'sad': 2,
+        'down': 3,
+        'neutral': 5,
+        'okay': 5,
+        'good': 7,
+        'happy': 8,
+        'very_happy': 9,
+        'excited': 10,
+        'anxious': 3,
+        'calm': 7,
+        'stressed': 2,
+        'peaceful': 8,
+        'angry': 2,
+        'content': 7
+      };
+
+      const moodRating = moodToRating[mood?.toLowerCase()] || 5;
+      console.log('Mood received:', mood, 'Mapped to rating:', moodRating);
+
+      console.log('Creating diary entry with data:', {
+        userId: 'user-1',
+        title,
+        content,
+        moodRating,
+        emotions: emotions || [],
+        gratitude: gratitude || null,
+        goals: goals || null,
+        reflections: reflections || null,
+        tags: tags || [],
+      });
+
       const entry = await storage.createDiaryEntry({
         userId: 'user-1', // Using default user for now
         title,
         content,
-        mood: mood || 'neutral',
+        moodRating,
+        emotions: emotions || [],
+        gratitude: gratitude || null,
+        goals: goals || null,
+        reflections: reflections || null,
         tags: tags || [],
       });
 
