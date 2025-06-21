@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { emotionEngine } from './emotion_engine';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
