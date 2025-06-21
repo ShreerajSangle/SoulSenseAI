@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MessageCircle, User, Calendar, Filter, Search, ChevronRight, Heart, Brain, Trophy, Leaf } from "lucide-react";
+import { Clock, MessageCircle, User, Calendar, Filter, Search, ChevronRight, Heart, Brain, Trophy, Leaf, Play, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,289 +43,415 @@ const personaIcons = {
   "maya": Leaf,
 };
 
+const personaColors = {
+  "sarah": "from-blue-500 to-cyan-500",
+  "alex": "from-pink-500 to-rose-500", 
+  "marcus": "from-orange-500 to-amber-500",
+  "maya": "from-green-500 to-emerald-500",
+};
+
 const emotionColors = {
-  "positive": "bg-green-100 text-green-800",
-  "neutral": "bg-gray-100 text-gray-800",
-  "anxious": "bg-yellow-100 text-yellow-800",
-  "sad": "bg-blue-100 text-blue-800",
-  "angry": "bg-red-100 text-red-800",
+  "positive": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  "neutral": "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
+  "anxious": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  "sad": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
 };
 
 export default function SessionHistory() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterPersona, setFilterPersona] = useState<string>("");
-  const [filterEmotion, setFilterEmotion] = useState<string>("");
+  const [filterPersona, setFilterPersona] = useState<string>("all");
+  const [filterEmotion, setFilterEmotion] = useState<string>("all");
   const [selectedSession, setSelectedSession] = useState<ChatSession | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [, setLocation] = useLocation();
 
-  // Fetch chat sessions
-  const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ["/api/chat-sessions"],
-    queryFn: async () => {
-      const response = await apiRequest("/api/chat-sessions", "GET");
-      return await response.json();
-    }
-  });
-
-  // Fetch messages for selected session
-  const { data: sessionMessages = [], isLoading: messagesLoading } = useQuery({
-    queryKey: ["/api/chat-messages", selectedSession?.id],
-    queryFn: async () => {
-      if (!selectedSession?.id) return [];
-      const response = await apiRequest(`/api/chat-messages/${selectedSession.id}`, "GET");
-      return await response.json();
+  // Mock data for demonstration
+  const mockSessions: ChatSession[] = [
+    {
+      id: "1",
+      userId: "user1",
+      personaId: "sarah",
+      personaName: "Dr. Sarah",
+      startTime: "2024-06-20T10:30:00Z",
+      endTime: "2024-06-20T11:15:00Z",
+      messageCount: 23,
+      duration: 45,
+      summary: "Discussed anxiety management techniques and breathing exercises",
+      emotionalTone: "anxious",
+      topics: ["anxiety", "breathing", "mindfulness"],
+      lastMessage: "Thank you for the breathing exercise suggestions, they really helped!",
+      status: "completed"
     },
-    enabled: !!selectedSession?.id
-  });
+    {
+      id: "2",
+      userId: "user1",
+      personaId: "alex",
+      personaName: "Alex",
+      startTime: "2024-06-19T14:20:00Z",
+      endTime: "2024-06-19T15:05:00Z",
+      messageCount: 18,
+      duration: 45,
+      summary: "Explored relationship challenges and communication strategies",
+      emotionalTone: "neutral",
+      topics: ["relationships", "communication", "conflict resolution"],
+      lastMessage: "I'll try those communication techniques with my partner tonight.",
+      status: "completed"
+    },
+    {
+      id: "3",
+      userId: "user1",
+      personaId: "marcus",
+      personaName: "Marcus",
+      startTime: "2024-06-18T09:15:00Z",
+      endTime: "2024-06-18T09:50:00Z",
+      messageCount: 15,
+      duration: 35,
+      summary: "Goal setting and motivation strategies for career advancement",
+      emotionalTone: "positive",
+      topics: ["career", "goals", "motivation"],
+      lastMessage: "That action plan looks perfect! I'm excited to get started.",
+      status: "completed"
+    },
+    {
+      id: "4",
+      userId: "user1",
+      personaId: "maya",
+      personaName: "Maya",
+      startTime: "2024-06-17T16:00:00Z",
+      endTime: "2024-06-17T16:30:00Z",
+      messageCount: 12,
+      duration: 30,
+      summary: "Mindfulness practice and stress reduction techniques",
+      emotionalTone: "positive",
+      topics: ["mindfulness", "meditation", "stress relief"],
+      lastMessage: "The guided meditation was exactly what I needed today.",
+      status: "completed"
+    }
+  ];
 
-  const filteredSessions = sessions.filter((session: ChatSession) => {
+  // Filter sessions based on search and filters
+  const filteredSessions = mockSessions.filter(session => {
     const matchesSearch = session.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         session.personaName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         session.topics.some(topic => topic.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesPersona = !filterPersona || session.personaId === filterPersona;
-    const matchesEmotion = !filterEmotion || session.emotionalTone === filterEmotion;
+                         session.topics.some(topic => topic.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                         session.personaName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesPersona = filterPersona === "all" || session.personaId === filterPersona;
+    const matchesEmotion = filterEmotion === "all" || session.emotionalTone === filterEmotion;
     
     return matchesSearch && matchesPersona && matchesEmotion;
   });
 
+  const openSessionDetails = (session: ChatSession) => {
+    setSelectedSession(session);
+    setIsDialogOpen(true);
+  };
+
+  const continueSession = (sessionId: string, personaId: string) => {
+    setLocation(`/chat/${personaId}?sessionId=${sessionId}`);
+  };
+
+  const getPersonaIcon = (personaId: string) => {
+    const IconComponent = personaIcons[personaId as keyof typeof personaIcons] || Brain;
+    return IconComponent;
+  };
+
+  const getPersonaColor = (personaId: string) => {
+    return personaColors[personaId as keyof typeof personaColors] || "from-purple-500 to-indigo-500";
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+  };
+
   const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes}m`;
+    if (minutes < 60) {
+      return `${minutes}m`;
+    }
     const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+    const remainingMinutes = minutes % 60;
+    return `${hours}h ${remainingMinutes}m`;
   };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  };
-
-  const continueSession = (session: ChatSession) => {
-    setLocation(`/chat/${session.personaId}`);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading your conversation history...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-800 to-pink-600 bg-clip-text text-transparent mb-2">
-            Session History
-          </h1>
-          <p className="text-lg text-slate-600">
-            Review your past conversations and continue where you left off
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 dark:bg-purple-900 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300 dark:bg-pink-900 rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-300 dark:bg-indigo-900 rounded-full opacity-10 animate-pulse delay-500"></div>
+      </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search conversations..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+      <div className="relative z-10 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-12 text-center">
+            <div className="inline-block p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl mb-6 shadow-2xl">
+              <Clock className="w-12 h-12 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+              Session History
+            </h1>
+            <p className="text-xl text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Review your past conversations, track your progress, and continue where you left off
+            </p>
+          </div>
+
+          {/* Search and Filter Controls */}
+          <div className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-purple-200 dark:border-purple-800">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <Input
+                  placeholder="Search sessions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12"
+                />
               </div>
               
               <Select value={filterPersona} onValueChange={setFilterPersona}>
-                <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
                   <SelectValue placeholder="Filter by persona" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 z-50">
-                  <SelectItem value="" className="hover:bg-slate-100 dark:hover:bg-slate-700">All personas</SelectItem>
-                  <SelectItem value="sarah" className="hover:bg-slate-100 dark:hover:bg-slate-700">Dr. Sarah</SelectItem>
-                  <SelectItem value="alex" className="hover:bg-slate-100 dark:hover:bg-slate-700">Alex</SelectItem>
-                  <SelectItem value="marcus" className="hover:bg-slate-100 dark:hover:bg-slate-700">Marcus</SelectItem>
-                  <SelectItem value="maya" className="hover:bg-slate-100 dark:hover:bg-slate-700">Maya</SelectItem>
+                <SelectContent>
+                  <SelectItem value="all">All Personas</SelectItem>
+                  <SelectItem value="sarah">Dr. Sarah</SelectItem>
+                  <SelectItem value="alex">Alex</SelectItem>
+                  <SelectItem value="marcus">Marcus</SelectItem>
+                  <SelectItem value="maya">Maya</SelectItem>
                 </SelectContent>
               </Select>
-
+              
               <Select value={filterEmotion} onValueChange={setFilterEmotion}>
-                <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                  <SelectValue placeholder="Filter by mood" />
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                  <SelectValue placeholder="Filter by emotion" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 z-50">
-                  <SelectItem value="" className="hover:bg-slate-100 dark:hover:bg-slate-700">All moods</SelectItem>
-                  <SelectItem value="positive" className="hover:bg-slate-100 dark:hover:bg-slate-700">Positive</SelectItem>
-                  <SelectItem value="neutral" className="hover:bg-slate-100 dark:hover:bg-slate-700">Neutral</SelectItem>
-                  <SelectItem value="anxious" className="hover:bg-slate-100 dark:hover:bg-slate-700">Anxious</SelectItem>
-                  <SelectItem value="sad" className="hover:bg-slate-100 dark:hover:bg-slate-700">Sad</SelectItem>
+                <SelectContent>
+                  <SelectItem value="all">All Emotions</SelectItem>
+                  <SelectItem value="positive">Positive</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                  <SelectItem value="anxious">Anxious</SelectItem>
+                  <SelectItem value="sad">Sad</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Sessions List */}
-        <div className="grid gap-4">
+          {/* Sessions Grid */}
           {filteredSessions.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <MessageCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-600 mb-2">No conversations found</h3>
-                <p className="text-slate-500">
-                  {searchQuery || filterPersona || filterEmotion 
-                    ? "Try adjusting your filters to see more results"
-                    : "Start a conversation with one of our AI companions to see your history here"}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center py-16 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-3xl shadow-2xl">
+              <MessageCircle className="w-20 h-20 text-slate-400 mx-auto mb-6" />
+              <h3 className="text-2xl font-semibold text-slate-700 dark:text-slate-300 mb-4">No sessions found</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg">
+                {searchQuery || filterPersona !== "all" || filterEmotion !== "all" 
+                  ? "Try adjusting your filters" 
+                  : "Start your first conversation to see sessions here"}
+              </p>
+              <Button 
+                onClick={() => setLocation('/personas')}
+                className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                <MessageCircle className="w-4 h-4" />
+                Start New Conversation
+              </Button>
+            </div>
           ) : (
-            filteredSessions.map((session: ChatSession) => {
-              const IconComponent = personaIcons[session.personaId as keyof typeof personaIcons] || MessageCircle;
-              const emotionStyle = emotionColors[session.emotionalTone as keyof typeof emotionColors] || "bg-gray-100 text-gray-800";
-              
-              return (
-                <Card key={session.id} className="hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                          <IconComponent className="w-6 h-6 text-white" />
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {filteredSessions.map((session) => {
+                const PersonaIcon = getPersonaIcon(session.personaId);
+                const personaColor = getPersonaColor(session.personaId);
+                
+                return (
+                  <Card 
+                    key={session.id} 
+                    className="group hover:shadow-2xl transition-all duration-500 cursor-pointer bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-0 rounded-3xl overflow-hidden transform hover:scale-105"
+                    onClick={() => openSessionDetails(session)}
+                  >
+                    <CardHeader className={`pb-4 bg-gradient-to-r ${personaColor} text-white`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-white/20 rounded-xl">
+                            <PersonaIcon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-white">
+                              {session.personaName}
+                            </CardTitle>
+                            <p className="text-white/80 text-sm">
+                              {formatDate(session.startTime)}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-800 group-hover:text-purple-700 transition-colors">
-                            {session.personaName}
-                          </h3>
-                          <p className="text-sm text-slate-500 flex items-center">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            {formatDate(session.startTime)}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Badge className={emotionStyle}>
+                        <Badge className={`${emotionColors[session.emotionalTone as keyof typeof emotionColors] || emotionColors.neutral} font-semibold`}>
                           {session.emotionalTone}
                         </Badge>
-                        <Badge variant="outline">
-                          {session.messageCount} messages
-                        </Badge>
-                        <Badge variant="outline">
-                          <Clock className="w-3 h-3 mr-1" />
-                          {formatDuration(session.duration)}
-                        </Badge>
                       </div>
-                    </div>
-
-                    <p className="text-slate-600 mb-4 line-clamp-2">{session.summary}</p>
-
-                    {session.topics.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {session.topics.slice(0, 3).map((topic, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {topic}
-                          </Badge>
-                        ))}
-                        {session.topics.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{session.topics.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-500 italic">
-                        "{session.lastMessage.substring(0, 100)}..."
-                      </p>
-                      
-                      <div className="flex space-x-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setSelectedSession(session)}
-                            >
-                              View Details
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[80vh]">
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center space-x-2">
-                                <IconComponent className="w-5 h-5" />
-                                <span>Conversation with {session.personaName}</span>
-                              </DialogTitle>
-                            </DialogHeader>
-                            
-                            <ScrollArea className="h-[60vh] pr-4">
-                              {messagesLoading ? (
-                                <div className="text-center py-8">
-                                  <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                  <p className="text-slate-600">Loading messages...</p>
-                                </div>
-                              ) : (
-                                <div className="space-y-4">
-                                  {sessionMessages.map((message: ChatMessage) => (
-                                    <div
-                                      key={message.id}
-                                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                                    >
-                                      <div
-                                        className={`max-w-[70%] rounded-lg p-3 ${
-                                          message.sender === 'user'
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-slate-100 text-slate-800'
-                                        }`}
-                                      >
-                                        <p className="text-sm">{message.content}</p>
-                                        <p className={`text-xs mt-1 ${
-                                          message.sender === 'user' ? 'text-purple-200' : 'text-slate-500'
-                                        }`}>
-                                          {new Date(message.timestamp).toLocaleTimeString()}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </ScrollArea>
-                          </DialogContent>
-                        </Dialog>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-6">
+                      <div className="space-y-4">
+                        <p className="text-slate-600 dark:text-slate-300 line-clamp-3">
+                          {session.summary}
+                        </p>
                         
-                        <Button 
-                          size="sm"
-                          onClick={() => continueSession(session)}
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        >
-                          Continue
-                          <ChevronRight className="w-4 h-4 ml-1" />
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          {session.topics.slice(0, 3).map((topic) => (
+                            <Badge key={topic} variant="secondary" className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                              {topic}
+                            </Badge>
+                          ))}
+                          {session.topics.length > 3 && (
+                            <Badge variant="secondary" className="text-xs bg-slate-100 dark:bg-slate-700">
+                              +{session.topics.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <MessageCircle className="w-4 h-4" />
+                              <span>{session.messageCount}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{formatDuration(session.duration)}</span>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openSessionDetails(session);
+                              }}
+                              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 hover:text-blue-700"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                continueSession(session.id, session.personaId);
+                              }}
+                              className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 hover:text-green-700"
+                            >
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Session Details Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-0 shadow-2xl rounded-3xl">
+          <DialogHeader className="border-b border-slate-200 dark:border-slate-700 pb-6">
+            <DialogTitle className="flex items-center justify-between text-2xl">
+              {selectedSession && (
+                <>
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 bg-gradient-to-r ${getPersonaColor(selectedSession.personaId)} rounded-2xl`}>
+                      {(() => {
+                        const PersonaIcon = getPersonaIcon(selectedSession.personaId);
+                        return <PersonaIcon className="w-6 h-6 text-white" />;
+                      })()}
+                    </div>
+                    <div>
+                      <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Session with {selectedSession.personaName}
+                      </span>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-normal">
+                        {formatDate(selectedSession.startTime)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => continueSession(selectedSession.id, selectedSession.personaId)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-2 rounded-xl font-semibold shadow-lg"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Continue
+                  </Button>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedSession && (
+            <div className="space-y-6 py-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-5 h-5 text-blue-600" />
+                    <span className="font-semibold text-blue-700 dark:text-blue-300">Messages</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">{selectedSession.messageCount}</p>
+                </div>
+                
+                <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-5 h-5 text-green-600" />
+                    <span className="font-semibold text-green-700 dark:text-green-300">Duration</span>
+                  </div>
+                  <p className="text-2xl font-bold text-green-800 dark:text-green-200">{formatDuration(selectedSession.duration)}</p>
+                </div>
+                
+                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Heart className="w-5 h-5 text-purple-600" />
+                    <span className="font-semibold text-purple-700 dark:text-purple-300">Emotion</span>
+                  </div>
+                  <Badge className={`${emotionColors[selectedSession.emotionalTone as keyof typeof emotionColors] || emotionColors.neutral} text-lg px-3 py-1`}>
+                    {selectedSession.emotionalTone}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl">
+                <h4 className="font-semibold mb-4 text-lg text-slate-700 dark:text-slate-300">Session Summary</h4>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {selectedSession.summary}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-4 text-lg text-slate-700 dark:text-slate-300">Topics Discussed</h4>
+                <div className="flex flex-wrap gap-3">
+                  {selectedSession.topics.map((topic) => (
+                    <Badge key={topic} variant="secondary" className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-2 text-sm">
+                      {topic}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-2xl">
+                <h4 className="font-semibold mb-4 text-lg text-purple-700 dark:text-purple-300">Last Message</h4>
+                <p className="text-purple-700 dark:text-purple-300 italic">
+                  "{selectedSession.lastMessage}"
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
