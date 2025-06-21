@@ -56,7 +56,7 @@ interface ConversationMemoryStats {
 }
 
 interface StreamingChunk {
-  type: "chunk" | "complete" | "conversation_created" | "error";
+  type: "chunk" | "complete" | "conversation_created" | "error" | "analysis" | "crisis_alert" | "therapeutic_insights";
   content?: string;
   isComplete?: boolean;
   emotion?: string;
@@ -67,6 +67,58 @@ interface StreamingChunk {
   aiMessage?: { id: number };
   memoryStats?: ConversationMemoryStats;
   error?: string;
+  stage?: string;
+  message?: string;
+  level?: string;
+  data?: TherapeuticInsights;
+  therapeuticContext?: {
+    primaryEmotion: string;
+    intensity: number;
+    clinicalSeverity: {
+      depression: string;
+      anxiety: string;
+    };
+    riskLevel?: string;
+  };
+}
+
+interface TherapeuticInsights {
+  emotion: {
+    primary: string;
+    intensity: number;
+    valence: number;
+    confidence: number;
+    triggers?: string[];
+  };
+  clinical: {
+    depression: {
+      severity: string;
+      score: number;
+      completion?: number;
+    };
+    anxiety: {
+      severity: string;
+      score: number;
+      completion?: number;
+    };
+    suicideRisk: boolean;
+    trends?: {
+      depression: string;
+      anxiety: string;
+    };
+  };
+  interventions: Array<{
+    id: string;
+    name: string;
+    type: string;
+    duration: string;
+    description?: string;
+  }>;
+  adaptiveQuestions?: string[];
+  journalingPrompts?: string[];
+  motivationalQuotes?: string[];
+  suggestions?: string[];
+  questions?: string[];
 }
 
 export default function GPT4oChat() {
@@ -85,6 +137,14 @@ export default function GPT4oChat() {
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Enhanced mood-reactive states
+  const [analysisStage, setAnalysisStage] = useState<string>("");
+  const [therapeuticInsights, setTherapeuticInsights] = useState<TherapeuticInsights | null>(null);
+  const [showTherapeuticPanel, setShowTherapeuticPanel] = useState(true);
+  const [crisisAlert, setCrisisAlert] = useState<string | null>(null);
+  const [currentTherapeuticContext, setCurrentTherapeuticContext] = useState<any>(null);
+  const [moodHistory, setMoodHistory] = useState<Array<{emotion: string, intensity: number, timestamp: Date}>>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -188,11 +248,34 @@ export default function GPT4oChat() {
               
               if (data.type === "conversation_created" && data.conversation) {
                 setConversationId(data.conversation.id);
+              } else if (data.type === "analysis") {
+                // Show analysis stage progress
+                setAnalysisStage(data.message || `Analyzing ${data.stage}...`);
+              } else if (data.type === "crisis_alert") {
+                // Handle crisis alerts
+                setCrisisAlert(data.message || "Crisis intervention may be needed");
               } else if (data.type === "chunk" && data.content) {
                 accumulatedContent += data.content;
                 setStreamingContent(accumulatedContent);
                 if (data.emotion) setCurrentEmotion(data.emotion);
                 if (data.confidence) setConfidence(data.confidence);
+                
+                // Update therapeutic context if available
+                if (data.therapeuticContext) {
+                  setCurrentTherapeuticContext(data.therapeuticContext);
+                  
+                  // Update mood history
+                  setMoodHistory(prev => [...prev, {
+                    emotion: data.therapeuticContext.primaryEmotion,
+                    intensity: data.therapeuticContext.intensity,
+                    timestamp: new Date()
+                  }].slice(-10)); // Keep last 10 mood points
+                }
+              } else if (data.type === "therapeutic_insights") {
+                // Process comprehensive therapeutic insights
+                if (data.data) {
+                  setTherapeuticInsights(data.data);
+                }
               } else if (data.type === "complete") {
                 // Add AI message to messages
                 const aiMessage: Message = {
@@ -345,14 +428,25 @@ export default function GPT4oChat() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 SoulSense AI Chat
               </h1>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSettings(true)}
-                className="rounded-xl"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTherapeuticPanel(!showTherapeuticPanel)}
+                  className="rounded-xl"
+                  title="Toggle Therapeutic Insights"
+                >
+                  <Brain className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  className="rounded-xl"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             
             {/* Persona Selection */}
@@ -398,10 +492,194 @@ export default function GPT4oChat() {
             )}
           </div>
 
-          {/* Chat Container */}
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-200 dark:border-purple-800 overflow-hidden">
-            {/* Chat Messages */}
-            <div className="h-96 overflow-y-auto p-6 space-y-4">
+          {/* Main Chat Layout */}
+          <div className="flex gap-6">
+            {/* Therapeutic Insights Panel */}
+            {showTherapeuticPanel && (
+              <div className="w-80 space-y-4">
+                {/* Real-time Analysis */}
+                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-purple-200 dark:border-purple-800">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-purple-600" />
+                      Live Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Analysis Stage */}
+                    {analysisStage && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                          {analysisStage}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Crisis Alert */}
+                    {crisisAlert && (
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                        <div className="flex items-center gap-2 text-sm text-red-700 dark:text-red-300 font-medium">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                          {crisisAlert}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Current Mood */}
+                    {currentTherapeuticContext && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Detected Emotion</span>
+                          <Badge variant="secondary" className={cn("text-white", getEmotionColor(currentTherapeuticContext.primaryEmotion))}>
+                            {currentTherapeuticContext.primaryEmotion}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span>Intensity</span>
+                            <span>{Math.round(currentTherapeuticContext.intensity * 100)}%</span>
+                          </div>
+                          <Progress value={currentTherapeuticContext.intensity * 100} className="h-2" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mood History Chart */}
+                    {moodHistory.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-sm font-medium">Mood Trend</span>
+                        <div className="h-16 flex items-end gap-1 p-2 bg-gray-50 dark:bg-slate-700/50 rounded">
+                          {moodHistory.slice(-8).map((mood, index) => (
+                            <div
+                              key={index}
+                              className={cn("w-4 rounded-t", getEmotionColor(mood.emotion))}
+                              style={{ height: `${mood.intensity * 100}%` }}
+                              title={`${mood.emotion} (${Math.round(mood.intensity * 100)}%)`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Clinical Assessment */}
+                {therapeuticInsights?.clinical && (
+                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-purple-200 dark:border-purple-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-red-500" />
+                        Mental Health
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Depression Score */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Depression</span>
+                          <Badge variant={therapeuticInsights.clinical.depression.severity === 'minimal' ? 'default' : 'destructive'}>
+                            {therapeuticInsights.clinical.depression.severity}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span>PHQ-9 Score</span>
+                            <span>{therapeuticInsights.clinical.depression.score}/27</span>
+                          </div>
+                          <Progress 
+                            value={(therapeuticInsights.clinical.depression.score / 27) * 100} 
+                            className="h-2"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Anxiety Score */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Anxiety</span>
+                          <Badge variant={therapeuticInsights.clinical.anxiety.severity === 'minimal' ? 'default' : 'destructive'}>
+                            {therapeuticInsights.clinical.anxiety.severity}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span>GAD-7 Score</span>
+                            <span>{therapeuticInsights.clinical.anxiety.score}/21</span>
+                          </div>
+                          <Progress 
+                            value={(therapeuticInsights.clinical.anxiety.score / 21) * 100} 
+                            className="h-2"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Suicide Risk */}
+                      {therapeuticInsights.clinical.suicideRisk && (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                          <div className="text-sm text-red-700 dark:text-red-300 font-medium">
+                            Elevated Risk Detected
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Recommended Interventions */}
+                {therapeuticInsights?.interventions && therapeuticInsights.interventions.length > 0 && (
+                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-purple-200 dark:border-purple-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-green-600" />
+                        Suggested Tools
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {therapeuticInsights.interventions.slice(0, 3).map((intervention, index) => (
+                        <div key={index} className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                              {intervention.name}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {intervention.duration}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-green-700 dark:text-green-300">
+                            {intervention.type} technique
+                          </p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Journaling Prompts */}
+                {therapeuticInsights?.journalingPrompts && therapeuticInsights.journalingPrompts.length > 0 && (
+                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-purple-200 dark:border-purple-800">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-blue-600" />
+                        Reflection Prompts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {therapeuticInsights.journalingPrompts.slice(0, 2).map((prompt, index) => (
+                        <div key={index} className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm text-blue-800 dark:text-blue-200">
+                          {prompt}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Chat Container */}
+            <div className="flex-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-200 dark:border-purple-800 overflow-hidden">
+              {/* Chat Messages */}
+              <div className="h-96 overflow-y-auto p-6 space-y-4">
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${getPersonaGradient(selectedPersona)} flex items-center justify-center mb-4`}>
@@ -504,11 +782,11 @@ export default function GPT4oChat() {
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
-            </div>
+                <div ref={messagesEndRef} />
+              </div>
 
-            {/* Message Input */}
-            <div className="border-t border-gray-200 dark:border-slate-600 p-4">
+              {/* Message Input */}
+              <div className="border-t border-gray-200 dark:border-slate-600 p-4">
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
                   <Textarea
