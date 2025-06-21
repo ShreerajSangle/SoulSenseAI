@@ -17,6 +17,7 @@ import NotFound from "@/pages/not-found";
 import ReplikaQualityDemo from "@/pages/replika-quality-demo";
 import SpecializedPersonaDemo from "@/pages/specialized-persona-demo";
 import SoulSenseAIDemo from "@/pages/soulsense-ai-demo";
+import ModelComparison from "@/pages/model-comparison";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/clinical-assessment" component={ClinicalAssessment} />
       <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
+      <Route path="/model-comparison" component={ModelComparison} />
       <Route component={NotFound} />
     </Switch>
   );

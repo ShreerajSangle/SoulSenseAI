@@ -14,6 +14,7 @@ import { specializedPersonaEngine } from "./specialized_persona_engine";
 import { personaKnowledgeModules } from "./persona_knowledge_modules";
 import { soulSensePersonaEngine } from "./soulSense_persona_engine";
 import { enhancedConversationSystem } from "./enhanced_conversation_system";
+import { cakeChatEngine, type CakeChatResponse } from "./cakechat_engine";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -1332,6 +1333,327 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register advanced clinical and personalization routes
   registerClinicalRoutes(app);
+
+  // CakeChat Integration and Model Comparison Routes
+  
+  // Initialize CakeChat engine
+  app.post("/api/cakechat/initialize", async (req, res) => {
+    try {
+      await cakeChatEngine.initialize();
+      const metrics = cakeChatEngine.getModelMetrics();
+      
+      res.json({
+        success: true,
+        message: "CakeChat engine initialized successfully",
+        metrics
+      });
+    } catch (error) {
+      console.error("CakeChat initialization error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to initialize CakeChat engine",
+        details: error.message 
+      });
+    }
+  });
+
+  // Generate CakeChat response
+  app.post("/api/cakechat/generate", async (req, res) => {
+    try {
+      const { userMessage, conversationHistory = [], emotionalTone, persona } = req.body;
+      
+      const context = {
+        userMessage,
+        conversationHistory,
+        emotionalTone,
+        persona
+      };
+
+      const cakeChatResponse = await cakeChatEngine.generateResponse(context);
+      
+      res.json({
+        success: true,
+        response: cakeChatResponse
+      });
+    } catch (error) {
+      console.error("CakeChat generation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to generate CakeChat response",
+        details: error.message 
+      });
+    }
+  });
+
+  // Compare CakeChat vs GPT responses
+  app.post("/api/cakechat/compare", async (req, res) => {
+    try {
+      const { userMessage, conversationHistory = [], personaId = 'sarah' } = req.body;
+      
+      // Get CakeChat response
+      const cakeChatContext = {
+        userMessage,
+        conversationHistory,
+        emotionalTone: 'neutral',
+        persona: personaId
+      };
+      
+      const cakeChatResponse = await cakeChatEngine.generateResponse(cakeChatContext);
+      
+      // Get GPT response using existing enhanced conversation system
+      const enhancedResponse = await enhancedConversationSystem.generateResponse(
+        personaId,
+        userMessage,
+        conversationHistory.map(m => ({
+          sender: m.sender,
+          content: m.content,
+          timestamp: m.timestamp
+        })),
+        {}
+      );
+
+      // Evaluate both responses
+      const evaluation = await cakeChatEngine.evaluateResponseQuality(
+        userMessage,
+        cakeChatResponse.response,
+        enhancedResponse.content
+      );
+
+      res.json({
+        success: true,
+        comparison: {
+          userMessage,
+          cakeChat: {
+            response: cakeChatResponse.response,
+            confidence: cakeChatResponse.confidence,
+            generationMethod: cakeChatResponse.generationMethod,
+            emotionalAdaptation: cakeChatResponse.emotionalAdaptation
+          },
+          gpt: {
+            response: enhancedResponse.content,
+            emotionalTone: enhancedResponse.emotionalTone,
+            therapeuticElements: enhancedResponse.therapeuticElements
+          },
+          evaluation
+        }
+      });
+    } catch (error) {
+      console.error("Model comparison error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to compare models",
+        details: error.message 
+      });
+    }
+  });
+
+  // Batch evaluation with test questions
+  app.post("/api/cakechat/batch-evaluate", async (req, res) => {
+    try {
+      const { questionCount = 10, personaId = 'sarah' } = req.body;
+      
+      const testQuestions = cakeChatEngine.getRandomTestQuestions(questionCount);
+      const evaluations = [];
+
+      for (const question of testQuestions) {
+        try {
+          // Get both responses
+          const cakeChatContext = {
+            userMessage: question,
+            conversationHistory: [],
+            emotionalTone: 'neutral',
+            persona: personaId
+          };
+          
+          const cakeChatResponse = await cakeChatEngine.generateResponse(cakeChatContext);
+          const gptResponse = await enhancedConversationSystem.generateResponse(
+            personaId,
+            question,
+            [],
+            {}
+          );
+
+          const evaluation = await cakeChatEngine.evaluateResponseQuality(
+            question,
+            cakeChatResponse.response,
+            gptResponse.content
+          );
+
+          evaluations.push({
+            question,
+            cakeChatResponse: cakeChatResponse.response,
+            gptResponse: gptResponse.content,
+            evaluation
+          });
+        } catch (evalError) {
+          console.error(`Evaluation error for question "${question}":`, evalError);
+        }
+      }
+
+      // Calculate overall statistics
+      const avgCakeChatScore = evaluations.reduce((sum, e) => sum + e.evaluation.cakeChatScore, 0) / evaluations.length;
+      const avgGptScore = evaluations.reduce((sum, e) => sum + e.evaluation.gptScore, 0) / evaluations.length;
+      
+      const cakeChatWins = evaluations.filter(e => e.evaluation.cakeChatScore > e.evaluation.gptScore).length;
+      const gptWins = evaluations.filter(e => e.evaluation.gptScore > e.evaluation.cakeChatScore).length;
+      const ties = evaluations.filter(e => e.evaluation.cakeChatScore === e.evaluation.gptScore).length;
+
+      res.json({
+        success: true,
+        batchEvaluation: {
+          totalQuestions: evaluations.length,
+          averageScores: {
+            cakeChat: avgCakeChatScore,
+            gpt: avgGptScore
+          },
+          winCounts: {
+            cakeChat: cakeChatWins,
+            gpt: gptWins,
+            ties
+          },
+          winPercentages: {
+            cakeChat: (cakeChatWins / evaluations.length) * 100,
+            gpt: (gptWins / evaluations.length) * 100,
+            ties: (ties / evaluations.length) * 100
+          },
+          evaluations
+        }
+      });
+    } catch (error) {
+      console.error("Batch evaluation error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to perform batch evaluation",
+        details: error.message 
+      });
+    }
+  });
+
+  // Get CakeChat model metrics
+  app.get("/api/cakechat/metrics", async (req, res) => {
+    try {
+      const metrics = cakeChatEngine.getModelMetrics();
+      res.json({
+        success: true,
+        metrics
+      });
+    } catch (error) {
+      console.error("Metrics retrieval error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to retrieve model metrics",
+        details: error.message 
+      });
+    }
+  });
+
+  // Enhanced chat endpoint with CakeChat option
+  app.post("/api/chat/enhanced-with-cakechat", async (req, res) => {
+    try {
+      const { conversationId, message, personaId, useCakeChat = false } = req.body;
+
+      if (!conversationId || !message || !personaId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Get or create conversation
+      let conversation = await storage.getConversation(conversationId);
+      if (!conversation) {
+        conversation = await storage.createConversation({
+          userId: "user-1",
+          personaId,
+          title: message.substring(0, 50) + "..."
+        });
+      }
+
+      // Save user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user',
+        emotionDetected: null
+      });
+
+      // Get conversation history
+      const messageHistory = await storage.getMessages(conversation.id);
+      const moodData = await storage.getMoodEntries("user-1");
+
+      let aiResponse;
+      let responseMetadata = {};
+
+      if (useCakeChat) {
+        // Use CakeChat engine
+        const cakeChatContext = {
+          userMessage: message,
+          conversationHistory: messageHistory.map(m => ({
+            sender: m.sender,
+            content: m.content,
+            timestamp: m.timestamp
+          })),
+          emotionalTone: 'neutral',
+          persona: personaId
+        };
+
+        const cakeChatResponse = await cakeChatEngine.generateResponse(cakeChatContext);
+        
+        aiResponse = await storage.createMessage({
+          conversationId: conversation.id,
+          content: cakeChatResponse.response,
+          sender: 'ai',
+          emotionDetected: cakeChatResponse.emotionalAdaptation
+        });
+
+        responseMetadata = {
+          engine: 'cakechat',
+          confidence: cakeChatResponse.confidence,
+          generationMethod: cakeChatResponse.generationMethod,
+          contextMatches: cakeChatResponse.contextMatches
+        };
+      } else {
+        // Use existing enhanced conversation system
+        const enhancedResponse = await enhancedConversationSystem.generateResponse(
+          personaId,
+          message,
+          messageHistory.map(m => ({
+            sender: m.sender,
+            content: m.content,
+            timestamp: m.timestamp
+          })),
+          moodData
+        );
+
+        aiResponse = await storage.createMessage({
+          conversationId: conversation.id,
+          content: enhancedResponse.content,
+          sender: 'ai',
+          emotionDetected: enhancedResponse.emotionalTone
+        });
+
+        responseMetadata = {
+          engine: 'enhanced_gpt',
+          therapeuticElements: enhancedResponse.therapeuticElements,
+          crisisDetected: enhancedResponse.crisisDetected
+        };
+      }
+
+      res.json({
+        success: true,
+        conversation,
+        userMessage,
+        aiMessage: aiResponse,
+        metadata: responseMetadata,
+        emotionAnalysis: { 
+          primary_emotion: aiResponse.emotionDetected || 'neutral', 
+          arousal_level: 0.5, 
+          crisis_indicators: { level: 'none' } 
+        }
+      });
+
+    } catch (error) {
+      console.error("Enhanced CakeChat conversation error:", error);
+      res.status(500).json({ error: "Failed to process message with CakeChat integration" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
