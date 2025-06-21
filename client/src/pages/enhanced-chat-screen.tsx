@@ -355,7 +355,7 @@ export default function EnhancedChatScreen() {
     abortControllerRef.current = new AbortController();
     
     try {
-      const response = await fetch('/api/gpt4o/chat/stream', {
+      const response = await fetch('/api/chat/gpt4o-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
