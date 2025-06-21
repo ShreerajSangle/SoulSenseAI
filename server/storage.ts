@@ -460,7 +460,21 @@ export class DatabaseStorage implements IStorage {
     
     // Get user data from users table
     const [user] = await db
-      .select()
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        bio: users.bio,
+        preferences: users.preferences,
+        goals: users.goals,
+        interests: users.interests,
+        mentalHealthFocus: users.mentalHealthFocus,
+        privacySettings: users.privacySettings,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
       .from(users)
       .where(eq(users.id, userId));
     
@@ -468,6 +482,12 @@ export class DatabaseStorage implements IStorage {
       ...profile,
       name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email || 'User',
       email: user?.email || '',
+      bio: user?.bio || '',
+      preferences: user?.preferences || profile.preferences,
+      goals: user?.goals || [],
+      interests: user?.interests || [],
+      mentalHealthFocus: user?.mentalHealthFocus || [],
+      privacySettings: user?.privacySettings || { shareAnalytics: true, dataRetention: "1year", allowDataExport: true },
       joinedDate: user?.createdAt || new Date(),
       lastActive: user?.updatedAt || new Date(),
     };
@@ -491,15 +511,54 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserProfile(userId: string, updates: any): Promise<any> {
-    const [updatedProfile] = await db
-      .update(userProfiles)
+    // Update the users table with enhanced profile data
+    await db
+      .update(users)
       .set({
-        ...updates,
-        updatedAt: new Date(),
+        firstName: updates.name ? updates.name.split(' ')[0] : undefined,
+        lastName: updates.name ? updates.name.split(' ').slice(1).join(' ') : undefined,
+        email: updates.email,
+        bio: updates.bio,
+        preferences: updates.preferences,
+        goals: updates.goals,
+        interests: updates.interests,
+        mentalHealthFocus: updates.mentalHealthFocus,
+        privacySettings: updates.privacySettings,
+        updatedAt: new Date()
       })
-      .where(eq(userProfiles.userId, userId))
-      .returning();
-    return updatedProfile;
+      .where(eq(users.id, userId));
+
+    // Also update the userProfiles table for compatibility
+    try {
+      const [updatedProfile] = await db
+        .update(userProfiles)
+        .set({
+          bio: updates.bio,
+          preferences: updates.preferences,
+          goals: updates.goals,
+          interests: updates.interests,
+          mentalHealthFocus: updates.mentalHealthFocus,
+          updatedAt: new Date()
+        })
+        .where(eq(userProfiles.userId, userId))
+        .returning();
+      return updatedProfile;
+    } catch (error) {
+      // If userProfiles entry doesn't exist, create it
+      const [newProfile] = await db
+        .insert(userProfiles)
+        .values({
+          userId,
+          bio: updates.bio,
+          preferences: updates.preferences,
+          goals: updates.goals,
+          interests: updates.interests,
+          mentalHealthFocus: updates.mentalHealthFocus,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newProfile;
+    }
   }
 
   // Goals
