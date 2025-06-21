@@ -1,34 +1,33 @@
 import { useState, useRef, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Send, 
+  Mic, 
+  MicOff, 
   Bot, 
   User, 
-  Heart, 
-  Brain, 
-  Sparkles, 
-  MessageCircle, 
   Clock, 
-  Smile,
-  ThumbsUp,
-  ThumbsDown,
-  RotateCcw,
+  ThumbsUp, 
+  ThumbsDown, 
+  RotateCcw, 
+  Trash2, 
+  Volume2, 
+  VolumeX, 
   Settings,
-  Mic,
-  MicOff,
-  Volume2,
-  VolumeX
+  Sparkles,
+  Brain,
+  Heart,
+  MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 
 interface Message {
   id: number;
@@ -122,204 +121,147 @@ interface TherapeuticInsights {
 }
 
 export default function GPT4oChat() {
-  const [selectedPersona, setSelectedPersona] = useState<string>("sarah");
-  const [currentMessage, setCurrentMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [currentMessage, setCurrentMessage] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
-  const [currentEmotion, setCurrentEmotion] = useState<string>("");
-  const [confidence, setConfidence] = useState<number>(0);
-  const [memoryStats, setMemoryStats] = useState<ConversationMemoryStats | null>(null);
+  const [selectedPersona, setSelectedPersona] = useState("sarah");
+  const [showSettings, setShowSettings] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  
-  // Enhanced mood-reactive states
-  const [analysisStage, setAnalysisStage] = useState<string>("");
-  const [therapeuticInsights, setTherapeuticInsights] = useState<TherapeuticInsights | null>(null);
+  const [currentEmotion, setCurrentEmotion] = useState<string>("");
+  const [confidence, setConfidence] = useState<number>(0);
+  const [memoryStats, setMemoryStats] = useState<ConversationMemoryStats | null>(null);
   const [showTherapeuticPanel, setShowTherapeuticPanel] = useState(true);
-  const [crisisAlert, setCrisisAlert] = useState<string | null>(null);
+  const [analysisStage, setAnalysisStage] = useState<string>("");
+  const [crisisAlert, setCrisisAlert] = useState<string>("");
+  const [therapeuticInsights, setTherapeuticInsights] = useState<TherapeuticInsights | null>(null);
   const [currentTherapeuticContext, setCurrentTherapeuticContext] = useState<any>(null);
   const [moodHistory, setMoodHistory] = useState<Array<{emotion: string, intensity: number, timestamp: Date}>>([]);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const queryClient = useQueryClient();
 
-  // Fetch available personas
-  const { data: personas = [] } = useQuery({
-    queryKey: ["/api/personas"]
+  const { data: personas } = useQuery({
+    queryKey: ["/api/personas"],
+    retry: false,
   });
 
-  // Fetch conversation messages if we have a conversation ID
-  const { data: conversationMessages = [] } = useQuery({
-    queryKey: ["/api/conversations", conversationId, "messages"],
-    enabled: !!conversationId
+  const { data: conversationMessages } = useQuery({
+    queryKey: ["/api/conversations", selectedPersona],
+    retry: false,
   });
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingContent]);
-
-  // Update messages when conversation messages change
-  useEffect(() => {
-    if (conversationMessages.length > 0) {
+    if (conversationMessages && Array.isArray(conversationMessages)) {
       const formattedMessages = conversationMessages.map((msg: any) => ({
         id: msg.id,
         content: msg.content,
         sender: msg.sender,
         timestamp: new Date(msg.timestamp),
-        emotion: msg.emotionDetected,
-        confidence: 0.8
+        emotion: msg.emotion,
+        confidence: msg.confidence
       }));
       setMessages(formattedMessages);
     }
   }, [conversationMessages]);
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, streamingContent]);
+
   const sendMessage = async () => {
     if (!currentMessage.trim() || isStreaming) return;
 
-    const userMessage = currentMessage.trim();
+    const userMessage: Message = {
+      id: Date.now(),
+      content: currentMessage,
+      sender: "user",
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
     setCurrentMessage("");
     setIsStreaming(true);
     setStreamingContent("");
-    setCurrentEmotion("");
-    setConfidence(0);
-
-    // Add user message immediately
-    const newUserMessage: Message = {
-      id: Date.now(),
-      content: userMessage,
-      sender: "user",
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      // Abort any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch('/api/chat/gpt4o-stream', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("/api/gpt4o-conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: "anonymous",
+          message: currentMessage,
           personaId: selectedPersona,
-          message: userMessage,
-          conversationId: conversationId,
-          isFirstMessage: !conversationId
+          history: messages,
         }),
-        signal: abortControllerRef.current.signal
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      if (!response.body) {
+        throw new Error("No response body");
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response stream');
-      }
-
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let accumulatedContent = "";
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
               const data: StreamingChunk = JSON.parse(line.slice(6));
-              
-              if (data.type === "conversation_created" && data.conversation) {
-                setConversationId(data.conversation.id);
-              } else if (data.type === "analysis") {
-                // Show analysis stage progress
-                setAnalysisStage(data.message || `Analyzing ${data.stage}...`);
-              } else if (data.type === "crisis_alert") {
-                // Handle crisis alerts
-                setCrisisAlert(data.message || "Crisis intervention may be needed");
-              } else if (data.type === "chunk" && data.content) {
-                accumulatedContent += data.content;
-                setStreamingContent(accumulatedContent);
+
+              if (data.type === "chunk" && data.content) {
+                setStreamingContent(prev => prev + data.content);
                 if (data.emotion) setCurrentEmotion(data.emotion);
                 if (data.confidence) setConfidence(data.confidence);
-                
-                // Update therapeutic context if available
-                if (data.therapeuticContext) {
-                  setCurrentTherapeuticContext(data.therapeuticContext);
-                  
-                  // Update mood history
-                  setMoodHistory(prev => [...prev, {
-                    emotion: data.therapeuticContext.primaryEmotion,
-                    intensity: data.therapeuticContext.intensity,
-                    timestamp: new Date()
-                  }].slice(-10)); // Keep last 10 mood points
-                }
-              } else if (data.type === "therapeutic_insights") {
-                // Process comprehensive therapeutic insights
-                if (data.data) {
-                  setTherapeuticInsights(data.data);
-                }
               } else if (data.type === "complete") {
-                // Add AI message to messages
                 const aiMessage: Message = {
-                  id: data.aiMessage?.id || Date.now(),
-                  content: accumulatedContent,
+                  id: Date.now(),
+                  content: streamingContent + (data.content || ""),
                   sender: "ai",
                   timestamp: new Date(),
-                  emotion: currentEmotion,
-                  confidence: confidence
+                  emotion: data.emotion,
+                  confidence: data.confidence
                 };
                 setMessages(prev => [...prev, aiMessage]);
-                
-                if (data.memoryStats) {
-                  setMemoryStats(data.memoryStats);
+                setStreamingContent("");
+                if (data.memoryStats) setMemoryStats(data.memoryStats);
+              } else if (data.type === "analysis") {
+                setAnalysisStage(data.stage || "");
+              } else if (data.type === "crisis_alert") {
+                setCrisisAlert(data.message || "");
+              } else if (data.type === "therapeutic_insights") {
+                setTherapeuticInsights(data.data || null);
+                if (data.therapeuticContext) {
+                  setCurrentTherapeuticContext(data.therapeuticContext);
+                  setMoodHistory(prev => [...prev, {
+                    emotion: data.therapeuticContext!.primaryEmotion,
+                    intensity: data.therapeuticContext!.intensity,
+                    timestamp: new Date()
+                  }]);
                 }
-                
-                // Clear streaming state
-                setStreamingContent("");
-                setIsStreaming(false);
-                
-                // Invalidate queries to refresh data
-                queryClient.invalidateQueries({ 
-                  queryKey: ["/api/conversations", conversationId, "messages"] 
-                });
-                
-                break;
-              } else if (data.type === "error") {
-                console.error("Streaming error:", data.error);
-                setIsStreaming(false);
-                setStreamingContent("");
-                break;
               }
             } catch (e) {
-              console.error("Error parsing streaming data:", e);
+              console.error("Error parsing SSE data:", e);
             }
           }
         }
       }
-    } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error("Error sending message:", error);
-        setIsStreaming(false);
-        setStreamingContent("");
-      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsStreaming(false);
+      setCurrentEmotion("");
+      setConfidence(0);
     }
   };
 
@@ -330,72 +272,47 @@ export default function GPT4oChat() {
     }
   };
 
+  const startVoiceInput = () => {
+    setIsListening(true);
+    setTimeout(() => setIsListening(false), 3000);
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setStreamingContent("");
+    setMemoryStats(null);
+    setTherapeuticInsights(null);
+    setCurrentTherapeuticContext(null);
+    setMoodHistory([]);
+  };
+
   const regenerateResponse = async () => {
     if (messages.length < 2) return;
-    
-    // Remove the last AI message and regenerate
     const lastUserMessage = messages[messages.length - 2];
-    if (lastUserMessage.sender === "user") {
-      setMessages(prev => prev.slice(0, -1));
-      setCurrentMessage(lastUserMessage.content);
-      setTimeout(() => sendMessage(), 100);
-    }
+    setMessages(prev => prev.slice(0, -1));
+    setCurrentMessage(lastUserMessage.content);
+    await sendMessage();
   };
 
-  const submitFeedback = async () => {
-    if (!feedbackType || !feedbackText.trim()) return;
-
-    try {
-      // This would typically send feedback to the backend
-      console.log("Feedback submitted:", { type: feedbackType, text: feedbackText });
-      setShowFeedback(false);
-      setFeedbackType(null);
-      setFeedbackText("");
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-    }
+  const submitFeedback = () => {
+    console.log("Feedback submitted:", { type: feedbackType, text: feedbackText });
+    setShowFeedback(false);
+    setFeedbackType(null);
+    setFeedbackText("");
   };
-
-  const startVoiceInput = () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert('Voice recognition not supported in this browser');
-      return;
-    }
-
-    const recognition = new (window as any).webkitSpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    setIsListening(true);
-    
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setCurrentMessage(transcript);
-      setIsListening(false);
-    };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognition.start();
-  };
-
-  const selectedPersonaData = personas.find((p: Persona) => p.id === selectedPersona);
 
   const getEmotionColor = (emotion: string) => {
     const colors = {
-      supportive: "bg-blue-500",
-      empathetic: "bg-purple-500",
-      encouraging: "bg-green-500",
-      understanding: "bg-indigo-500",
-      warm: "bg-orange-500",
-      neutral: "bg-gray-500"
+      happy: "bg-yellow-500",
+      sad: "bg-blue-500",
+      angry: "bg-red-500",
+      anxious: "bg-orange-500",
+      calm: "bg-green-500",
+      excited: "bg-purple-500",
+      neutral: "bg-gray-500",
+      content: "bg-emerald-500",
+      frustrated: "bg-red-600",
+      hopeful: "bg-sky-500"
     };
     return colors[emotion as keyof typeof colors] || "bg-gray-500";
   };
@@ -409,6 +326,8 @@ export default function GPT4oChat() {
     };
     return gradients[personaId as keyof typeof gradients] || "from-gray-500 to-gray-600";
   };
+
+  const selectedPersonaData = Array.isArray(personas) ? personas.find((p: Persona) => p.id === selectedPersona) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
@@ -456,7 +375,7 @@ export default function GPT4oChat() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
-                  {personas.map((persona: Persona) => (
+                  {Array.isArray(personas) && personas.map((persona: Persona) => (
                     <SelectItem 
                       key={persona.id} 
                       value={persona.id}
@@ -680,259 +599,270 @@ export default function GPT4oChat() {
             <div className="flex-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-200 dark:border-purple-800 overflow-hidden">
               {/* Chat Messages */}
               <div className="h-96 overflow-y-auto p-6 space-y-4">
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${getPersonaGradient(selectedPersona)} flex items-center justify-center mb-4`}>
-                    <span className="text-2xl text-white">
-                      {selectedPersonaData?.emoji || "🤖"}
-                    </span>
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${getPersonaGradient(selectedPersona)} flex items-center justify-center mb-4`}>
+                      <span className="text-2xl text-white">
+                        {selectedPersonaData?.emoji || "🤖"}
+                      </span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Welcome to {selectedPersonaData?.name || "SoulSense AI"}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                      {selectedPersonaData?.description || "I'm here to listen, understand, and support you. Share what's on your mind."}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Welcome to {selectedPersonaData?.name || "SoulSense AI"}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                    {selectedPersonaData?.description || "I'm here to listen, understand, and support you. Share what's on your mind."}
-                  </p>
-                </div>
-              )}
+                )}
 
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex gap-3 items-start",
-                    message.sender === "user" ? "flex-row-reverse" : "flex-row"
-                  )}
-                >
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarFallback className={cn(
-                      "text-white font-medium",
-                      message.sender === "user" 
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600"
-                        : `bg-gradient-to-r ${getPersonaGradient(selectedPersona)}`
-                    )}>
-                      {message.sender === "user" ? <User className="w-4 h-4" /> : selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className={cn(
-                    "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg",
-                    message.sender === "user"
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
-                      : "bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600"
-                  )}>
-                    <p className="text-sm leading-relaxed">{message.content}</p>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex gap-3 items-start",
+                      message.sender === "user" ? "flex-row-reverse" : "flex-row"
+                    )}
+                  >
+                    <Avatar className="w-8 h-8 shrink-0">
+                      <AvatarFallback className={cn(
+                        "text-white font-medium",
+                        message.sender === "user" 
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600"
+                          : `bg-gradient-to-r ${getPersonaGradient(selectedPersona)}`
+                      )}>
+                        {message.sender === "user" ? <User className="w-4 h-4" /> : selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
+                      </AvatarFallback>
+                    </Avatar>
                     
-                    <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
-                      <Clock className="w-3 h-3" />
-                      <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className={cn(
+                      "max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg",
+                      message.sender === "user"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                        : "bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600"
+                    )}>
+                      <p className="text-sm leading-relaxed">{message.content}</p>
                       
-                      {message.emotion && message.sender === "ai" && (
-                        <>
-                          <div className={cn("w-2 h-2 rounded-full", getEmotionColor(message.emotion))}></div>
-                          <span className="capitalize">{message.emotion}</span>
-                        </>
+                      <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
+                        <Clock className="w-3 h-3" />
+                        <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        
+                        {message.emotion && message.sender === "ai" && (
+                          <>
+                            <div className={cn("w-2 h-2 rounded-full", getEmotionColor(message.emotion))}></div>
+                            <span className="capitalize">{message.emotion}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Streaming Message */}
+                {isStreaming && streamingContent && (
+                  <div className="flex gap-3 items-start">
+                    <Avatar className="w-8 h-8 shrink-0">
+                      <AvatarFallback className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} text-white`}>
+                        {selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600">
+                      <p className="text-sm leading-relaxed">{streamingContent}<span className="animate-pulse">|</span></p>
+                      
+                      {currentEmotion && (
+                        <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
+                          <div className={cn("w-2 h-2 rounded-full", getEmotionColor(currentEmotion))}></div>
+                          <span className="capitalize">{currentEmotion}</span>
+                          {confidence > 0 && (
+                            <Progress value={confidence * 100} className="w-12 h-1" />
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
-                </div>
-              ))}
-
-              {/* Streaming Message */}
-              {isStreaming && streamingContent && (
-                <div className="flex gap-3 items-start">
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarFallback className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} text-white`}>
-                      {selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600">
-                    <p className="text-sm leading-relaxed">{streamingContent}<span className="animate-pulse">|</span></p>
+                )}
+                
+                {/* Typing Indicator */}
+                {isStreaming && !streamingContent && (
+                  <div className="flex gap-3 items-start">
+                    <Avatar className="w-8 h-8 shrink-0">
+                      <AvatarFallback className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} text-white`}>
+                        {selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
+                      </AvatarFallback>
+                    </Avatar>
                     
-                    {currentEmotion && (
-                      <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
-                        <div className={cn("w-2 h-2 rounded-full", getEmotionColor(currentEmotion))}></div>
-                        <span className="capitalize">{currentEmotion}</span>
-                        {confidence > 0 && (
-                          <Progress value={confidence * 100} className="w-12 h-1" />
-                        )}
+                    <div className="px-4 py-3 rounded-2xl bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Typing Indicator */}
-              {isStreaming && !streamingContent && (
-                <div className="flex gap-3 items-start">
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarFallback className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} text-white`}>
-                      {selectedPersonaData?.emoji || <Bot className="w-4 h-4" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="px-4 py-3 rounded-2xl bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Message Input */}
               <div className="border-t border-gray-200 dark:border-slate-600 p-4">
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <Textarea
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={`Share your thoughts with ${selectedPersonaData?.name || "me"}...`}
-                    className="min-h-[60px] border-2 border-purple-200 dark:border-purple-700 rounded-xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    disabled={isStreaming}
-                  />
-                </div>
-                
-                <div className="flex flex-col gap-2">
-                  {/* Voice Input Button */}
-                  <Button
-                    onClick={startVoiceInput}
-                    disabled={isStreaming || isListening}
-                    variant="outline"
-                    size="sm"
-                    className="border-2 border-purple-200 dark:border-purple-700 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/30"
-                  >
-                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                  </Button>
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Textarea
+                      value={currentMessage}
+                      onChange={(e) => setCurrentMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={`Share your thoughts with ${selectedPersonaData?.name || "me"}...`}
+                      className="min-h-[60px] border-2 border-purple-200 dark:border-purple-700 rounded-xl resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      disabled={isStreaming}
+                    />
+                  </div>
                   
-                  {/* Send Button */}
-                  <Button
-                    onClick={sendMessage}
-                    disabled={!currentMessage.trim() || isStreaming}
-                    className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} hover:opacity-90 text-white px-6 py-2 rounded-xl shadow-lg transition-all duration-300`}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    {/* Voice Input Button */}
+                    <Button
+                      onClick={startVoiceInput}
+                      disabled={isStreaming || isListening}
+                      variant="outline"
+                      size="sm"
+                      className="border-2 border-purple-200 dark:border-purple-700 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/30"
+                    >
+                      {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </Button>
+                    
+                    {/* Send Button */}
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!currentMessage.trim() || isStreaming}
+                      className={`bg-gradient-to-r ${getPersonaGradient(selectedPersona)} hover:opacity-90 text-white px-6 py-2 rounded-xl shadow-lg transition-all duration-300`}
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              {messages.length > 0 && (
-                <div className="flex gap-2 mt-3 justify-center">
-                  <Button
-                    onClick={() => setShowFeedback(true)}
-                    variant="outline"
-                    size="sm"
-                    className="border border-gray-300 dark:border-gray-600 rounded-xl"
-                  >
-                    <ThumbsUp className="w-3 h-3 mr-1" />
-                    Feedback
-                  </Button>
-                  
-                  <Button
-                    onClick={regenerateResponse}
-                    variant="outline"
-                    size="sm"
-                    className="border border-gray-300 dark:border-gray-600 rounded-xl"
-                    disabled={isStreaming}
-                  >
-                    <RotateCcw className="w-3 h-3 mr-1" />
-                    Regenerate
-                  </Button>
-                </div>
-              )}
+                {/* Action Buttons */}
+                {messages.length > 0 && (
+                  <div className="flex gap-2 mt-3 justify-center">
+                    <Button
+                      onClick={() => setShowFeedback(true)}
+                      variant="outline"
+                      size="sm"
+                      className="border border-gray-300 dark:border-gray-600 rounded-xl"
+                    >
+                      <ThumbsUp className="w-3 h-3 mr-1" />
+                      Feedback
+                    </Button>
+                    
+                    <Button
+                      onClick={regenerateResponse}
+                      variant="outline"
+                      size="sm"
+                      className="border border-gray-300 dark:border-gray-600 rounded-xl"
+                      disabled={isStreaming}
+                    >
+                      <RotateCcw className="w-3 h-3 mr-1" />
+                      Regenerate
+                    </Button>
+                    
+                    <Button
+                      onClick={clearChat}
+                      variant="outline"
+                      size="sm"
+                      className="border border-gray-300 dark:border-gray-600 rounded-xl"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Feedback Dialog */}
-      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
-        <DialogContent className="bg-white dark:bg-slate-800 border-2 border-purple-200 dark:border-purple-700 rounded-3xl shadow-2xl max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              Share Your Feedback
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={() => setFeedbackType("positive")}
-                variant={feedbackType === "positive" ? "default" : "outline"}
-                className="flex items-center gap-2"
-              >
-                <ThumbsUp className="w-4 h-4" />
-                Helpful
-              </Button>
-              <Button
-                onClick={() => setFeedbackType("negative")}
-                variant={feedbackType === "negative" ? "default" : "outline"}
-                className="flex items-center gap-2"
-              >
-                <ThumbsDown className="w-4 h-4" />
-                Needs Work
-              </Button>
-            </div>
-            
-            <Textarea
-              value={feedbackText}
-              onChange={(e) => setFeedbackText(e.target.value)}
-              placeholder="Tell us more about your experience..."
-              className="border-2 border-purple-200 dark:border-purple-700 rounded-xl"
-            />
-            
-            <div className="flex gap-2 justify-end">
-              <Button
-                onClick={() => setShowFeedback(false)}
-                variant="outline"
-                className="rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={submitFeedback}
-                disabled={!feedbackType || !feedbackText.trim()}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl"
-              >
-                Submit
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Settings Dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="bg-white dark:bg-slate-800 border-2 border-purple-200 dark:border-purple-700 rounded-3xl shadow-2xl max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              Chat Settings
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-4 h-4" />
-                <span>Voice Responses</span>
+        {/* Feedback Dialog */}
+        <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+          <DialogContent className="bg-white dark:bg-slate-800 border-2 border-purple-200 dark:border-purple-700 rounded-3xl shadow-2xl max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                Share Your Feedback
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onClick={() => setFeedbackType("positive")}
+                  variant={feedbackType === "positive" ? "default" : "outline"}
+                  className="flex items-center gap-2"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  Helpful
+                </Button>
+                <Button
+                  onClick={() => setFeedbackType("negative")}
+                  variant={feedbackType === "negative" ? "default" : "outline"}
+                  className="flex items-center gap-2"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  Needs Work
+                </Button>
               </div>
-              <Button
-                onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
-                variant={isVoiceEnabled ? "default" : "outline"}
-                size="sm"
-                className="rounded-xl"
-              >
-                {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              </Button>
+              
+              <Textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Tell us more about your experience..."
+                className="border-2 border-purple-200 dark:border-purple-700 rounded-xl"
+              />
+              
+              <div className="flex gap-2 justify-end">
+                <Button
+                  onClick={() => setShowFeedback(false)}
+                  variant="outline"
+                  className="rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={submitFeedback}
+                  disabled={!feedbackType || !feedbackText.trim()}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl"
+                >
+                  Submit
+                </Button>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+
+        {/* Settings Dialog */}
+        <Dialog open={showSettings} onOpenChange={setShowSettings}>
+          <DialogContent className="bg-white dark:bg-slate-800 border-2 border-purple-200 dark:border-purple-700 rounded-3xl shadow-2xl max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                Chat Settings
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="w-4 h-4" />
+                  <span>Voice Responses</span>
+                </div>
+                <Button
+                  onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
+                  variant={isVoiceEnabled ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-xl"
+                >
+                  {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
