@@ -15,12 +15,12 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
   const isActive = (path: string) => location === path;
   
   return (
-    <header className="bg-white/90 backdrop-blur-sm border-b border-slate-200 px-4 py-3 sticky top-0 z-50">
+    <header className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 px-4 py-3 sticky top-0 z-50">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
           {onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full">
-              <ArrowLeft className="h-4 w-4 text-slate-600" />
+            <Button variant="ghost" size="icon" onClick={onBack} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+              <ArrowLeft className="h-4 w-4 text-slate-600 dark:text-slate-300" />
             </Button>
           )}
           
@@ -31,8 +31,8 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
                 <AvatarFallback>{persona.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="font-semibold text-slate-800">{persona.name}</h2>
-                <p className="text-sm text-slate-500">Online</p>
+                <h2 className="font-semibold text-slate-800 dark:text-slate-200">{persona.name}</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Online</p>
               </div>
             </>
           )}

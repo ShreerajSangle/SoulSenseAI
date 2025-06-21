@@ -26,9 +26,13 @@ export function ThemeProvider({
   storageKey = "soulsense-ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      return (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -51,8 +55,13 @@ export function ThemeProvider({
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
-      localStorage.setItem(storageKey, newTheme);
-      setTheme(newTheme);
+      try {
+        localStorage.setItem(storageKey, newTheme);
+        setTheme(newTheme);
+      } catch (error) {
+        console.warn('Failed to save theme preference:', error);
+        setTheme(newTheme);
+      }
     },
   };
 

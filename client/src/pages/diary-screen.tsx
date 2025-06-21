@@ -34,7 +34,7 @@ export default function DiaryScreen() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterMood, setFilterMood] = useState<string>("");
+  const [filterMood, setFilterMood] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "mood" | "title">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -256,18 +256,18 @@ export default function DiaryScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">My Diary</h1>
-              <p className="text-slate-600">Reflect on your thoughts, emotions, and daily experiences</p>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-800 to-pink-600 bg-clip-text text-transparent mb-2">Personal Journal</h1>
+              <p className="text-lg text-slate-600 dark:text-slate-300">Reflect on your thoughts, emotions, and daily experiences</p>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
+                <Button className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg">
                   <Plus className="w-4 h-4" />
                   New Entry
                 </Button>
