@@ -248,13 +248,21 @@ export default function EnhancedChatScreen() {
       };
       setMessages(prev => [...prev, userMessage]);
 
-      // Use enhanced chat system (fallback for now until streaming is fixed)
-      const response = await sendMessageMutation.mutateAsync({
-        message: message.trim(),
-        conversationId: conversationId || undefined,
-        emotionContext,
-        moodData: sessionMoodData || undefined
-      });
+      // Try GPT-4o streaming first, fallback to enhanced chat
+      let response;
+      try {
+        await handleStreamingResponse(message.trim());
+        return; // Exit early if streaming succeeds
+      } catch (streamingError) {
+        console.log("Streaming failed, using enhanced chat fallback:", streamingError);
+        // Use enhanced chat system as fallback
+        response = await sendMessageMutation.mutateAsync({
+          message: message.trim(),
+          conversationId: conversationId || undefined,
+          emotionContext,
+          moodData: sessionMoodData || undefined
+        });
+      }
       
       // Update conversation ID if this was the first message
       if (response?.conversationId && !conversationId) {
@@ -303,6 +311,137 @@ export default function EnhancedChatScreen() {
 
   const handleMessageFeedback = async (messageId: number, rating: 'thumbs_up' | 'thumbs_down') => {
     await feedbackMutation.mutateAsync({ messageId, rating });
+  };
+
+  // GPT-4o streaming response handler
+  const handleStreamingResponse = async (message: string) => {
+    if (!personaId) return;
+
+    setIsStreaming(true);
+    setStreamingContent("");
+    
+    // Abort any previous streaming request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    
+    try {
+      const response = await fetch('/api/gpt4o/chat/stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          personaId,
+          conversationHistory: messages.slice(-10), // Last 10 messages for context
+          userId: 'user-123' // TODO: Get from auth
+        }),
+        signal: abortControllerRef.current.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No reader available');
+      }
+
+      let accumulatedContent = '';
+      const aiMessageId = Date.now() + 1;
+      
+      // Add initial AI message placeholder
+      const aiMessage = {
+        id: aiMessageId,
+        content: '',
+        sender: 'ai' as const,
+        timestamp: new Date(),
+        personaId,
+        isStreaming: true
+      };
+      setMessages(prev => [...prev, aiMessage]);
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) break;
+          
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6);
+              if (jsonStr === '[DONE]') {
+                break;
+              }
+              
+              try {
+                const data = JSON.parse(jsonStr);
+                if (data.content) {
+                  accumulatedContent += data.content;
+                  setStreamingContent(accumulatedContent);
+                  
+                  // Update the message in real-time
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === aiMessageId 
+                      ? { ...msg, content: accumulatedContent }
+                      : msg
+                  ));
+                }
+                
+                if (data.emotion) {
+                  setCurrentEmotion(data.emotion);
+                }
+                
+                if (data.error) {
+                  throw new Error(data.error);
+                }
+              } catch (parseError) {
+                console.warn('Failed to parse streaming data:', parseError);
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+
+      // Mark streaming as complete
+      setMessages(prev => prev.map(msg => 
+        msg.id === aiMessageId 
+          ? { ...msg, isStreaming: false }
+          : msg
+      ));
+
+      // Speak AI response if voice is enabled
+      if (voiceEnabled && accumulatedContent && !sessionEnded) {
+        const personaVoice = getPersonaVoice(personaId);
+        speakText(accumulatedContent, personaVoice);
+      }
+
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('Streaming request aborted');
+        return;
+      }
+      
+      console.error('Streaming error:', error);
+      
+      // Remove the placeholder message on error
+      setMessages(prev => prev.filter(msg => !msg.isStreaming));
+      
+      throw error; // Re-throw to trigger fallback
+    } finally {
+      setIsStreaming(false);
+      setStreamingContent("");
+      abortControllerRef.current = null;
+    }
   };
 
   const handleEndSession = () => {
@@ -565,8 +704,8 @@ export default function EnhancedChatScreen() {
         <div className="flex items-center gap-2">
           <InputBar 
             onSendMessage={handleSendMessage} 
-            disabled={isLoading || sessionEnded}
-            placeholder={sessionEnded ? "Session has ended" : "Type your message..."}
+            disabled={isLoading || isStreaming || sessionEnded}
+            placeholder={sessionEnded ? "Session has ended" : isStreaming ? "AI is responding..." : "Type your message..."}
           />
           <VoiceInterface 
             onTranscription={handleSendMessage}
