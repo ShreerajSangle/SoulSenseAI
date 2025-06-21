@@ -562,18 +562,23 @@ export default function EnhancedChatScreen() {
         </div>
         
         <div className="flex items-center gap-2">
-          <InputBar onSendMessage={handleSendMessage} disabled={isLoading} />
+          <InputBar 
+            onSendMessage={handleSendMessage} 
+            disabled={isLoading || sessionEnded}
+            placeholder={sessionEnded ? "Session has ended" : "Type your message..."}
+          />
           <VoiceInterface 
             onTranscription={handleSendMessage}
-            isEnabled={voiceEnabled}
+            isEnabled={voiceEnabled && !sessionEnded}
           />
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={voiceEnabled ? 'text-green-600' : 'text-gray-400'}
+            className={voiceEnabled && !sessionEnded ? 'text-green-600' : 'text-gray-400'}
+            disabled={sessionEnded}
           >
-            {voiceEnabled ? 'Voice On' : 'Voice Off'}
+            {sessionEnded ? 'Voice Off' : voiceEnabled ? 'Voice On' : 'Voice Off'}
           </Button>
         </div>
       </div>

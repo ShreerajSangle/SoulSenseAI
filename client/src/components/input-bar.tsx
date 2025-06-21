@@ -6,9 +6,10 @@ import { Send, Smile, Paperclip, Mic } from "lucide-react";
 interface InputBarProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
-export function InputBar({ onSendMessage, disabled }: InputBarProps) {
+export function InputBar({ onSendMessage, disabled, placeholder = "Type your message..." }: InputBarProps) {
   const [message, setMessage] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,7 +34,7 @@ export function InputBar({ onSendMessage, disabled }: InputBarProps) {
           <div className="flex-1 bg-slate-100 rounded-2xl px-4 py-3 flex items-center space-x-3">
             <Input
               type="text"
-              placeholder="Type your message..."
+              placeholder={placeholder}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
