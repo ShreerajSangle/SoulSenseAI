@@ -58,75 +58,37 @@
   }
 }
 
-:root {
-  --background: hsl(210, 40%, 98%);
-  --foreground: hsl(222.2, 84%, 4.9%);
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222.2, 84%, 4.9%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222.2, 84%, 4.9%);
-  --border: hsl(214.3, 31.8%, 91.4%);
-  --input: hsl(214.3, 31.8%, 91.4%);
-  --primary: hsl(262.1, 83.3%, 57.8%);
-  --primary-foreground: hsl(210, 40%, 98%);
-  --secondary: hsl(210, 40%, 96%);
-  --secondary-foreground: hsl(222.2, 84%, 4.9%);
-  --accent: hsl(210, 40%, 96%);
-  --accent-foreground: hsl(222.2, 84%, 4.9%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(262.1, 83.3%, 57.8%);
-  --radius: 0.75rem;
+@layer base {
+  :root {
+    /* SoulSense AI Custom Colors - Calming Lavender Theme */
+    --therapeutic: hsl(162, 63%, 41%);
+    --therapeutic-foreground: hsl(0, 0%, 100%);
+    --persona-sarah: hsl(262, 83%, 67%);
+    --persona-alex: hsl(38, 92%, 50%);
+    --persona-marcus: hsl(0, 84%, 60%);
+    --persona-maya: hsl(162, 63%, 41%);
+    
+    /* Lavender Color Palette */
+    --lavender-50: hsl(270, 100%, 98%);
+    --lavender-100: hsl(269, 100%, 95%);
+    --lavender-200: hsl(269, 100%, 89%);
+    --lavender-300: hsl(269, 100%, 82%);
+    --lavender-400: hsl(269, 100%, 73%);
+    --lavender-500: hsl(269, 100%, 63%);
+    --lavender-600: hsl(269, 100%, 53%);
+    --lavender-700: hsl(269, 100%, 43%);
+    --lavender-800: hsl(269, 100%, 33%);
+  }
   
-  /* SoulSense AI Custom Colors - Calming Lavender Theme */
-  --therapeutic: hsl(162, 63%, 41%);
-  --therapeutic-foreground: hsl(0, 0%, 100%);
-  --persona-sarah: hsl(262, 83%, 67%);
-  --persona-alex: hsl(38, 92%, 50%);
-  --persona-marcus: hsl(0, 84%, 60%);
-  --persona-maya: hsl(162, 63%, 41%);
-  
-  /* Lavender Color Palette */
-  --lavender-50: hsl(270, 100%, 98%);
-  --lavender-100: hsl(269, 100%, 95%);
-  --lavender-200: hsl(269, 100%, 89%);
-  --lavender-300: hsl(269, 100%, 82%);
-  --lavender-400: hsl(269, 100%, 73%);
-  --lavender-500: hsl(269, 100%, 63%);
-  --lavender-600: hsl(269, 100%, 53%);
-  --lavender-700: hsl(269, 100%, 43%);
-  --lavender-800: hsl(269, 100%, 33%);
-  --lavender-900: hsl(269, 100%, 23%);
-  
-  /* Chat Interface Colors */
-  --chat-bg: linear-gradient(135deg, hsl(210, 40%, 98%) 0%, hsl(214, 42%, 94%) 100%);
-  --message-user: linear-gradient(135deg, hsl(262, 83%, 58%) 0%, hsl(262, 83%, 67%) 100%);
-  --message-ai: hsl(0, 0%, 100%);
-  --message-ai-border: hsl(214.3, 31.8%, 91.4%);
-}
-
-.dark {
-  --background: hsl(222.2, 84%, 4.9%);
-  --foreground: hsl(210, 40%, 98%);
-  --muted: hsl(217.2, 32.6%, 17.5%);
-  --muted-foreground: hsl(215, 20.2%, 65.1%);
-  --popover: hsl(222.2, 84%, 4.9%);
-  --popover-foreground: hsl(210, 40%, 98%);
-  --card: hsl(222.2, 84%, 4.9%);
-  --card-foreground: hsl(210, 40%, 98%);
-  --border: hsl(217.2, 32.6%, 17.5%);
-  --input: hsl(217.2, 32.6%, 17.5%);
-  --primary: hsl(262.1, 83.3%, 57.8%);
-  --primary-foreground: hsl(210, 40%, 98%);
-  --secondary: hsl(217.2, 32.6%, 17.5%);
-  --secondary-foreground: hsl(210, 40%, 98%);
-  --accent: hsl(217.2, 32.6%, 17.5%);
-  --accent-foreground: hsl(210, 40%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(262.1, 83.3%, 57.8%);
+  .dark {
+    /* Dark mode adjustments for custom colors */
+    --therapeutic: hsl(162, 63%, 51%);
+    --therapeutic-foreground: hsl(0, 0%, 0%);
+    --persona-sarah: hsl(262, 83%, 77%);
+    --persona-alex: hsl(38, 92%, 60%);
+    --persona-marcus: hsl(0, 84%, 70%);
+    --persona-maya: hsl(162, 63%, 51%);
+  }
 }
 
 @layer base {
