@@ -303,7 +303,7 @@ RELATIONSHIP CONTEXT:
 - Conversation depth: ${Math.round(memory.relationshipDynamics.intimacyDepth * 100)}%
 
 RECENT CONVERSATION:
-${conversationHistory.slice(-3).map(m => `${m.sender}: ${m.content}`).join('\n')}
+${history.length > 0 ? history.slice(-3).map(m => `${m.sender}: ${m.content}`).join('\n') : 'No previous conversation'}
 `}
 
 RESPONSE GUIDELINES:
