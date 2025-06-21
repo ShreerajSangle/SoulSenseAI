@@ -71,11 +71,11 @@ export default function PersonaSelector() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              onClick={() => setLocation('/profile')}
+              onClick={() => setLocation('/diary')}
               className="flex items-center gap-2 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-700 hover:bg-purple-50"
             >
-              <Settings className="w-4 h-4" />
-              My Profile
+              <Heart className="w-4 h-4" />
+              Diary
             </Button>
           </div>
         </div>

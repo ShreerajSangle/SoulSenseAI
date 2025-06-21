@@ -10,7 +10,7 @@ import EnhancedChatScreen from "@/pages/enhanced-chat-screen";
 import MemoryScreen from "@/pages/memory-screen";
 import SessionSummary from "@/pages/session-summary";
 import DiaryScreen from "@/pages/diary-screen";
-import ProfilePage from "@/pages/profile";
+import RedesignedProfile from "@/pages/redesigned-profile";
 import ClinicalAssessment from "@/pages/clinical-assessment";
 import TherapeuticJourney from "@/pages/therapeutic-journey";
 import NotFound from "@/pages/not-found";
@@ -29,7 +29,7 @@ function Router() {
       <Route path="/soulsense-demo" component={SoulSenseAIDemo} />
       <Route path="/memory" component={MemoryScreen} />
       <Route path="/diary" component={DiaryScreen} />
-      <Route path="/profile" component={ProfilePage} />
+      <Route path="/profile" component={RedesignedProfile} />
       <Route path="/clinical-assessment" component={ClinicalAssessment} />
       <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
