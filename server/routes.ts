@@ -18,6 +18,9 @@ import { cakeChatEngine, type CakeChatResponse } from "./cakechat_engine";
 import { advancedLLMEngine } from "./advanced_llm_engine";
 import { emotionDetectionEngine } from "./emotion_detection_engine";
 import { gpt4oConversationSystem } from "./gpt4o_conversation_system";
+import { clinicalAssessmentEngine } from "./clinical_assessment_engine";
+import { therapeuticInterventionEngine } from "./therapeutic_intervention_engine";
+import { enhancedPersonaSystem } from "./enhanced_persona_system";
 
 // Import Python module interfaces
 interface MemoryUpdate {
