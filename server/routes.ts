@@ -1404,11 +1404,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const enhancedResponse = await enhancedConversationSystem.generateResponse(
         personaId,
         userMessage,
-        conversationHistory.map(m => ({
+        conversationHistory.length > 0 ? conversationHistory.map(m => ({
           sender: m.sender,
           content: m.content,
           timestamp: m.timestamp
-        })),
+        })) : [],
         {}
       );
 

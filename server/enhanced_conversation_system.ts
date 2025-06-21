@@ -87,12 +87,15 @@ export class EnhancedConversationSystem {
     message: string,
     conversationHistory: any[]
   ): Promise<EmotionalIntelligence> {
+    // Ensure conversationHistory is an array
+    const history = Array.isArray(conversationHistory) ? conversationHistory : [];
+    
     const emotionPrompt = `Analyze the emotional intelligence of this message with deep psychological insight:
 
 Message: "${message}"
 
 Recent conversation context:
-${conversationHistory.slice(-3).map(m => `${m.sender}: ${m.content}`).join('\n')}
+${history.length > 0 ? history.slice(-3).map(m => `${m.sender}: ${m.content}`).join('\n') : 'No previous conversation'}
 
 Provide analysis in this JSON format:
 {
