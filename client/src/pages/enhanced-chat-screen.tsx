@@ -190,8 +190,19 @@ export default function EnhancedChatScreen() {
   }, [conversationMessages]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    // Improved auto-scrolling with delay for better UX
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    };
+    
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading]);
 
   // Initialize conversation on first message
   useEffect(() => {
@@ -218,7 +229,7 @@ export default function EnhancedChatScreen() {
   };
 
   const handleSendMessage = async (message: string) => {
-    if (!personaId || !message.trim()) return;
+    if (!personaId || !message.trim() || sessionEnded) return;
     
     setIsLoading(true);
     
@@ -238,6 +249,9 @@ export default function EnhancedChatScreen() {
         emotionContext,
         moodData: sessionMoodData || undefined
       });
+      
+      // Don't process AI response if session has ended
+      if (sessionEnded) return;
       
       // Update conversation ID if this was the first message
       if (response?.conversationId && !conversationId) {
@@ -259,8 +273,8 @@ export default function EnhancedChatScreen() {
         setShowCrisisAlert(true);
       }
       
-      // Speak AI response if voice is enabled
-      if (voiceEnabled && response?.aiMessage?.content) {
+      // Speak AI response if voice is enabled and session hasn't ended
+      if (voiceEnabled && response?.aiMessage?.content && !sessionEnded) {
         const personaVoice = getPersonaVoice(personaId!);
         speakText(response.aiMessage.content, personaVoice);
       }
@@ -288,7 +302,18 @@ export default function EnhancedChatScreen() {
     await feedbackMutation.mutateAsync({ messageId, rating });
   };
 
+  const [sessionEnded, setSessionEnded] = useState(false);
+  
   const handleEndSession = () => {
+    if (sessionEnded) return;
+    
+    // Stop any ongoing speech
+    stopSpeaking();
+    
+    // Mark session as ended to prevent new AI responses
+    setSessionEnded(true);
+    
+    // Show session feedback
     setShowSessionFeedback(true);
   };
 
@@ -445,52 +470,70 @@ export default function EnhancedChatScreen() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-auto p-4 space-y-4">
-        {messages.map((message) => (
-          <div key={message.id} className="group">
-            <MessageBubble 
-              message={message} 
-              persona={message.sender === 'ai' ? persona : undefined}
-              isUser={message.sender === 'user'}
-            />
-            
-            {/* Feedback buttons for AI messages */}
-            {message.sender === 'ai' && (
-              <div className="flex items-center gap-2 mt-2 ml-12 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleMessageFeedback(message.id, 'thumbs_up')}
-                  className="h-6 w-6 p-0"
-                >
-                  <ThumbsUp className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleMessageFeedback(message.id, 'thumbs_down')}
-                  className="h-6 w-6 p-0"
-                >
-                  <ThumbsDown className="w-3 h-3" />
-                </Button>
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scroll-smooth">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {messages.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
+                <MessageSquare className="w-8 h-8 text-purple-600" />
               </div>
-            )}
-          </div>
-        ))}
-        
-        {isLoading && <TypingIndicator persona={persona} />}
-        <div ref={messagesEndRef} />
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">Start your conversation with {persona.name}</h3>
+              <p className="text-gray-600">Share what's on your mind. I'm here to listen and support you.</p>
+            </div>
+          )}
+          
+          {messages.map((message, index) => (
+            <div key={`${message.id}-${index}`} className="group">
+              <MessageBubble 
+                message={message} 
+                persona={message.sender === 'ai' ? persona : undefined}
+                isUser={message.sender === 'user'}
+              />
+              
+              {/* Feedback buttons for AI messages */}
+              {message.sender === 'ai' && (
+                <div className="flex items-center gap-2 mt-2 ml-14 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleMessageFeedback(message.id, 'thumbs_up')}
+                    className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleMessageFeedback(message.id, 'thumbs_down')}
+                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <TypingIndicator persona={persona} />
+            </div>
+          )}
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
       </div>
 
       {/* Input */}
       <div className="border-t bg-white p-4">
         <div className="flex items-center gap-2 mb-3">
           <Button
-            variant="outline"
+            variant={sessionEnded ? "secondary" : "destructive"}
             size="sm"
             onClick={handleEndSession}
+            disabled={sessionEnded}
+            className={sessionEnded ? "opacity-50 cursor-not-allowed" : ""}
           >
-            End Session
+            {sessionEnded ? "Session Ended" : "End Session"}
           </Button>
           
           <div className="flex gap-1 ml-auto">

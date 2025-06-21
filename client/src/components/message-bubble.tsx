@@ -11,37 +11,61 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, persona, isUser }: MessageBubbleProps) {
   const isAI = message.sender === "ai";
+  const isUserMessage = message.sender === "user" || isUser;
   
   return (
-    <div className={`flex items-start space-x-3 ${isUser ? "justify-end" : ""}`}>
+    <div className={`flex items-start gap-3 mb-4 ${isUserMessage ? "justify-end" : "justify-start"}`}>
+      {/* AI Avatar - Only show for AI messages */}
       {isAI && persona && (
-        <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
+        <Avatar className="w-10 h-10 flex-shrink-0 mt-1">
           <AvatarImage src={persona.avatarUrl} alt={persona.name} />
-          <AvatarFallback>{persona.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+          <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold">
+            {persona.name.split(' ').map(n => n[0]).join('')}
+          </AvatarFallback>
         </Avatar>
       )}
       
-      <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-        isAI 
-          ? "message-bubble-ai rounded-tl-sm" 
-          : "message-bubble-user text-white rounded-tr-sm"
+      {/* Message Bubble */}
+      <div className={`max-w-[75%] lg:max-w-md px-4 py-3 rounded-2xl relative ${
+        isUserMessage 
+          ? "message-bubble-user text-white rounded-tr-sm ml-auto" 
+          : "message-bubble-ai rounded-tl-sm"
       }`}>
-        <p className={isAI ? "text-slate-700" : "text-white"}>
+        <p className={`text-sm leading-relaxed ${
+          isUserMessage ? "text-white" : "text-slate-700 dark:text-gray-100"
+        }`}>
           {message.content}
         </p>
         
-        <div className={`flex items-center justify-between mt-3 ${
-          isAI ? "flex-row" : "flex-row-reverse"
+        {/* Timestamp */}
+        <div className={`flex items-center mt-2 ${
+          isUserMessage ? "justify-end" : "justify-start"
         }`}>
-          <div className={`text-xs ${
-            isAI ? "text-slate-500" : "text-indigo-200"
+          <div className={`text-xs font-medium ${
+            isUserMessage 
+              ? "text-white/80" 
+              : "text-slate-500 dark:text-gray-400"
           }`}>
             {format(new Date(message.timestamp), "h:mm a")}
           </div>
-          
-          {/* Emotion detection badge removed */}
         </div>
+        
+        {/* Message tail */}
+        <div className={`absolute top-0 w-3 h-3 ${
+          isUserMessage 
+            ? "-right-1 bg-gradient-to-br from-indigo-500 to-purple-600 transform rotate-45" 
+            : "-left-1 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-600 dark:to-gray-700 transform rotate-45"
+        }`} />
       </div>
+      
+      {/* User Avatar - Only show for user messages */}
+      {isUserMessage && (
+        <Avatar className="w-10 h-10 flex-shrink-0 mt-1">
+          <AvatarFallback className="bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-700 font-semibold">
+            You
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 }
