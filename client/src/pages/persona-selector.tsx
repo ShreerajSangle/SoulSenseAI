@@ -35,6 +35,10 @@ export default function PersonaSelector() {
     setLocation(`/chat/${persona.id}`);
   };
 
+  const handleAdvancedChat = (persona: Persona) => {
+    setLocation(`/advanced-chat/${persona.id}`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-300 via-purple-200 to-purple-400 flex items-center justify-center">
@@ -139,15 +143,38 @@ export default function PersonaSelector() {
                     
                     <p className="text-base text-slate-600 mb-6 leading-relaxed line-clamp-3">{persona.description}</p>
                     
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 mb-4">
                       <div className="flex items-center text-sm text-slate-500">
                         <MessageCircle className="w-4 h-4 mr-2" />
                         <span>{persona.specialty}</span>
                       </div>
+                      <div className="flex items-center text-sm text-slate-400">
+                        <Activity className="w-4 h-4 mr-1" />
+                        <span>Available now</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3">
                       <Button 
-                        className={`bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0 shadow-sm group-hover:shadow-md transition-all duration-300 px-5 py-2 text-sm`}
+                        className={`flex-1 bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0 shadow-sm group-hover:shadow-md transition-all duration-300 text-sm`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePersonaSelect(persona);
+                        }}
                       >
+                        <MessageCircle className="w-4 h-4 mr-2" />
                         Start Chat
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="flex-1 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAdvancedChat(persona);
+                        }}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Advanced AI
                       </Button>
                     </div>
                   </CardContent>
