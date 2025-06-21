@@ -119,7 +119,7 @@ async function callPythonFunction(modulePath: string, functionName: string, args
   return null;
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+async function registerRoutes(app: Express): Promise<Server> {
   // Initialize auth system (commented for now to focus on core functionality)
   // await setupAuth(app);
 
