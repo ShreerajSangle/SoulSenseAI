@@ -219,6 +219,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch messages' });
     }
   });
+
+  // Diary endpoints
+  app.get('/api/diary', async (req, res) => {
+    try {
+      const entries = await storage.getDiaryEntries('user-1'); // Using default user for now
+      res.json(entries);
+    } catch (error) {
+      console.error('Error fetching diary entries:', error);
+      res.status(500).json({ error: 'Failed to fetch diary entries' });
+    }
+  });
+
+  app.post('/api/diary', async (req, res) => {
+    try {
+      const { title, content, mood, tags } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ error: 'Title and content are required' });
+      }
+
+      const entry = await storage.createDiaryEntry({
+        userId: 'user-1', // Using default user for now
+        title,
+        content,
+        mood: mood || 'neutral',
+        tags: tags || [],
+      });
+
+      res.json(entry);
+    } catch (error) {
+      console.error('Error creating diary entry:', error);
+      res.status(500).json({ error: 'Failed to create diary entry' });
+    }
+  });
+
+  app.put('/api/diary/:id', async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ error: 'Invalid entry ID' });
+      }
+
+      const { title, content, mood, tags } = req.body;
+      const entry = await storage.updateDiaryEntry(entryId, {
+        title,
+        content,
+        mood,
+        tags,
+      });
+
+      if (!entry) {
+        return res.status(404).json({ error: 'Diary entry not found' });
+      }
+
+      res.json(entry);
+    } catch (error) {
+      console.error('Error updating diary entry:', error);
+      res.status(500).json({ error: 'Failed to update diary entry' });
+    }
+  });
+
+  app.delete('/api/diary/:id', async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      if (isNaN(entryId)) {
+        return res.status(400).json({ error: 'Invalid entry ID' });
+      }
+
+      await storage.deleteDiaryEntry(entryId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting diary entry:', error);
+      res.status(500).json({ error: 'Failed to delete diary entry' });
+    }
+  });
+
+  // Goals endpoints
+  app.get('/api/goals', async (req, res) => {
+    try {
+      const goals = await storage.getUserGoals('user-1'); // Using default user for now
+      res.json(goals);
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      res.status(500).json({ error: 'Failed to fetch goals' });
+    }
+  });
+
+  app.post('/api/goals', async (req, res) => {
+    try {
+      const { title, description, category, targetDate, personaId } = req.body;
+      
+      if (!title || !category) {
+        return res.status(400).json({ error: 'Title and category are required' });
+      }
+
+      const goal = await storage.createGoal({
+        userId: 'user-1', // Using default user for now
+        title,
+        description: description || '',
+        category,
+        targetDate: targetDate ? new Date(targetDate) : undefined,
+        personaId,
+        status: 'active',
+      });
+
+      res.json(goal);
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      res.status(500).json({ error: 'Failed to create goal' });
+    }
+  });
+
+  app.put('/api/goals/:id', async (req, res) => {
+    try {
+      const goalId = parseInt(req.params.id);
+      if (isNaN(goalId)) {
+        return res.status(400).json({ error: 'Invalid goal ID' });
+      }
+
+      const updates = req.body;
+      const goal = await storage.updateGoal(goalId, updates);
+
+      if (!goal) {
+        return res.status(404).json({ error: 'Goal not found' });
+      }
+
+      res.json(goal);
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      res.status(500).json({ error: 'Failed to update goal' });
+    }
+  });
+
+  app.delete('/api/goals/:id', async (req, res) => {
+    try {
+      const goalId = parseInt(req.params.id);
+      if (isNaN(goalId)) {
+        return res.status(400).json({ error: 'Invalid goal ID' });
+      }
+
+      await storage.deleteGoal(goalId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      res.status(500).json({ error: 'Failed to delete goal' });
+    }
+  });
   // Get all personas
   app.get("/api/personas", async (req, res) => {
     try {
