@@ -31,25 +31,25 @@ interface UserProfile {
   avatar?: string;
   bio?: string;
   preferences: {
-    preferredPersona: string;
-    voiceEnabled: boolean;
-    darkMode: boolean;
-    notifications: {
+    preferredPersona?: string;
+    voiceEnabled?: boolean;
+    darkMode?: boolean;
+    notifications?: {
       dailyCheckins: boolean;
       sessionReminders: boolean;
       progressUpdates: boolean;
     };
-    privacy: {
+    privacy?: {
       shareAnalytics: boolean;
       dataRetention: string;
     };
   };
-  goals: string[];
-  interests: string[];
-  mentalHealthFocus: string[];
+  goals?: string[];
+  interests?: string[];
+  mentalHealthFocus?: string[];
   joinedDate: string;
   lastActive: string;
-  stats: {
+  stats?: {
     totalSessions: number;
     totalMessages: number;
     streakDays: number;
@@ -256,7 +256,7 @@ export default function RedesignedProfile() {
                   <Avatar className="relative w-32 h-32 border-4 border-white dark:border-gray-700 shadow-xl">
                     <AvatarImage src={editedProfile.avatar || profile?.avatar} alt={profile?.name} />
                     <AvatarFallback className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-pink-400 text-white">
-                      {profile?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                      {profile?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   {isEditing && (

@@ -43,7 +43,10 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
             <Button 
               variant={isActive("/chat") ? "default" : "ghost"} 
               size="sm"
-              className={isActive("/chat") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+              className={isActive("/chat") ? 
+                "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/70" : 
+                "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+              }
             >
               Chat
             </Button>
@@ -52,7 +55,10 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
             <Button 
               variant={isActive("/session-history") ? "default" : "ghost"} 
               size="sm"
-              className={isActive("/session-history") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+              className={isActive("/session-history") ? 
+                "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/70" : 
+                "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+              }
             >
               History
             </Button>
@@ -61,7 +67,10 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
             <Button 
               variant={isActive("/diary") ? "default" : "ghost"} 
               size="sm"
-              className={isActive("/diary") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+              className={isActive("/diary") ? 
+                "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/70" : 
+                "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+              }
             >
               Journal
             </Button>
@@ -70,7 +79,10 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
             <Button 
               variant={isActive("/profile") ? "default" : "ghost"} 
               size="sm"
-              className={isActive("/profile") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+              className={isActive("/profile") ? 
+                "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/70" : 
+                "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+              }
             >
               Profile
             </Button>
