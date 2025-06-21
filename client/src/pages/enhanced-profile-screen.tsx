@@ -80,12 +80,16 @@ export default function EnhancedProfileScreen() {
       setProfile(profileData);
       setVoiceEnabled(profileData.preferences?.voiceEnabled || false);
       
-      // Sync theme with profile preference
+      // Only sync theme if user has explicitly set a preference
+      // Don't force dark mode - let users choose
       if (profileData.preferences?.darkMode !== undefined) {
-        setTheme(profileData.preferences.darkMode ? "dark" : "light");
+        const preferredTheme = profileData.preferences.darkMode ? "dark" : "light";
+        if (theme !== preferredTheme) {
+          setTheme(preferredTheme);
+        }
       }
     }
-  }, [profileData, setTheme]);
+  }, [profileData, setTheme, theme]);
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -434,67 +438,69 @@ export default function EnhancedProfileScreen() {
           {/* Preferences Tab */}
           <TabsContent value="preferences">
             <div className="space-y-6">
-              {/* Theme Settings */}
+              {/* App Preferences */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Palette className="w-5 h-5 mr-2" />
-                    Theme & Display
+                    <Settings className="w-5 h-5 mr-2" />
+                    App Preferences
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Dark Mode</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Switch between light and dark themes
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Sun className="w-4 h-4" />
-                      <Switch
-                        checked={theme === "dark"}
-                        onCheckedChange={handleDarkModeToggle}
-                      />
-                      <Moon className="w-4 h-4" />
-                    </div>
+                <CardContent className="space-y-6">
+                  {/* Preferred Persona */}
+                  <div>
+                    <Label className="text-sm font-medium">Preferred Persona</Label>
+                    <Select
+                      value={profile.preferences?.preferredPersona || 'sarah'}
+                      onValueChange={(value) =>
+                        setProfile({
+                          ...profile,
+                          preferences: {
+                            ...profile.preferences,
+                            preferredPersona: value,
+                          },
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sarah">Dr. Sarah (Therapist)</SelectItem>
+                        <SelectItem value="alex">Alex (Life Coach)</SelectItem>
+                        <SelectItem value="marcus">Marcus (Fitness Coach)</SelectItem>
+                        <SelectItem value="maya">Maya (Mindfulness Guide)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Voice Interface */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Mic className="w-5 h-5 mr-2" />
-                    Voice Interface
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  {/* Voice Interface */}
                   <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Voice Features</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Enable speech-to-text and text-to-speech functionality
+                    <div>
+                      <Label className="text-sm font-medium">Voice Interface</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Enable speech-to-text and text-to-speech
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <MicOff className="w-4 h-4" />
-                      <Switch
-                        checked={voiceEnabled}
-                        onCheckedChange={handleVoiceToggle}
-                      />
-                      <Mic className="w-4 h-4" />
-                    </div>
+                    <Switch
+                      checked={voiceEnabled}
+                      onCheckedChange={handleVoiceToggle}
+                    />
                   </div>
-                  {voiceEnabled && (
-                    <div className="p-4 bg-muted rounded-lg">
-                      <p className="text-sm">
-                        Voice features are now enabled! You can use speech-to-text in chat sessions
-                        and hear AI responses spoken aloud.
+
+                  {/* Dark Mode */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-sm font-medium">Dark Mode</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Use dark theme throughout the app
                       </p>
                     </div>
-                  )}
+                    <Switch
+                      checked={theme === "dark"}
+                      onCheckedChange={handleDarkModeToggle}
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
@@ -508,10 +514,10 @@ export default function EnhancedProfileScreen() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Daily Check-ins</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Reminders for mood tracking
+                    <div>
+                      <Label className="text-sm font-medium">Daily Check-ins</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Remind me to log my daily mood
                       </p>
                     </div>
                     <Switch
@@ -533,10 +539,10 @@ export default function EnhancedProfileScreen() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Session Reminders</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Regular therapy session prompts
+                    <div>
+                      <Label className="text-sm font-medium">Session Reminders</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Notify me about scheduled therapy sessions
                       </p>
                     </div>
                     <Switch
@@ -558,10 +564,10 @@ export default function EnhancedProfileScreen() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Progress Updates</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Weekly progress summaries
+                    <div>
+                      <Label className="text-sm font-medium">Progress Updates</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Weekly summaries of my mental health journey
                       </p>
                     </div>
                     <Switch
