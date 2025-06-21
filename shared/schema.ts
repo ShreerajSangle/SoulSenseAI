@@ -33,6 +33,29 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  bio: text("bio"),
+  preferences: jsonb("preferences").default({
+    preferredPersona: "sarah",
+    voiceEnabled: false,
+    darkMode: false,
+    notifications: {
+      dailyCheckins: true,
+      sessionReminders: true,
+      progressUpdates: true
+    },
+    privacy: {
+      shareAnalytics: true,
+      dataRetention: "1year"
+    }
+  }),
+  goals: text("goals").array().default([]),
+  interests: text("interests").array().default([]),
+  mentalHealthFocus: text("mental_health_focus").array().default([]),
+  privacySettings: jsonb("privacy_settings").default({
+    shareAnalytics: true,
+    dataRetention: "1year",
+    allowDataExport: true
+  }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
