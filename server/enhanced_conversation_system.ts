@@ -331,7 +331,7 @@ Respond as ${persona.name} with authentic emotional intelligence, drawing on you
       
       // Extract therapeutic elements and follow-up questions using dataset insights
       const therapeuticElements = this.extractTherapeuticElements(responseText, persona);
-      const followUpQuestions = this.generateFollowUpQuestions(personaId, emotionAnalysis, emotionalAnalysis);
+      const followUpQuestions = this.generateFollowUpQuestions(personaId, emotionAnalysis);
       const suggestedInterventions = therapeuticResponse.suggested_tools;
 
       return {
@@ -369,7 +369,7 @@ Respond as ${persona.name} with authentic emotional intelligence, drawing on you
     return elements;
   }
 
-  private generateFollowUpQuestions(personaId: string, emotionAnalysis: any, emotionalAnalysis: EmotionalIntelligence): string[] {
+  private generateFollowUpQuestions(personaId: string, emotionAnalysis: any): string[] {
     const questionSets = {
       sarah: [
         "What thoughts are going through your mind about this?",
