@@ -117,8 +117,12 @@ Focus on:
         messages: [{ role: 'user', content: emotionPrompt }]
       });
 
-      const analysis = JSON.parse(response.content[0].text);
-      return analysis;
+      const content = response.content[0];
+      if (content.type === 'text') {
+        const analysis = JSON.parse(content.text);
+        return analysis;
+      }
+      throw new Error('Unexpected response format');
     } catch (error) {
       console.error('Emotional analysis error:', error);
       return {
@@ -294,15 +298,19 @@ Respond as ${persona.name} with authentic emotional intelligence, drawing on you
         messages: [{ role: 'user', content: message }]
       });
 
-      const content = response.content[0].text;
+      const content = response.content[0];
+      if (content.type !== 'text') {
+        throw new Error('Unexpected response format');
+      }
+      const responseText = content.text;
       
       // Extract therapeutic elements and follow-up questions
-      const therapeuticElements = this.extractTherapeuticElements(content, persona);
+      const therapeuticElements = this.extractTherapeuticElements(responseText, persona);
       const followUpQuestions = this.generateFollowUpQuestions(personaId, emotionalAnalysis);
       const suggestedInterventions = this.suggestInterventions(emotionalAnalysis, persona);
 
       return {
-        content,
+        content: responseText,
         emotionalTone: emotionalAnalysis.primary,
         therapeuticElements,
         followUpQuestions,

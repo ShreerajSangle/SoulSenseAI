@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -182,6 +183,7 @@ const GAD7_QUESTIONS: AssessmentQuestion[] = [
 ];
 
 export default function ClinicalAssessment() {
+  const [location, setLocation] = useLocation();
   const [assessmentType, setAssessmentType] = useState<"phq9" | "gad7" | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [responses, setResponses] = useState<Record<string, number>>({});
