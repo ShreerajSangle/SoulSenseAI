@@ -348,7 +348,7 @@ export default function EnhancedChatScreen() {
     await feedbackMutation.mutateAsync({ messageId, rating });
   };
 
-  // GPT-4o streaming response handler
+  // GPT-4o persona streaming response handler
   const handleStreamingResponse = async (message: string) => {
     if (!personaId) return;
 
@@ -363,7 +363,7 @@ export default function EnhancedChatScreen() {
     abortControllerRef.current = new AbortController();
     
     try {
-      const response = await fetch('/api/chat/gpt4o-stream', {
+      const response = await fetch('/api/chat/gpt4o-persona-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -371,8 +371,11 @@ export default function EnhancedChatScreen() {
         body: JSON.stringify({
           message,
           personaId,
-          conversationHistory: messages.slice(-10), // Last 10 messages for context
-          userId: 'user-123' // TODO: Get from auth
+          userId: 'user-123', // TODO: Get from auth
+          conversationId: conversationId || undefined,
+          isFirstMessage: !conversationId,
+          moodData: sessionMoodData,
+          emotionalContext: emotionContext
         }),
         signal: abortControllerRef.current.signal
       });
@@ -418,8 +421,15 @@ export default function EnhancedChatScreen() {
               
               try {
                 const data = JSON.parse(jsonStr);
-                if (data.content) {
-                  accumulatedContent += data.content;
+                
+                // Handle conversation creation
+                if (data.type === "conversation" && data.conversation) {
+                  setConversationId(data.conversation.id);
+                }
+                
+                // Handle streaming content chunks
+                if (data.type === "chunk" && data.content) {
+                  accumulatedContent = data.content; // GPT-4o sends full content, not incremental
                   setStreamingContent(accumulatedContent);
                   
                   // Update the message in real-time
@@ -428,34 +438,38 @@ export default function EnhancedChatScreen() {
                       ? { ...msg, content: accumulatedContent }
                       : msg
                   ));
+                  
+                  if (data.emotion) {
+                    setCurrentEmotion(data.emotion);
+                  }
                 }
                 
-                if (data.emotion) {
-                  setCurrentEmotion(data.emotion);
-                  
-                  // Update therapeutic context from streaming response
-                  if (showTherapeuticPanel && data.therapeuticInsights) {
-                    setTherapeuticInsights(data.therapeuticInsights);
-                    
-                    if (data.emotion.primary) {
-                      setMoodHistory(prev => [...prev, {
-                        emotion: data.emotion.primary,
-                        intensity: data.emotion.intensity || 0.5,
-                        timestamp: new Date()
-                      }]);
-                      
-                      setCurrentTherapeuticContext({
-                        primaryEmotion: data.emotion.primary,
-                        intensity: data.emotion.intensity || 0.5,
-                        valence: data.emotion.valence || 0,
-                        arousal: data.emotion.arousal || 0.5
-                      });
-                    }
-                    
-                    if (data.therapeuticInsights.crisisAlert) {
-                      setCrisisAlert(data.therapeuticInsights.crisisAlert);
-                    }
+                // Handle completion
+                if (data.type === "complete") {
+                  if (data.aiMessage) {
+                    // Update the message with final content and database ID
+                    setMessages(prev => prev.map(msg => 
+                      msg.id === aiMessageId 
+                        ? { 
+                            ...msg, 
+                            id: data.aiMessage.id,
+                            content: data.aiMessage.content,
+                            isStreaming: false 
+                          }
+                        : msg
+                    ));
                   }
+                  
+                  if (data.emotion) {
+                    setCurrentEmotion(data.emotion);
+                  }
+                  
+                  if (data.conversationStats) {
+                    // Update any conversation stats if needed
+                    console.log('Conversation stats:', data.conversationStats);
+                  }
+                  
+                  break; // Exit streaming loop
                 }
                 
                 if (data.error) {

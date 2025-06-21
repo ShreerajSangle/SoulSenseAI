@@ -21,6 +21,7 @@ import { gpt4oConversationSystem } from "./gpt4o_conversation_system";
 import { clinicalAssessmentEngine } from "./clinical_assessment_engine";
 import { therapeuticInterventionEngine } from "./therapeutic_intervention_engine";
 import { enhancedPersonaSystem } from "./enhanced_persona_system";
+import { gpt4oPersonaSystem } from "./gpt4o_persona_system";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -2500,6 +2501,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("GPT-4o streaming error:", error);
+      res.write(`data: ${JSON.stringify({ 
+        type: "error", 
+        error: "Failed to generate response" 
+      })}\n\n`);
+      res.end();
+    }
+  });
+
+  // GPT-4o Persona Chat Route (Primary route for all persona interactions)
+  app.post('/api/chat/gpt4o-persona-message', async (req, res) => {
+    try {
+      const { userId = "anonymous", personaId, message, conversationId, isFirstMessage, moodData, emotionalContext } = req.body;
+
+      if (!personaId || !message) {
+        return res.status(400).json({ error: "PersonaId and message are required" });
+      }
+
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else if (isFirstMessage) {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Session with ${personaId}`
+        });
+      }
+
+      if (!conversation) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      // Create user message first
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user'
+      });
+
+      // Generate GPT-4o persona response
+      const aiResponse = await gpt4oPersonaSystem.generatePersonaResponse(
+        personaId,
+        message,
+        userId,
+        emotionalContext,
+        { startTime: new Date(), mood: moodData?.mood, goals: moodData?.goals }
+      );
+
+      // Create AI message
+      const aiMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: aiResponse,
+        sender: 'ai',
+        emotionDetected: emotionalContext?.primary || 'supportive'
+      });
+
+      // Get conversation stats
+      const conversationStats = gpt4oPersonaSystem.getConversationStats(userId, personaId);
+
+      res.json({
+        success: true,
+        conversation,
+        userMessage,
+        aiMessage,
+        conversationStats
+      });
+
+    } catch (error) {
+      console.error("GPT-4o persona chat error:", error);
+      res.status(500).json({ error: "Failed to generate response" });
+    }
+  });
+
+  // GPT-4o Persona Streaming Chat Route
+  app.post('/api/chat/gpt4o-persona-stream', async (req, res) => {
+    try {
+      const { userId = "anonymous", personaId, message, conversationId, isFirstMessage, moodData, emotionalContext } = req.body;
+
+      if (!personaId || !message) {
+        return res.status(400).json({ error: "PersonaId and message are required" });
+      }
+
+      // Set headers for Server-Sent Events
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      let conversation;
+      if (conversationId) {
+        conversation = await storage.getConversation(conversationId);
+      } else if (isFirstMessage) {
+        conversation = await storage.createConversation({
+          userId,
+          personaId,
+          title: `Session with ${personaId}`
+        });
+      }
+
+      if (!conversation) {
+        res.write(`data: ${JSON.stringify({ error: "Conversation not found" })}\n\n`);
+        res.end();
+        return;
+      }
+
+      // Create user message
+      const userMessage = await storage.createMessage({
+        conversationId: conversation.id,
+        content: message,
+        sender: 'user'
+      });
+
+      // Send initial response with conversation data
+      res.write(`data: ${JSON.stringify({
+        type: "conversation",
+        conversation,
+        userMessage
+      })}\n\n`);
+
+      // Generate streaming GPT-4o persona response
+      const responseGenerator = await gpt4oPersonaSystem.generateStreamingPersonaResponse(
+        personaId,
+        message,
+        userId,
+        emotionalContext,
+        { startTime: new Date(), mood: moodData?.mood, goals: moodData?.goals }
+      );
+
+      let fullResponse = "";
+      let finalEmotion = "supportive";
+
+      for await (const chunk of responseGenerator) {
+        if (chunk.content && !chunk.isComplete) {
+          res.write(`data: ${JSON.stringify({
+            type: "chunk",
+            content: chunk.content,
+            emotion: chunk.emotion,
+            confidence: chunk.confidence
+          })}\n\n`);
+        }
+
+        if (chunk.isComplete) {
+          fullResponse = chunk.content;
+          finalEmotion = chunk.emotion;
+
+          // Create AI message with complete response
+          const aiMessage = await storage.createMessage({
+            conversationId: conversation.id,
+            content: fullResponse,
+            sender: 'ai',
+            emotionDetected: finalEmotion
+          });
+
+          // Get conversation stats
+          const conversationStats = gpt4oPersonaSystem.getConversationStats(userId, personaId);
+
+          // Send completion response
+          res.write(`data: ${JSON.stringify({
+            type: "complete",
+            aiMessage,
+            conversationStats,
+            emotion: finalEmotion
+          })}\n\n`);
+          break;
+        }
+      }
+
+      res.end();
+
+    } catch (error) {
+      console.error("GPT-4o persona streaming error:", error);
       res.write(`data: ${JSON.stringify({ 
         type: "error", 
         error: "Failed to generate response" 

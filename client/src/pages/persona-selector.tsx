@@ -105,49 +105,7 @@ export default function PersonaSelector() {
             </div>
           </div>
           
-          {/* GPT-4o Enhanced Chat Banner */}
-          <div className="mb-12">
-            <Card 
-              className="bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 cursor-pointer"
-              onClick={() => setLocation('/gpt4o-chat')}
-            >
-              <CardContent className="p-8 text-center">
-                <div className="flex items-center justify-center mb-4">
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mr-4">
-                    <Sparkles className="text-white text-2xl animate-pulse" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-2xl font-bold text-white mb-1">GPT-4o Enhanced Chat</h3>
-                    <p className="text-blue-100">Real-time streaming conversations with advanced emotional intelligence</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center gap-6 text-sm text-blue-100">
-                  <div className="flex items-center gap-2">
-                    <Activity className="w-4 h-4" />
-                    <span>Live Streaming</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Brain className="w-4 h-4" />
-                    <span>Memory Continuity</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Heart className="w-4 h-4" />
-                    <span>Emotion Detection</span>
-                  </div>
-                </div>
-                <Button 
-                  className="mt-4 bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50 transition-all duration-300"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLocation('/gpt4o-chat');
-                  }}
-                >
-                  Try GPT-4o Chat
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+
         </div>
 
         {/* AI Therapists Section */}
