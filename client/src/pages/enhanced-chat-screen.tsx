@@ -13,6 +13,8 @@ import { BreathingExercise, GroundingTechnique, CBTJournal } from "@/components/
 import { MoodTrackerDashboard } from "@/components/mood-tracker-dashboard";
 import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components/voice-interface";
 import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
+import { UnifiedNavigation } from "@/components/unified-navigation";
+import { IntegratedSessionHistory } from "@/components/integrated-session-history";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -72,6 +74,12 @@ export default function EnhancedChatScreen() {
   // Micro-tools state
   const [activeMicroTool, setActiveMicroTool] = useState<'breathing' | 'grounding' | 'cbt' | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
+
+  // Unified navigation state
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isJournalOpen, setIsJournalOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
 
   // UI state
   const [suggestedTools, setSuggestedTools] = useState<string[]>([]);
@@ -659,127 +667,278 @@ export default function EnhancedChatScreen() {
     return colors[emotion as keyof typeof colors] || "bg-gray-500";
   };
 
-  return (
-    <div className="h-screen flex flex-col bg-gray-50">
-      {/* Crisis Alert */}
-      {showCrisisAlert && (
-        <CrisisAlert onClose={() => setShowCrisisAlert(false)} />
-      )}
+  const handleSessionSelect = (sessionId: string) => {
+    console.log('Loading session:', sessionId);
+    // In a real app, this would load the selected session data
+  };
 
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b">
-        <TopNavBar 
-          persona={persona} 
-          onBack={() => setLocation("/")}
-        />
-        
-        {/* Therapeutic Panel Toggle */}
-        <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowTherapeuticPanel(!showTherapeuticPanel)}
-              className="flex items-center gap-2"
-            >
-              <Brain className="w-4 h-4" />
-              {showTherapeuticPanel ? "Hide" : "Show"} Therapeutic Insights
-            </Button>
+  return (
+    <div className="h-screen bg-gradient-to-br from-purple-300 via-purple-200 to-purple-400 relative overflow-hidden">
+      {/* Background Elements matching homepage */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div className="absolute top-40 right-10 w-24 h-24 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-25 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
+      </div>
+
+      {/* Unified Navigation */}
+      <UnifiedNavigation
+        onHistoryToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+        onJournalToggle={() => setIsJournalOpen(!isJournalOpen)}
+        onProfileToggle={() => setIsProfileOpen(!isProfileOpen)}
+        onInsightsToggle={() => setIsInsightsOpen(!isInsightsOpen)}
+        isHistoryOpen={isHistoryOpen}
+        isJournalOpen={isJournalOpen}
+        isProfileOpen={isProfileOpen}
+        isInsightsOpen={isInsightsOpen}
+        unreadCount={0}
+      />
+
+      {/* Integrated Session History Panel */}
+      <IntegratedSessionHistory
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSessionSelect={handleSessionSelect}
+        currentPersonaId={personaId}
+      />
+
+      {/* Main Chat Container */}
+      <div className="relative z-10 h-full flex flex-col">
+        {/* Crisis Alert */}
+        {showCrisisAlert && (
+          <CrisisAlert onClose={() => setShowCrisisAlert(false)} />
+        )}
+
+        {/* Elegant Header matching homepage aesthetic */}
+        <div className="bg-white/90 backdrop-blur-xl border-b border-purple-100/50 shadow-lg">
+          <div className="flex items-center justify-between p-6">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                onClick={() => setLocation("/")}
+                className="text-purple-700 hover:bg-purple-50 rounded-2xl"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Home
+              </Button>
+              
+              {persona && (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-2xl">{persona.emoji}</span>
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-purple-900">{persona.name}</h1>
+                    <p className="text-sm text-purple-600">{persona.role}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Connection Status */}
             {memoryStats && (
-              <div className="flex gap-2 text-xs">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <div className="flex gap-3">
+                <Badge className="bg-purple-100 text-purple-800 border-purple-200">
                   Trust: {Math.round(memoryStats.trustLevel * 100)}%
                 </Badge>
-                <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                <Badge className="bg-pink-100 text-pink-800 border-pink-200">
                   Connection: {Math.round(memoryStats.intimacyDepth * 100)}%
                 </Badge>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Therapeutic Insights Panel */}
-        {showTherapeuticPanel && (
-          <div className="w-80 bg-white border-r overflow-y-auto p-4 space-y-4">
-            {/* Real-time Analysis */}
-            <Card className="border-purple-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-purple-600" />
-                  Live Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Analysis Stage */}
-                {analysisStage && (
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center gap-2 text-sm text-blue-700">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      {analysisStage}
+        {/* Main Chat Area */}
+        <div className={`flex-1 flex transition-all duration-300 ${isHistoryOpen ? 'mr-96' : ''}`}>
+          {/* Chat Messages Container */}
+          <div className="flex-1 flex flex-col bg-white/80 backdrop-blur-sm rounded-3xl m-6 shadow-xl border border-white/50 overflow-hidden">
+            {/* Therapeutic Context Bar (Subtle) */}
+            {currentTherapeuticContext && (
+              <div className="px-6 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100/50">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium text-purple-700">
+                        Emotion: {currentTherapeuticContext.primaryEmotion}
+                      </span>
                     </div>
+                    <div className="w-px h-4 bg-purple-200"></div>
+                    <span className="text-purple-600">
+                      Intensity: {Math.round(currentTherapeuticContext.intensity * 100)}%
+                    </span>
                   </div>
-                )}
-
-                {/* Crisis Alert */}
-                {crisisAlert && (
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex items-center gap-2 text-sm text-red-700 font-medium">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      {crisisAlert}
-                    </div>
-                  </div>
-                )}
-
-                {/* Current Mood */}
-                {currentTherapeuticContext && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Detected Emotion</span>
-                      <Badge variant="secondary" className={`text-white ${getEmotionColor(currentTherapeuticContext.primaryEmotion)}`}>
-                        {currentTherapeuticContext.primaryEmotion}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span>Intensity</span>
-                        <span>{Math.round(currentTherapeuticContext.intensity * 100)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
-                          style={{ width: `${currentTherapeuticContext.intensity * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mood History Chart */}
-                {moodHistory.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-sm font-medium">Mood Trend</span>
-                    <div className="h-16 flex items-end gap-1 p-2 bg-gray-50 rounded">
-                      {moodHistory.slice(-8).map((mood, index) => (
-                        <div
+                  
+                  {/* Suggested Tools */}
+                  {suggestedTools.length > 0 && (
+                    <div className="flex gap-2">
+                      {suggestedTools.slice(0, 2).map((tool, index) => (
+                        <Button
                           key={index}
-                          className={`w-4 rounded-t ${getEmotionColor(mood.emotion)}`}
-                          style={{ height: `${mood.intensity * 100}%` }}
-                          title={`${mood.emotion} (${Math.round(mood.intensity * 100)}%)`}
-                        />
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-purple-600 hover:bg-purple-100 rounded-xl"
+                          onClick={() => {
+                            if (tool === 'breathing') setActiveMicroTool('breathing');
+                            if (tool === 'grounding') setActiveMicroTool('grounding');
+                            if (tool === 'cbt') setActiveMicroTool('cbt');
+                          }}
+                        >
+                          {tool === 'breathing' && <Wind className="w-3 h-3 mr-1" />}
+                          {tool === 'grounding' && <Target className="w-3 h-3 mr-1" />}
+                          {tool === 'cbt' && <Brain className="w-3 h-3 mr-1" />}
+                          {tool}
+                        </Button>
                       ))}
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </div>
+              </div>
+            )}
 
-            {/* Clinical Assessment */}
-            {therapeuticInsights?.clinical && (
-              <Card className="border-purple-200">
-                <CardHeader className="pb-3">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Welcome Message */}
+              {messages.length === 0 && !showMoodCheckIn && (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                    {persona && <span className="text-3xl">{persona.emoji}</span>}
+                  </div>
+                  <h3 className="text-2xl font-bold text-purple-900 mb-3">
+                    Welcome! I'm {persona?.name}
+                  </h3>
+                  <p className="text-purple-700 text-lg max-w-md mx-auto leading-relaxed">
+                    {persona?.role}. I'm here to support you on your journey.
+                  </p>
+                </div>
+              )}
+
+              {/* Mood Check-in */}
+              {showMoodCheckIn && (
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                  <MoodCheckInWidget
+                    onSubmit={(data) => {
+                      setSessionMoodData(data);
+                      setShowMoodCheckIn(false);
+                    }}
+                    onSkip={() => setShowMoodCheckIn(false)}
+                  />
+                </div>
+              )}
+
+              {/* Chat Messages */}
+              {messages.map((message, index) => (
+                <MessageBubble
+                  key={index}
+                  message={message}
+                  isUser={message.sender === "user"}
+                  persona={persona}
+                />
+              ))}
+
+              {/* Streaming Response */}
+              {isStreaming && streamingContent && (
+                <MessageBubble
+                  message={{
+                    content: streamingContent,
+                    sender: "assistant",
+                    timestamp: new Date().toISOString(),
+                    emotion: currentEmotion
+                  }}
+                  isUser={false}
+                  persona={persona}
+                  isStreaming={true}
+                />
+              )}
+
+              {/* Typing Indicator */}
+              {isLoading && !isStreaming && (
+                <div className="flex justify-start">
+                  <TypingIndicator persona={persona} />
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} className="h-4" />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-6 bg-white/90 backdrop-blur-sm border-t border-purple-100/50">
+              <div className="flex items-center gap-3 mb-4">
+                <Button
+                  variant={sessionEnded ? "secondary" : "destructive"}
+                  size="sm"
+                  onClick={handleEndSession}
+                  disabled={sessionEnded}
+                  className={`rounded-2xl ${sessionEnded ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {sessionEnded ? "Session Ended" : "End Session"}
+                </Button>
+                
+                <div className="flex gap-2 ml-auto">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveMicroTool('breathing')}
+                    className="rounded-xl text-purple-600 hover:bg-purple-50"
+                  >
+                    <Wind className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveMicroTool('grounding')}
+                    className="rounded-xl text-purple-600 hover:bg-purple-50"
+                  >
+                    <Target className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveMicroTool('cbt')}
+                    className="rounded-xl text-purple-600 hover:bg-purple-50"
+                  >
+                    <Brain className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <InputBar 
+                  onSendMessage={handleSendMessage} 
+                  disabled={isLoading || isStreaming || sessionEnded}
+                  placeholder={sessionEnded ? "Session has ended" : isStreaming ? "AI is responding..." : "Type your message..."}
+                />
+                <VoiceInterface 
+                  onTranscription={handleSendMessage}
+                  isEnabled={voiceEnabled && !sessionEnded}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setVoiceEnabled(!voiceEnabled)}
+                  className={`rounded-xl ${voiceEnabled && !sessionEnded ? 'text-green-600' : 'text-gray-400'}`}
+                  disabled={sessionEnded}
+                >
+                  {sessionEnded ? 'Voice Off' : voiceEnabled ? 'Voice On' : 'Voice Off'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Session Feedback Dialog */}
+      <SessionFeedbackDialog
+        open={showSessionFeedback}
+        onClose={() => setShowSessionFeedback(false)}
+        personaName={persona?.name || "AI Companion"}
+        sessionDuration={getSessionDuration()}
+        onSubmit={handleSessionFeedbackSubmit}
+      />
+    </div>
+  );
+}
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Heart className="w-5 h-5 text-red-500" />
                     Mental Health
