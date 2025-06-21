@@ -69,7 +69,7 @@ export default function EnhancedChatScreen() {
 
   const userId = "anonymous"; // Will be replaced with actual user ID when auth is enabled
 
-  // Fetch persona data
+  // Fetch persona data with improved error handling
   const { data: persona, isLoading: personaLoading, error: personaError } = useQuery({
     queryKey: ["/api/personas", personaId],
     queryFn: async () => {
@@ -79,7 +79,9 @@ export default function EnhancedChatScreen() {
       }
       return response.json();
     },
-    enabled: !!personaId
+    enabled: !!personaId,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   // Fetch conversation messages
@@ -216,26 +218,46 @@ export default function EnhancedChatScreen() {
   };
 
   const handleSendMessage = async (message: string) => {
-    if (!personaId) return;
+    if (!personaId || !message.trim()) return;
     
     setIsLoading(true);
     
     try {
-      // Add user message to chat immediately
+      // Add user message to chat immediately for better UX
       const userMessage = {
         id: Date.now(),
         content: message,
-        sender: 'user',
+        sender: 'user' as const,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, userMessage]);
 
       const response = await sendMessageMutation.mutateAsync({
-        message,
+        message: message.trim(),
         conversationId: conversationId || undefined,
         emotionContext,
         moodData: sessionMoodData || undefined
       });
+      
+      // Update conversation ID if this was the first message
+      if (response?.conversationId && !conversationId) {
+        setConversationId(response.conversationId);
+      }
+      
+      // Add AI response to messages
+      if (response?.aiMessage) {
+        setMessages(prev => [...prev, response.aiMessage]);
+      }
+      
+      // Update suggested tools based on response
+      if (response?.suggestedMicroTools) {
+        setSuggestedTools(response.suggestedMicroTools);
+      }
+      
+      // Check for crisis detection
+      if (response?.crisisDetected) {
+        setShowCrisisAlert(true);
+      }
       
       // Speak AI response if voice is enabled
       if (voiceEnabled && response?.aiMessage?.content) {
@@ -244,6 +266,8 @@ export default function EnhancedChatScreen() {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Remove the optimistically added user message on error
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
