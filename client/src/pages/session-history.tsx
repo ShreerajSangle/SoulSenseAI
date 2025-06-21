@@ -216,28 +216,28 @@ export default function SessionHistory() {
               </div>
               
               <Select value={filterPersona} onValueChange={setFilterPersona}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                   <SelectValue placeholder="Filter by persona" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Personas</SelectItem>
-                  <SelectItem value="sarah">Dr. Sarah</SelectItem>
-                  <SelectItem value="alex">Alex</SelectItem>
-                  <SelectItem value="marcus">Marcus</SelectItem>
-                  <SelectItem value="maya">Maya</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                  <SelectItem value="all" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">All Personas</SelectItem>
+                  <SelectItem value="sarah" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Dr. Sarah</SelectItem>
+                  <SelectItem value="alex" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Alex</SelectItem>
+                  <SelectItem value="marcus" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Marcus</SelectItem>
+                  <SelectItem value="maya" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Maya</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={filterEmotion} onValueChange={setFilterEmotion}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                   <SelectValue placeholder="Filter by emotion" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Emotions</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                  <SelectItem value="anxious">Anxious</SelectItem>
-                  <SelectItem value="sad">Sad</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                  <SelectItem value="all" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">All Emotions</SelectItem>
+                  <SelectItem value="positive" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Positive</SelectItem>
+                  <SelectItem value="neutral" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Neutral</SelectItem>
+                  <SelectItem value="anxious" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Anxious</SelectItem>
+                  <SelectItem value="sad" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Sad</SelectItem>
                 </SelectContent>
               </Select>
             </div>

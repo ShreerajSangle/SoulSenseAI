@@ -392,35 +392,35 @@ export default function DiaryScreen() {
               </div>
               
               <Select value={filterMood} onValueChange={setFilterMood}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                   <SelectValue placeholder="Filter by mood" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Moods</SelectItem>
-                  <SelectItem value="high">High (8-10)</SelectItem>
-                  <SelectItem value="medium">Medium (4-7)</SelectItem>
-                  <SelectItem value="low">Low (1-3)</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                  <SelectItem value="all" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">All Moods</SelectItem>
+                  <SelectItem value="high" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">High (8-10)</SelectItem>
+                  <SelectItem value="medium" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Medium (4-7)</SelectItem>
+                  <SelectItem value="low" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Low (1-3)</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={sortBy} onValueChange={(value: "date" | "mood" | "title") => setSortBy(value)}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="date">Date</SelectItem>
-                  <SelectItem value="mood">Mood</SelectItem>
-                  <SelectItem value="title">Title</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                  <SelectItem value="date" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Date</SelectItem>
+                  <SelectItem value="mood" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Mood</SelectItem>
+                  <SelectItem value="title" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Title</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
-                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12">
+                <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl h-12 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                   <SelectValue placeholder="Sort order" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="desc">Newest First</SelectItem>
-                  <SelectItem value="asc">Oldest First</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                  <SelectItem value="desc" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Newest First</SelectItem>
+                  <SelectItem value="asc" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -637,14 +637,14 @@ export default function RedesignedProfile() {
                         }))
                       }
                     >
-                      <SelectTrigger className="bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-600 rounded-xl">
+                      <SelectTrigger className="bg-white dark:bg-gray-800 border-2 border-purple-200 dark:border-purple-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                         <SelectValue placeholder="Choose your preferred persona" />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sarah">Dr. Sarah - Clinical Psychologist</SelectItem>
-                        <SelectItem value="alex">Alex - Peer Support</SelectItem>
-                        <SelectItem value="marcus">Marcus - Life Coach</SelectItem>
-                        <SelectItem value="maya">Maya - Mindfulness Guide</SelectItem>
+                      <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                        <SelectItem value="sarah" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Dr. Sarah - Clinical Psychologist</SelectItem>
+                        <SelectItem value="alex" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Alex - Peer Support</SelectItem>
+                        <SelectItem value="marcus" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Marcus - Life Coach</SelectItem>
+                        <SelectItem value="maya" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Maya - Mindfulness Guide</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -848,15 +848,15 @@ export default function RedesignedProfile() {
                         }))
                       }
                     >
-                      <SelectTrigger className="bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-600 rounded-xl">
+                      <SelectTrigger className="bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3months">3 Months</SelectItem>
-                        <SelectItem value="6months">6 Months</SelectItem>
-                        <SelectItem value="1year">1 Year</SelectItem>
-                        <SelectItem value="2years">2 Years</SelectItem>
-                        <SelectItem value="forever">Keep Forever</SelectItem>
+                      <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl z-50">
+                        <SelectItem value="3months" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">3 Months</SelectItem>
+                        <SelectItem value="6months" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">6 Months</SelectItem>
+                        <SelectItem value="1year" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">1 Year</SelectItem>
+                        <SelectItem value="2years" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">2 Years</SelectItem>
+                        <SelectItem value="forever" className="hover:bg-purple-50 dark:hover:bg-purple-900/30 focus:bg-purple-50 dark:focus:bg-purple-900/30">Keep Forever</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
