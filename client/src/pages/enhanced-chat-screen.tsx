@@ -45,6 +45,11 @@ export default function EnhancedChatScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCrisisAlert, setShowCrisisAlert] = useState(false);
   const [emotionContext, setEmotionContext] = useState<any>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
+  const [currentEmotion, setCurrentEmotion] = useState<string>("");
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Mood check-in state
   const [showMoodCheckIn, setShowMoodCheckIn] = useState(true);
@@ -243,15 +248,13 @@ export default function EnhancedChatScreen() {
       };
       setMessages(prev => [...prev, userMessage]);
 
+      // Use enhanced chat system (fallback for now until streaming is fixed)
       const response = await sendMessageMutation.mutateAsync({
         message: message.trim(),
         conversationId: conversationId || undefined,
         emotionContext,
         moodData: sessionMoodData || undefined
       });
-      
-      // Don't process AI response if session has ended
-      if (sessionEnded) return;
       
       // Update conversation ID if this was the first message
       if (response?.conversationId && !conversationId) {
@@ -302,8 +305,6 @@ export default function EnhancedChatScreen() {
     await feedbackMutation.mutateAsync({ messageId, rating });
   };
 
-  const [sessionEnded, setSessionEnded] = useState(false);
-  
   const handleEndSession = () => {
     if (sessionEnded) return;
     
