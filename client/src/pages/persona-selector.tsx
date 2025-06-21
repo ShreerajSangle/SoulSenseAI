@@ -154,29 +154,16 @@ export default function PersonaSelector() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-3">
-                      <Button 
-                        className={`flex-1 bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0 shadow-sm group-hover:shadow-md transition-all duration-300 text-sm`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePersonaSelect(persona);
-                        }}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Start Chat
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        className="flex-1 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all duration-300 text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAdvancedChat(persona);
-                        }}
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Advanced AI
-                      </Button>
-                    </div>
+                    <Button 
+                      className={`w-full bg-gradient-to-r ${gradient} hover:opacity-90 text-white border-0 shadow-sm group-hover:shadow-md transition-all duration-300 text-sm`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePersonaSelect(persona);
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Start Chat
+                    </Button>
                   </CardContent>
                 </Card>
               );

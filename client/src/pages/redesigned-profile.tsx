@@ -96,7 +96,7 @@ export default function RedesignedProfile() {
     queryKey: ["/api/profile"],
     queryFn: async () => {
       const response = await apiRequest("/api/profile", "GET");
-      return response;
+      return await response.json();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -105,7 +105,7 @@ export default function RedesignedProfile() {
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: Partial<UserProfile>) => {
       const response = await apiRequest("/api/profile", "PUT", profileData);
-      return response;
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });

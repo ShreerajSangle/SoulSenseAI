@@ -390,28 +390,28 @@ export default function DiaryScreen() {
               </div>
               
               <Select value={filterMood} onValueChange={setFilterMood}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                   <SelectValue placeholder="Filter by mood" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All moods</SelectItem>
-                  <SelectItem value="1">1-2 (Very Low)</SelectItem>
-                  <SelectItem value="3">3-4 (Low)</SelectItem>
-                  <SelectItem value="5">5-6 (Neutral)</SelectItem>
-                  <SelectItem value="7">7-8 (Good)</SelectItem>
-                  <SelectItem value="9">9-10 (Excellent)</SelectItem>
+                <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 z-50">
+                  <SelectItem value="all" className="hover:bg-slate-100 dark:hover:bg-slate-700">All moods</SelectItem>
+                  <SelectItem value="1" className="hover:bg-slate-100 dark:hover:bg-slate-700">1-2 (Very Low)</SelectItem>
+                  <SelectItem value="3" className="hover:bg-slate-100 dark:hover:bg-slate-700">3-4 (Low)</SelectItem>
+                  <SelectItem value="5" className="hover:bg-slate-100 dark:hover:bg-slate-700">5-6 (Neutral)</SelectItem>
+                  <SelectItem value="7" className="hover:bg-slate-100 dark:hover:bg-slate-700">7-8 (Good)</SelectItem>
+                  <SelectItem value="9" className="hover:bg-slate-100 dark:hover:bg-slate-700">9-10 (Excellent)</SelectItem>
                 </SelectContent>
               </Select>
 
               <div className="flex gap-2">
                 <Select value={sortBy} onValueChange={(value: "date" | "mood" | "title") => setSortBy(value)}>
-                  <SelectTrigger className="w-28">
+                  <SelectTrigger className="w-28 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="mood">Mood</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
+                  <SelectContent className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 z-50">
+                    <SelectItem value="date" className="hover:bg-slate-100 dark:hover:bg-slate-700">Date</SelectItem>
+                    <SelectItem value="mood" className="hover:bg-slate-100 dark:hover:bg-slate-700">Mood</SelectItem>
+                    <SelectItem value="title" className="hover:bg-slate-100 dark:hover:bg-slate-700">Title</SelectItem>
                   </SelectContent>
                 </Select>
                 
