@@ -397,18 +397,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Analyze emotion first for context
       const emotionAnalysis = emotionDetector.analyzeEmotion(message);
 
-      // Use enhanced conversation system for Replika-quality responses
-      const enhancedResponse = await enhancedConversationSystem.generateResponse(
-        personaId,
-        userId,
-        message,
-        messageHistory
-      );
+      // Generate basic therapeutic response for now
+      const persona = await storage.getPersona(personaId);
+      const responseContent = generateBasicResponse(persona, message, emotionAnalysis);
 
-      // Create AI message with enhanced response
+      // Create AI message with response
       const aiMessage = await storage.createMessage({
         conversationId: conversation.id,
-        content: enhancedResponse.content || "I understand how you're feeling. Let's work through this together.",
+        content: responseContent,
         sender: 'ai',
         emotionDetected: 'empathetic'
       });
@@ -440,14 +436,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         suggestedMicroTools,
         crisisDetected,
         followUpQuestions,
-        therapeuticTechniques: ["active listening", "empathetic responding", "memory integration"],
-        personalityInsight: enhancedResponse.personalizedInsights,
-        memoryReferences: enhancedResponse.memoryUpdates.significantMoments,
-        relationshipDepth: enhancedResponse.emotionalResonance,
-        emotionalResonance: enhancedResponse.emotionalResonance,
-        conversationInsights: enhancedResponse.personalizedInsights,
-        engagementLevel: enhancedResponse.engagementLevel,
-        moodInsights: enhancedResponse.moodInsights
+        therapeuticTechniques: ["active listening", "empathetic responding"],
+        personalityInsight: "supportive",
+        memoryReferences: [],
+        relationshipDepth: "developing",
+        emotionalResonance: "empathetic",
+        conversationInsights: [],
+        engagementLevel: "high",
+        moodInsights: []
       });
 
     } catch (error) {
@@ -1199,6 +1195,44 @@ function generateCrisisResponse(personaId: string): string {
 }
 
 // Mood-aware response function
+function generateBasicResponse(persona: any, message: string, emotionAnalysis: any): string {
+  if (!persona) {
+    return "I'm here to listen and support you. How are you feeling today?";
+  }
+
+  const responses = {
+    'dr-sarah': [
+      "I understand you're going through a difficult time. Can you tell me more about what's happening?",
+      "That sounds really challenging. How has this been affecting your daily life?",
+      "I hear you. Let's work together to find some coping strategies that might help.",
+      "It's completely normal to feel this way. What would be most helpful for you right now?"
+    ],
+    'alex': [
+      "Hey, I've been there too. Want to talk about what's going on?",
+      "That sounds tough, but you're not alone in this. I'm here to listen.",
+      "I can relate to what you're going through. What's been the hardest part?",
+      "Thanks for sharing that with me. How are you taking care of yourself lately?"
+    ],
+    'marcus': [
+      "Let's focus on what you can control right now. What's one small step you could take?",
+      "I hear you. What specific goal would you like to work on today?",
+      "That's a challenging situation. What strengths do you have that could help here?",
+      "You've got this. What would success look like for you in this situation?"
+    ],
+    'maya': [
+      "Take a deep breath with me. What are you noticing in your body right now?",
+      "Let's pause for a moment. What would feel most soothing to you right now?",
+      "I can sense you're carrying a lot. How can we create some space for you to breathe?",
+      "Your feelings are valid. What would help you feel more grounded right now?"
+    ]
+  };
+
+  const personaResponses = responses[persona.id] || responses['dr-sarah'];
+  const randomResponse = personaResponses[Math.floor(Math.random() * personaResponses.length)];
+  
+  return randomResponse;
+}
+
 function generateMoodAwareResponse(userMessage: string, userMood: string, personaId: string): string {
   const moodResponses = {
     "dr-sarah": {
