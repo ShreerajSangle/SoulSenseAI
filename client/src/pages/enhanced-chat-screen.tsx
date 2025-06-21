@@ -229,6 +229,24 @@ export default function EnhancedChatScreen() {
     setSessionMoodData(moodData);
     setShowMoodCheckIn(false);
     
+    // Update therapeutic context with initial mood
+    const primaryEmotion = moodData.emotions[0] || 'neutral';
+    const intensity = moodData.moodRating / 5;
+    
+    setCurrentTherapeuticContext({
+      primaryEmotion,
+      intensity,
+      valence: moodData.moodRating >= 4 ? 0.8 : moodData.moodRating <= 2 ? -0.6 : 0,
+      arousal: intensity
+    });
+
+    // Add to mood history
+    setMoodHistory(prev => [...prev, {
+      emotion: primaryEmotion,
+      intensity,
+      timestamp: new Date()
+    }]);
+    
     // Save mood entry
     await moodEntryMutation.mutateAsync(moodData);
     
@@ -406,6 +424,30 @@ export default function EnhancedChatScreen() {
                 
                 if (data.emotion) {
                   setCurrentEmotion(data.emotion);
+                  
+                  // Update therapeutic context from streaming response
+                  if (showTherapeuticPanel && data.therapeuticInsights) {
+                    setTherapeuticInsights(data.therapeuticInsights);
+                    
+                    if (data.emotion.primary) {
+                      setMoodHistory(prev => [...prev, {
+                        emotion: data.emotion.primary,
+                        intensity: data.emotion.intensity || 0.5,
+                        timestamp: new Date()
+                      }]);
+                      
+                      setCurrentTherapeuticContext({
+                        primaryEmotion: data.emotion.primary,
+                        intensity: data.emotion.intensity || 0.5,
+                        valence: data.emotion.valence || 0,
+                        arousal: data.emotion.arousal || 0.5
+                      });
+                    }
+                    
+                    if (data.therapeuticInsights.crisisAlert) {
+                      setCrisisAlert(data.therapeuticInsights.crisisAlert);
+                    }
+                  }
                 }
                 
                 if (data.error) {

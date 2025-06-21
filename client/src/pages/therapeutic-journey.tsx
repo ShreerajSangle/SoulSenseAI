@@ -339,7 +339,7 @@ export default function TherapeuticJourney() {
                               <CardDescription className="mt-2">{goal.description}</CardDescription>
                             </div>
                             <Badge variant="secondary" className="capitalize">
-                              {goal.goalType.replace('_', ' ')}
+                              {goal.goalType ? goal.goalType.replace('_', ' ') : 'Goal'}
                             </Badge>
                           </div>
                         </CardHeader>
