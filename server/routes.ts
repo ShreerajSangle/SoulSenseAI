@@ -1760,6 +1760,341 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Therapeutic Intervention Routes
+  app.get('/api/interventions/recommend/:userId/:personaId', async (req, res) => {
+    try {
+      const { userId, personaId } = req.params;
+      
+      // Get latest emotional state (we'll use a basic fallback for demo)
+      const emotionalState = {
+        primary: 'neutral',
+        secondary: [],
+        intensity: 0.5,
+        valence: 0,
+        arousal: 0.3,
+        confidence: 0.7,
+        triggers: [],
+        context: '',
+        timestamp: new Date()
+      };
+      
+      // Get clinical profile
+      const clinicalProfile = await clinicalAssessmentEngine.assessFromConversation(
+        userId,
+        'General assessment',
+        []
+      );
+      
+      const interventions = therapeuticInterventionEngine.recommendInterventions(
+        emotionalState,
+        clinicalProfile,
+        personaId
+      );
+      
+      res.json({
+        success: true,
+        interventions: interventions.map(i => ({
+          id: i.id,
+          name: i.name,
+          type: i.type,
+          description: i.description,
+          duration: i.estimatedDuration,
+          steps: i.steps.length
+        }))
+      });
+    } catch (error) {
+      console.error('Intervention recommendation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to recommend interventions'
+      });
+    }
+  });
+
+  app.post('/api/interventions/start', async (req, res) => {
+    try {
+      const { userId, interventionId } = req.body;
+      
+      const session = therapeuticInterventionEngine.startIntervention(userId, interventionId);
+      
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          error: 'Intervention not found'
+        });
+      }
+      
+      // Get first step
+      const stepResult = therapeuticInterventionEngine.processInterventionStep(userId);
+      
+      res.json({
+        success: true,
+        session: {
+          interventionId: session.interventionId,
+          startTime: session.startTime
+        },
+        currentStep: stepResult.currentStep,
+        progress: stepResult.progress,
+        nextPrompt: stepResult.nextPrompt
+      });
+    } catch (error) {
+      console.error('Intervention start error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to start intervention'
+      });
+    }
+  });
+
+  app.post('/api/interventions/step', async (req, res) => {
+    try {
+      const { userId, response } = req.body;
+      
+      const stepResult = therapeuticInterventionEngine.processInterventionStep(userId, response);
+      
+      res.json({
+        success: true,
+        currentStep: stepResult.currentStep,
+        isComplete: stepResult.isComplete,
+        progress: stepResult.progress,
+        nextPrompt: stepResult.nextPrompt
+      });
+    } catch (error) {
+      console.error('Intervention step error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to process intervention step'
+      });
+    }
+  });
+
+  app.post('/api/interventions/complete', async (req, res) => {
+    try {
+      const { userId, effectiveness } = req.body;
+      
+      therapeuticInterventionEngine.completeSession(userId, effectiveness);
+      
+      res.json({
+        success: true,
+        message: 'Intervention completed successfully'
+      });
+    } catch (error) {
+      console.error('Intervention completion error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to complete intervention'
+      });
+    }
+  });
+
+  // Clinical Assessment Routes
+  app.get('/api/clinical/profile/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const profile = await clinicalAssessmentEngine.assessFromConversation(
+        userId,
+        'Profile request',
+        []
+      );
+      
+      res.json({
+        success: true,
+        profile: {
+          phq9: {
+            score: profile.phq9.score,
+            severity: profile.phq9.severity,
+            suicideRisk: profile.phq9.suicideRisk,
+            completion: profile.phq9.completionPercentage
+          },
+          gad7: {
+            score: profile.gad7.score,
+            severity: profile.gad7.severity,
+            completion: profile.gad7.completionPercentage
+          },
+          riskFactors: profile.riskFactors,
+          protectiveFactors: profile.protectiveFactors,
+          recommendedInterventions: profile.recommendedInterventions,
+          trends: profile.trends,
+          lastAssessment: profile.lastAssessment
+        }
+      });
+    } catch (error) {
+      console.error('Clinical profile error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get clinical profile'
+      });
+    }
+  });
+
+  app.get('/api/clinical/adaptive-questions/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const profile = await clinicalAssessmentEngine.assessFromConversation(
+        userId,
+        'Question generation',
+        []
+      );
+      
+      const questions = clinicalAssessmentEngine.generateAdaptiveQuestions(profile);
+      
+      res.json({
+        success: true,
+        questions
+      });
+    } catch (error) {
+      console.error('Adaptive questions error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate adaptive questions'
+      });
+    }
+  });
+
+  // Emotion Detection Routes
+  app.get('/api/emotion/trends/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { days = '7' } = req.query;
+      
+      const trends = emotionDetectionEngine.getEmotionalTrends(userId, parseInt(days as string));
+      
+      res.json({
+        success: true,
+        trends
+      });
+    } catch (error) {
+      console.error('Emotion trends error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get emotion trends'
+      });
+    }
+  });
+
+  // Enhanced Persona Routes
+  app.get('/api/personas/enhanced', async (req, res) => {
+    try {
+      const personas = enhancedPersonaSystem.getAllPersonas();
+      
+      res.json({
+        success: true,
+        personas: personas.map(p => ({
+          id: p.id,
+          name: p.name,
+          role: p.role,
+          emoji: p.emoji,
+          personality: p.personality,
+          communication: {
+            questioning_style: p.communication.questioning_style,
+            formality_level: p.communication.formality_level,
+            voice_tone: p.communication.voice_tone,
+            use_metaphors: p.communication.use_metaphors,
+            use_humor: p.communication.use_humor
+          },
+          therapy_style: p.therapy_style,
+          expertise: p.expertise
+        }))
+      });
+    } catch (error) {
+      console.error('Enhanced personas error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get enhanced personas'
+      });
+    }
+  });
+
+  app.post('/api/personas/recommend-switch', async (req, res) => {
+    try {
+      const { currentPersonaId, userId, emotionalState, clinicalProfile, conversationContext } = req.body;
+      
+      const recommendation = enhancedPersonaSystem.recommendPersonaSwitch(
+        currentPersonaId,
+        emotionalState,
+        clinicalProfile,
+        conversationContext
+      );
+      
+      res.json({
+        success: true,
+        recommendation
+      });
+    } catch (error) {
+      console.error('Persona switch recommendation error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to recommend persona switch'
+      });
+    }
+  });
+
+  // Therapeutic Tools Routes
+  app.get('/api/tools/journaling-prompts/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get current emotional state and clinical profile
+      const emotionalState = {
+        primary: 'neutral',
+        secondary: [],
+        intensity: 0.5
+      };
+      
+      const clinicalProfile = await clinicalAssessmentEngine.assessFromConversation(
+        userId,
+        'Journaling prompt request',
+        []
+      );
+      
+      const prompts = therapeuticInterventionEngine.generateJournalingPrompts(
+        emotionalState,
+        clinicalProfile
+      );
+      
+      res.json({
+        success: true,
+        prompts
+      });
+    } catch (error) {
+      console.error('Journaling prompts error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate journaling prompts'
+      });
+    }
+  });
+
+  app.get('/api/tools/motivational-quotes/:userId/:personaId', async (req, res) => {
+    try {
+      const { userId, personaId } = req.params;
+      
+      const emotionalState = {
+        primary: 'neutral',
+        secondary: [],
+        intensity: 0.5
+      };
+      
+      const quotes = therapeuticInterventionEngine.generateMotivationalQuotes(
+        emotionalState,
+        personaId
+      );
+      
+      res.json({
+        success: true,
+        quotes
+      });
+    } catch (error) {
+      console.error('Motivational quotes error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate motivational quotes'
+      });
+    }
+  });
+
   // Chat sessions endpoint
   app.get('/api/chat-sessions', async (req, res) => {
     try {
@@ -1931,49 +2266,234 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })}\n\n`);
       }
 
-      // Generate streaming response with GPT-4o
-      const responseGenerator = await gpt4oConversationSystem.generateStreamingResponse(
+      // Step 1: Comprehensive Emotional Analysis
+      res.write(`data: ${JSON.stringify({
+        type: "analysis",
+        stage: "emotion",
+        message: "Analyzing emotional state..."
+      })}\n\n`);
+
+      const emotionalState = await emotionDetectionEngine.detectEmotions(
+        message,
         userId,
-        personaId,
+        `Conversation with ${personaId}`
+      );
+
+      // Step 2: Risk Assessment
+      const riskAssessment = await emotionDetectionEngine.assessRisk(message, emotionalState);
+      
+      if (riskAssessment.interventionLevel === 'emergency') {
+        res.write(`data: ${JSON.stringify({
+          type: "crisis_alert",
+          level: "emergency",
+          message: "Crisis intervention needed - connecting to resources"
+        })}\n\n`);
+      }
+
+      // Step 3: Clinical Assessment Update
+      res.write(`data: ${JSON.stringify({
+        type: "analysis",
+        stage: "clinical",
+        message: "Updating clinical profile..."
+      })}\n\n`);
+
+      const clinicalProfile = await clinicalAssessmentEngine.assessFromConversation(
+        userId,
         message,
         formattedHistory
       );
 
-      let fullResponse = "";
-      
-      for await (const chunk of responseGenerator) {
-        if (chunk.content) {
-          fullResponse += chunk.content;
-        }
+      // Step 4: Therapeutic Interventions
+      const recommendedInterventions = therapeuticInterventionEngine.recommendInterventions(
+        emotionalState,
+        clinicalProfile,
+        personaId
+      );
 
-        // Send chunk to client
+      // Step 5: Enhanced Persona Response Generation
+      res.write(`data: ${JSON.stringify({
+        type: "analysis",
+        stage: "persona",
+        message: "Generating personalized response..."
+      })}\n\n`);
+
+      try {
+        // Generate streaming response with therapeutic context
+        const responseGenerator = await gpt4oConversationSystem.generateStreamingResponse(
+          userId,
+          personaId,
+          message,
+          formattedHistory,
+          {
+            emotionalState,
+            clinicalProfile,
+            riskAssessment,
+            recommendedInterventions
+          }
+        );
+
+        let fullResponse = "";
+        
+        for await (const chunk of responseGenerator) {
+          if (chunk.content) {
+            fullResponse += chunk.content;
+          }
+
+          // Send chunk to client with enhanced therapeutic context
+          res.write(`data: ${JSON.stringify({
+            type: "chunk",
+            content: chunk.content,
+            isComplete: chunk.isComplete,
+            emotion: chunk.emotion,
+            confidence: chunk.confidence,
+            memoryUpdates: chunk.memoryUpdates,
+            thoughtProcess: chunk.thoughtProcess,
+            therapeuticContext: {
+              primaryEmotion: emotionalState.primary,
+              intensity: emotionalState.intensity,
+              clinicalSeverity: {
+                depression: clinicalProfile.phq9.severity,
+                anxiety: clinicalProfile.gad7.severity
+              },
+              riskLevel: riskAssessment.interventionLevel
+            }
+          })}\n\n`);
+
+          if (chunk.isComplete) {
+            // Save AI response with therapeutic metadata
+            const aiMessage = await storage.createMessage({
+              conversationId: conversation.id,
+              content: fullResponse,
+              sender: 'ai',
+              emotionDetected: emotionalState.primary
+            });
+
+            // Send therapeutic insights and recommendations
+            res.write(`data: ${JSON.stringify({
+              type: "therapeutic_insights",
+              data: {
+                emotion: {
+                  primary: emotionalState.primary,
+                  intensity: emotionalState.intensity,
+                  valence: emotionalState.valence,
+                  confidence: emotionalState.confidence,
+                  triggers: emotionalState.triggers
+                },
+                clinical: {
+                  depression: {
+                    severity: clinicalProfile.phq9.severity,
+                    score: clinicalProfile.phq9.score,
+                    completion: clinicalProfile.phq9.completionPercentage
+                  },
+                  anxiety: {
+                    severity: clinicalProfile.gad7.severity,
+                    score: clinicalProfile.gad7.score,
+                    completion: clinicalProfile.gad7.completionPercentage
+                  },
+                  suicideRisk: clinicalProfile.phq9.suicideRisk,
+                  trends: clinicalProfile.trends
+                },
+                interventions: recommendedInterventions.slice(0, 3).map(i => ({
+                  id: i.id,
+                  name: i.name,
+                  type: i.type,
+                  duration: i.estimatedDuration,
+                  description: i.description
+                })),
+                adaptiveQuestions: clinicalAssessmentEngine.generateAdaptiveQuestions(clinicalProfile),
+                journalingPrompts: therapeuticInterventionEngine.generateJournalingPrompts(emotionalState, clinicalProfile),
+                motivationalQuotes: therapeuticInterventionEngine.generateMotivationalQuotes(emotionalState, personaId)
+              }
+            })}\n\n`);
+
+            // Send final completion with enhanced memory stats
+            res.write(`data: ${JSON.stringify({
+              type: "complete",
+              aiMessage: { id: aiMessage.id },
+              memoryStats: gpt4oConversationSystem.getConversationMemoryStats(userId, personaId),
+              clinicalSummary: clinicalAssessmentEngine.getClinicalSummary(userId)
+            })}\n\n`);
+            break;
+          }
+        }
+      } catch (gpt4oError) {
+        console.log('GPT-4o streaming failed, using enhanced persona system:', gpt4oError);
+        
+        // Fallback to enhanced persona system
+        const personaResponse = await enhancedPersonaSystem.generatePersonaResponse(
+          personaId,
+          message,
+          formattedHistory,
+          emotionalState,
+          clinicalProfile,
+          { recommendedInterventions }
+        );
+
+        const fullResponse = personaResponse.response;
+
+        // Save AI response
+        const aiMessage = await storage.createMessage({
+          conversationId: conversation.id,
+          content: fullResponse,
+          sender: 'ai',
+          emotionDetected: emotionalState.primary
+        });
+
+        // Send persona response as stream
         res.write(`data: ${JSON.stringify({
           type: "chunk",
-          content: chunk.content,
-          isComplete: chunk.isComplete,
-          emotion: chunk.emotion,
-          confidence: chunk.confidence,
-          memoryUpdates: chunk.memoryUpdates,
-          thoughtProcess: chunk.thoughtProcess
+          content: fullResponse,
+          isComplete: true,
+          emotion: emotionalState.primary,
+          confidence: emotionalState.confidence,
+          therapeuticContext: {
+            primaryEmotion: emotionalState.primary,
+            intensity: emotionalState.intensity,
+            clinicalSeverity: {
+              depression: clinicalProfile.phq9.severity,
+              anxiety: clinicalProfile.gad7.severity
+            }
+          }
         })}\n\n`);
 
-        if (chunk.isComplete) {
-          // Save AI response to database
-          const aiMessage = await storage.createMessage({
-            conversationId: conversation.id,
-            content: fullResponse,
-            sender: 'ai',
-            emotionDetected: chunk.emotion
-          });
+        // Send therapeutic insights
+        res.write(`data: ${JSON.stringify({
+          type: "therapeutic_insights",
+          data: {
+            emotion: {
+              primary: emotionalState.primary,
+              intensity: emotionalState.intensity,
+              valence: emotionalState.valence,
+              confidence: emotionalState.confidence
+            },
+            clinical: {
+              depression: {
+                severity: clinicalProfile.phq9.severity,
+                score: clinicalProfile.phq9.score
+              },
+              anxiety: {
+                severity: clinicalProfile.gad7.severity,
+                score: clinicalProfile.gad7.score
+              },
+              suicideRisk: clinicalProfile.phq9.suicideRisk
+            },
+            interventions: recommendedInterventions.slice(0, 3).map(i => ({
+              id: i.id,
+              name: i.name,
+              type: i.type,
+              duration: i.estimatedDuration
+            })),
+            suggestions: personaResponse.suggestedInterventions || [],
+            questions: personaResponse.adaptiveQuestions || []
+          }
+        })}\n\n`);
 
-          // Send final message with AI message ID
-          res.write(`data: ${JSON.stringify({
-            type: "complete",
-            aiMessage: { id: aiMessage.id },
-            memoryStats: gpt4oConversationSystem.getConversationMemoryStats(userId, personaId)
-          })}\n\n`);
-          break;
-        }
+        // Send completion
+        res.write(`data: ${JSON.stringify({
+          type: "complete",
+          aiMessage: { id: aiMessage.id },
+          clinicalSummary: clinicalAssessmentEngine.getClinicalSummary(userId)
+        })}\n\n`);
       }
 
       res.end();
