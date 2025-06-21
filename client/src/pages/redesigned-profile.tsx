@@ -478,7 +478,7 @@ export default function RedesignedProfile() {
                 <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      {(profile?.interests || []).map((interest, index) => (
+                      {(profile?.interests || []).map((interest: string, index: number) => (
                         <Badge key={index} variant="secondary" className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border-0">
                           {interest}
                         </Badge>
@@ -532,7 +532,7 @@ export default function RedesignedProfile() {
                 <CardContent className="p-6">
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      {(profile?.mentalHealthFocus || []).map((focus, index) => (
+                      {(profile?.mentalHealthFocus || []).map((focus: string, index: number) => (
                         <Badge key={index} variant="secondary" className="bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-0">
                           {focus}
                         </Badge>
