@@ -698,17 +698,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           crisis_indicators: { level: enhancedResponse.crisisDetected ? 'high' : 'none' }
         };
 
-        const suggestedMicroTools = enhancedResponse.suggestedInterventions || [];
-        const crisisDetected = enhancedResponse.crisisDetected;
-        const followUpQuestions = enhancedResponse.followUpQuestions;
-
         res.json({
           conversation,
           aiMessage,
           emotionAnalysis,
-          suggestedMicroTools,
-          crisisDetected,
-          followUpQuestions,
+          suggestedMicroTools: enhancedResponse.suggestedInterventions || [],
+          crisisDetected: enhancedResponse.crisisDetected,
+          followUpQuestions: enhancedResponse.followUpQuestions || [],
           therapeuticTechniques: enhancedResponse.therapeuticElements || ["active listening", "empathetic responding"],
           personalityInsight: "supportive",
           memoryReferences: [],
@@ -722,9 +718,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Enhanced chat error:", error);
         
-        // Fallback response if enhanced system fails
+        // Fallback warm greeting
         const persona = await storage.getPersona(personaId);
-        const fallbackContent = `Hello! I'm ${persona?.name || 'your AI companion'}. I'm here to support you. How are you feeling today?`;
+        const isFirstMessage = messageHistory.length <= 1;
+        
+        let fallbackContent = `I understand you're going through a difficult time. Can you tell me more about what's happening?`;
+        
+        if (isFirstMessage || message.toLowerCase().includes('hello')) {
+          fallbackContent = `Hello! I'm ${persona?.name}. I'm here to support you through whatever you're experiencing. How are you feeling today?`;
+        }
         
         const aiMessage = await storage.createMessage({
           conversationId: conversation.id,
@@ -750,23 +752,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           moodInsights: []
         });
       }
-
-      res.json({
-        conversation,
-        aiMessage,
-        emotionAnalysis,
-        suggestedMicroTools,
-        crisisDetected,
-        followUpQuestions,
-        therapeuticTechniques: ["active listening", "empathetic responding"],
-        personalityInsight: "supportive",
-        memoryReferences: [],
-        relationshipDepth: "developing",
-        emotionalResonance: "empathetic",
-        conversationInsights: [],
-        engagementLevel: "high",
-        moodInsights: []
-      });
 
     } catch (error) {
       console.error("Enhanced chat error:", error);
