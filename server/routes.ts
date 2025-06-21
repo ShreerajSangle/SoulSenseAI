@@ -176,6 +176,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Return anonymous user for now
     res.json({ id: 'anonymous', email: null });
   });
+
+  // Create conversation endpoint
+  app.post('/api/conversations', async (req, res) => {
+    try {
+      const { userId, personaId, title } = req.body;
+      
+      if (!userId || !personaId) {
+        return res.status(400).json({ error: 'Missing required fields: userId and personaId' });
+      }
+
+      const persona = await storage.getPersona(personaId);
+      if (!persona) {
+        return res.status(404).json({ error: 'Persona not found' });
+      }
+
+      const conversation = await storage.createConversation({
+        userId,
+        personaId,
+        title: title || `Chat with ${persona.name}`,
+      });
+
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ error: 'Failed to create conversation' });
+    }
+  });
+
+  // Get conversation messages
+  app.get('/api/conversations/:conversationId/messages', async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.conversationId);
+      if (isNaN(conversationId)) {
+        return res.status(400).json({ error: 'Invalid conversation ID' });
+      }
+
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching conversation messages:', error);
+      res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+  });
   // Get all personas
   app.get("/api/personas", async (req, res) => {
     try {
