@@ -3017,3 +3017,5 @@ function generateMindfulnessResponse(message: string, emotion?: string, memories
 
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
 }
+
+
