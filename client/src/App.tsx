@@ -19,6 +19,7 @@ import SpecializedPersonaDemo from "@/pages/specialized-persona-demo";
 import SoulSenseAIDemo from "@/pages/soulsense-ai-demo";
 import ModelComparison from "@/pages/model-comparison";
 import AdvancedChat from "@/pages/advanced-chat";
+import SessionHistory from "@/pages/session-history";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/clinical-assessment" component={ClinicalAssessment} />
       <Route path="/therapeutic-journey" component={TherapeuticJourney} />
       <Route path="/session-summary" component={SessionSummary} />
+      <Route path="/session-history" component={SessionHistory} />
       <Route path="/model-comparison" component={ModelComparison} />
       <Route path="/advanced-chat/:persona" component={AdvancedChat} />
       <Route component={NotFound} />

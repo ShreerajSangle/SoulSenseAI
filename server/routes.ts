@@ -1756,6 +1756,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat sessions endpoint
+  app.get('/api/chat-sessions', async (req, res) => {
+    try {
+      // Generate sample sessions for demo purposes
+      const sessions = [
+        {
+          id: 'session-1',
+          userId: 'user-1',
+          personaId: 'sarah',
+          personaName: 'Dr. Sarah',
+          startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
+          messageCount: 12,
+          duration: 45,
+          summary: 'Discussed anxiety management techniques and explored cognitive behavioral therapy strategies for handling work-related stress.',
+          emotionalTone: 'anxious',
+          topics: ['anxiety', 'work stress', 'CBT'],
+          lastMessage: 'Thank you for the helpful breathing exercises. I feel more equipped to handle my anxiety now.',
+          status: 'completed'
+        },
+        {
+          id: 'session-2',
+          userId: 'user-1',
+          personaId: 'alex',
+          personaName: 'Alex',
+          startTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
+          messageCount: 8,
+          duration: 30,
+          summary: 'Explored relationship dynamics and communication patterns with romantic partner.',
+          emotionalTone: 'neutral',
+          topics: ['relationships', 'communication', 'boundaries'],
+          lastMessage: 'I understand now how my communication style affects our relationship dynamics.',
+          status: 'completed'
+        },
+        {
+          id: 'session-3',
+          userId: 'user-1',
+          personaId: 'marcus',
+          personaName: 'Marcus',
+          startTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          endTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
+          messageCount: 15,
+          duration: 60,
+          summary: 'Set career goals and developed action plans for professional development and skill building.',
+          emotionalTone: 'positive',
+          topics: ['career goals', 'motivation', 'skill development'],
+          lastMessage: 'I have a clear roadmap now. Time to start taking action on my career goals.',
+          status: 'completed'
+        }
+      ];
+      
+      res.json(sessions);
+    } catch (error) {
+      console.error('Chat sessions error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get chat sessions'
+      });
+    }
+  });
+
+  // Chat messages endpoint
+  app.get('/api/chat-messages/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      // Generate sample messages for demo purposes
+      const messages = [
+        {
+          id: 'msg-1',
+          sessionId,
+          sender: 'user',
+          content: 'I\'ve been feeling really anxious about work lately. The pressure is overwhelming.',
+          timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+          emotion: 'anxious'
+        },
+        {
+          id: 'msg-2',
+          sessionId,
+          sender: 'persona',
+          content: 'I understand that work pressure can feel overwhelming. Can you tell me more about what specific situations trigger your anxiety?',
+          timestamp: new Date(Date.now() - 44 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'msg-3',
+          sessionId,
+          sender: 'user',
+          content: 'Mostly deadlines and presentations. I start spiraling when I think about them.',
+          timestamp: new Date(Date.now() - 43 * 60 * 1000).toISOString(),
+          emotion: 'anxious'
+        },
+        {
+          id: 'msg-4',
+          sessionId,
+          sender: 'persona',
+          content: 'That makes sense. Let\'s work on some grounding techniques. Try the 5-4-3-2-1 method: name 5 things you can see, 4 you can touch, 3 you can hear, 2 you can smell, and 1 you can taste.',
+          timestamp: new Date(Date.now() - 42 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      res.json(messages);
+    } catch (error) {
+      console.error('Chat messages error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get chat messages'
+      });
+    }
+  });
+
+  // Continue with other routes...
+
   const httpServer = createServer(app);
   return httpServer;
 }

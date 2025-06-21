@@ -48,16 +48,24 @@ export function TopNavBar({ persona, onBack }: TopNavBarProps) {
               Chat
             </Button>
           </Link>
-          <Link href="/memory">
+          <Link href="/session-history">
             <Button 
-              variant={isActive("/memory") ? "default" : "ghost"} 
+              variant={isActive("/session-history") ? "default" : "ghost"} 
               size="sm"
-              className={isActive("/memory") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+              className={isActive("/session-history") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
             >
-              Memory
+              History
             </Button>
           </Link>
-
+          <Link href="/diary">
+            <Button 
+              variant={isActive("/diary") ? "default" : "ghost"} 
+              size="sm"
+              className={isActive("/diary") ? "bg-indigo-50 text-indigo-600 hover:bg-indigo-100" : ""}
+            >
+              Journal
+            </Button>
+          </Link>
           <Link href="/profile">
             <Button 
               variant={isActive("/profile") ? "default" : "ghost"} 
