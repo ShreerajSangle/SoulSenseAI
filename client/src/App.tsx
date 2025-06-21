@@ -11,6 +11,7 @@ import MemoryScreen from "@/pages/memory-screen";
 import SessionSummary from "@/pages/session-summary";
 import DiaryScreen from "@/pages/diary-screen";
 import ProfileScreen from "@/pages/profile-screen";
+import EnhancedProfileScreen from "@/pages/enhanced-profile-screen";
 import ClinicalAssessment from "@/pages/clinical-assessment";
 import TherapeuticJourney from "@/pages/therapeutic-journey";
 import NotFound from "@/pages/not-found";

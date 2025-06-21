@@ -561,6 +561,29 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // GDPR Compliance Methods
+  async deleteAllUserData(userId: string): Promise<void> {
+    // Delete all user-related data in the correct order
+    await db.delete(messageFeedback).where(eq(messageFeedback.userId, userId));
+    await db.delete(microToolUsage).where(eq(microToolUsage.userId, userId));
+    await db.delete(moodEntries).where(eq(moodEntries.userId, userId));
+    await db.delete(userMemories).where(eq(userMemories.userId, userId));
+    await db.delete(goals).where(eq(goals.userId, userId));
+    
+    // Delete conversations and related data
+    const userConversations = await db.select().from(conversations).where(eq(conversations.userId, userId));
+    for (const conversation of userConversations) {
+      await db.delete(sessionFeedback).where(eq(sessionFeedback.conversationId, conversation.id));
+      await db.delete(sessions).where(eq(sessions.conversationId, conversation.id));
+      await db.delete(messages).where(eq(messages.conversationId, conversation.id));
+    }
+    await db.delete(conversations).where(eq(conversations.userId, userId));
+    
+    // Delete profile data
+    await db.delete(userProfiles).where(eq(userProfiles.userId, userId));
+    await db.delete(users).where(eq(users.id, userId));
+  }
+
   // Goals
   async createGoal(goal: InsertGoal): Promise<Goal> {
     const [newGoal] = await db
