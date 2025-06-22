@@ -13,10 +13,11 @@ import { ArrowLeft, Heart, Brain, Target, Leaf } from "lucide-react";
 
 interface Message {
   id: number;
+  conversationId: number;
   content: string;
   sender: "user" | "ai";
-  timestamp: string;
-  emotionDetected?: string;
+  timestamp: Date;
+  emotionDetected?: string | null;
 }
 
 interface Persona {
@@ -116,6 +117,7 @@ export default function EnhancedChatScreen() {
       // Add both user and AI messages to the state
       const userMessage: Message = {
         id: Date.now(),
+        conversationId: data.conversationId,
         content: data.message.content,
         sender: "user",
         timestamp: new Date().toISOString()
@@ -123,6 +125,7 @@ export default function EnhancedChatScreen() {
       
       const aiMessage: Message = {
         id: Date.now() + 1,
+        conversationId: data.conversationId,
         content: data.aiResponse,
         sender: "ai",
         timestamp: new Date().toISOString(),
@@ -146,6 +149,7 @@ export default function EnhancedChatScreen() {
       // Add user message immediately
       const userMessage: Message = {
         id: Date.now(),
+        conversationId: conversationId || 0,
         content: message,
         sender: "user", 
         timestamp: new Date().toISOString()
@@ -225,15 +229,12 @@ export default function EnhancedChatScreen() {
         {messages.map((message) => (
           <MessageBubble
             key={message.id}
-            message={message.content}
-            sender={message.sender}
-            timestamp={new Date(message.timestamp).toISOString()}
+            message={message}
             persona={{
               ...persona,
               specialty: persona.role,
               avatarUrl: persona.avatar
             }}
-            emotion={message.emotionDetected}
           />
         ))}
         

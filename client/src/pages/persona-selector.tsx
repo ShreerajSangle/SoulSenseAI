@@ -37,12 +37,8 @@ export default function PersonaSelector() {
   });
   const [, setLocation] = useLocation();
 
-  const handlePersonaSelect = (persona: Persona) => {
+  const handlePersonaSelect = (persona: any) => {
     setLocation(`/chat/${persona.id}`);
-  };
-
-  const handleAdvancedChat = (persona: Persona) => {
-    setLocation(`/advanced-chat/${persona.id}`);
   };
 
   if (isLoading) {
