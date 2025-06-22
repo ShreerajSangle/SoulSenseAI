@@ -93,14 +93,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Generate AI response using GPT-4o
-      const aiResponse = await gpt4oPersonaSystem.generateResponse({
-        message,
+      const aiResponse = await gpt4oPersonaSystem.generateResponse(
         personaId,
+        message,
         userId,
-        conversationId: currentConversationId,
-        isFirstMessage,
-        userMood
-      });
+        { userMood, isFirstMessage }
+      );
 
       // Save AI message
       const aiMessage = await storage.createMessage({
@@ -173,14 +171,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sessions
   app.post("/api/sessions", async (req, res) => {
     try {
-      const sessionData = createSessionSummaryRequestSchema.parse(req.body);
-      const session = await storage.createSession(sessionData);
+      const { conversationId, summary, keyTopics, techniquesUsed, homework, moodBefore, moodAfter } = req.body;
+      const session = await storage.createSession({
+        conversationId,
+        summary: summary || null,
+        keyTopics: keyTopics || [],
+        techniquesUsed: techniquesUsed || [],
+        homework: homework || [],
+        moodBefore: moodBefore || null,
+        moodAfter: moodAfter || null
+      });
       res.json(session);
     } catch (error) {
       console.error("Error creating session:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Invalid request format", details: error.errors });
-      }
       res.status(500).json({ error: "Failed to create session" });
     }
   });

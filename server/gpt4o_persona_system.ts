@@ -225,7 +225,12 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
     userId: string,
     emotionalContext?: any,
     sessionData?: any
-  ): Promise<string> {
+  ): Promise<{
+    content: string;
+    emotionalTone: string;
+    followUpQuestions?: string[];
+    therapeuticTechniques?: string[];
+  }> {
     const persona = this.personaConfigs.get(personaId);
     if (!persona) {
       throw new Error(`Persona ${personaId} not found`);
@@ -291,7 +296,12 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
         ];
       }
 
-      return assistantResponse;
+      return {
+        content: assistantResponse,
+        emotionalTone: this.detectResponseEmotion(assistantResponse, persona),
+        followUpQuestions: [],
+        therapeuticTechniques: persona.therapeuticApproach.slice(0, 2)
+      };
     } catch (error) {
       console.error("GPT-4o API error:", error);
       return this.generateFallbackResponse(persona, userMessage);
@@ -458,7 +468,12 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
     };
   }
 
-  private generateFallbackResponse(persona: PersonaConfig, userMessage: string): string {
+  private generateFallbackResponse(persona: PersonaConfig, userMessage: string): {
+    content: string;
+    emotionalTone: string;
+    followUpQuestions?: string[];
+    therapeuticTechniques?: string[];
+  } {
     const fallbackResponses = {
       sarah: "I hear you, and I want you to know that your feelings are completely valid. Sometimes it helps to take a moment and acknowledge what we're experiencing. What feels most important for you to talk about right now?",
       alex: "Hey, I hear you. Whatever you're going through, you're not alone in this. I've found that sometimes just talking it out can really help. What's been on your mind lately?",
@@ -466,8 +481,15 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
       maya: "Take a gentle breath with me for a moment. Whatever you're experiencing right now is part of your journey. Let's create some space to explore what's arising for you with kindness and patience.",
     };
 
-    return fallbackResponses[persona.id as keyof typeof fallbackResponses] || 
-           "I'm here to support you. Could you tell me more about what's on your mind?";
+    const content = fallbackResponses[persona.id as keyof typeof fallbackResponses] || 
+                    "I'm here to support you. Could you tell me more about what's on your mind?";
+    
+    return {
+      content,
+      emotionalTone: "supportive",
+      followUpQuestions: ["How are you feeling right now?", "What brought you here today?"],
+      therapeuticTechniques: persona.therapeuticApproach.slice(0, 2)
+    };
   }
 
   private detectResponseEmotion(content: string, persona: PersonaConfig): string {
