@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -81,11 +81,23 @@ export default function EnhancedDiaryScreen() {
   });
 
   const createEntryMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/diary-entries", "POST", data),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("/api/diary-entries", "POST", data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/diary-entries"] });
+      queryClient.refetchQueries({ queryKey: ["/api/diary-entries"] });
       setIsCreateDialogOpen(false);
       toast({ title: "Entry created successfully!" });
+    },
+    onError: (error: any) => {
+      console.error("Error creating diary entry:", error);
+      toast({ 
+        title: "Failed to create entry", 
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
     },
   });
 
@@ -481,20 +493,41 @@ function DiaryEntryDialog({
   isLoading: boolean;
   initialData?: DiaryEntry | null;
 }) {
-  const [formData, setFormData] = useState({
-    title: initialData?.title || "",
-    content: initialData?.content || "",
-    moodRating: initialData?.moodRating || 3,
-    emotions: initialData?.emotions?.join(", ") || "",
-    gratitude: initialData?.gratitude || "",
-    goals: initialData?.goals || "",
-    reflections: initialData?.reflections || "",
-    tags: initialData?.tags?.join(", ") || "",
-  });
+  const defaultFormData = {
+    title: "",
+    content: "",
+    moodRating: 3,
+    emotions: "",
+    gratitude: "",
+    goals: "",
+    reflections: "",
+    tags: "",
+  };
+
+  const [formData, setFormData] = useState(
+    initialData ? {
+      title: initialData.title || "",
+      content: initialData.content || "",
+      moodRating: initialData.moodRating || 3,
+      emotions: initialData.emotions?.join(", ") || "",
+      gratitude: initialData.gratitude || "",
+      goals: initialData.goals || "",
+      reflections: initialData.reflections || "",
+      tags: initialData.tags?.join(", ") || "",
+    } : defaultFormData
+  );
+
+  // Reset form when dialog opens/closes
+  useEffect(() => {
+    if (!isOpen && !initialData) {
+      setFormData(defaultFormData);
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
+      userId: "anonymous",
       ...formData,
       emotions: formData.emotions.split(",").map(e => e.trim()).filter(Boolean),
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
