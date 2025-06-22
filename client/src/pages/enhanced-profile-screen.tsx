@@ -1,788 +1,648 @@
-import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, Settings, Shield, Bell, Palette, Brain, Heart, Target, Save, Edit3, Moon, Sun, Mic, MicOff, Download, Trash2, Plus, X, Volume2, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useTheme } from "@/components/theme-provider";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
+import { 
+  User, 
+  Settings, 
+  Target, 
+  Heart, 
+  Brain, 
+  ArrowLeft,
+  Sparkles,
+  Edit,
+  Save,
+  Plus,
+  CheckCircle,
+  Circle,
+  Calendar,
+  TrendingUp,
+  Award,
+  BookOpen
+} from "lucide-react";
 
 interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  bio?: string;
+  userId: string;
+  bio: string;
+  avatar: string | null;
   preferences: {
-    preferredPersona: string;
-    voiceEnabled: boolean;
-    darkMode: boolean;
-    notifications: {
-      dailyCheckins: boolean;
-      sessionReminders: boolean;
-      progressUpdates: boolean;
-    };
-    privacy: {
-      shareAnalytics: boolean;
-      dataRetention: string;
-    };
+    favoritePersona: string;
+    sessionFrequency: string;
+    reminderTime: string;
+    privacyLevel: string;
   };
-  goals: string[];
-  interests: string[];
-  mentalHealthFocus: string[];
-  privacySettings: {
-    shareAnalytics: boolean;
-    dataRetention: string;
-    allowDataExport: boolean;
-  };
-  joinedDate: string;
-  lastActive: string;
+  goals: Array<{
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    status: string;
+    targetDate: string;
+    createdAt: string;
+  }>;
   stats: {
     totalSessions: number;
-    totalMessages: number;
-    streakDays: number;
-    favoritePersona: string;
+    currentStreak: number;
+    longestStreak: number;
     averageMood: number;
+    favoriteEmotion: string;
   };
 }
 
+const goalCategories = {
+  mental: { color: "from-blue-500 to-indigo-500", icon: Brain, accent: "bg-blue-50 text-blue-700 border-blue-200" },
+  emotional: { color: "from-rose-500 to-pink-500", icon: Heart, accent: "bg-rose-50 text-rose-700 border-rose-200" },
+  personal: { color: "from-green-500 to-emerald-500", icon: Target, accent: "bg-green-50 text-green-700 border-green-200" },
+  social: { color: "from-purple-500 to-violet-500", icon: User, accent: "bg-purple-50 text-purple-700 border-purple-200" }
+};
+
 export default function EnhancedProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<Partial<UserProfile>>({});
-  const [newGoal, setNewGoal] = useState("");
-  const [newInterest, setNewInterest] = useState("");
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const { toast } = useToast();
+  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
+  const [, setLocation] = useLocation();
+  
   const queryClient = useQueryClient();
-  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
 
-  // Fetch user profile
-  const { data: profileData, isLoading } = useQuery<UserProfile>({
-    queryKey: ["/api/profile/anonymous"],
-    retry: false,
-  });
-
-  useEffect(() => {
-    if (profileData) {
-      setProfile(profileData);
-      setVoiceEnabled(profileData.preferences?.voiceEnabled || false);
-      
-      // Only sync theme if user has explicitly set a preference
-      // Don't force dark mode - let users choose
-      if (profileData.preferences?.darkMode !== undefined) {
-        const preferredTheme = profileData.preferences.darkMode ? "dark" : "light";
-        if (theme !== preferredTheme) {
-          setTheme(preferredTheme);
-        }
-      }
-    }
-  }, [profileData, setTheme, theme]);
-
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (updates: Partial<UserProfile>) => {
-      const response = await apiRequest("/api/profile/anonymous", "PUT", updates);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile/anonymous"] });
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been saved successfully.",
-      });
-      setIsEditing(false);
-    },
-    onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Unable to save your profile changes.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Dark mode toggle handler
-  const handleDarkModeToggle = (enabled: boolean) => {
-    const newTheme = enabled ? "dark" : "light";
-    setTheme(newTheme);
-    
-    const updatedProfile = {
-      ...profile,
-      preferences: {
-        ...profile.preferences,
-        darkMode: enabled
-      }
-    };
-    
-    setProfile(updatedProfile);
-    updateProfileMutation.mutate(updatedProfile);
-  };
-
-  // Voice interface toggle handler
-  const handleVoiceToggle = async (enabled: boolean) => {
-    if (enabled) {
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["/api/profile"],
+    queryFn: async () => {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        setVoiceEnabled(true);
-        toast({
-          title: "Voice Interface Enabled",
-          description: "You can now use speech-to-text and text-to-speech features.",
-        });
+        const response = await fetch("/api/profile");
+        return await response.json();
       } catch (error) {
-        toast({
-          title: "Microphone Access Denied",
-          description: "Please allow microphone access to use voice features.",
-          variant: "destructive",
-        });
-        return;
+        return {
+          userId: "anonymous",
+          bio: "",
+          avatar: null,
+          preferences: {
+            favoritePersona: "sarah",
+            sessionFrequency: "daily",
+            reminderTime: "9:00",
+            privacyLevel: "private"
+          },
+          goals: [],
+          stats: {
+            totalSessions: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            averageMood: 0,
+            favoriteEmotion: "calm"
+          }
+        };
       }
-    } else {
-      setVoiceEnabled(false);
     }
+  });
 
-    const updatedProfile = {
-      ...profile,
-      preferences: {
-        ...profile.preferences,
-        voiceEnabled: enabled
-      }
-    };
-    
-    setProfile(updatedProfile);
-    updateProfileMutation.mutate(updatedProfile);
-  };
+  const { data: goals = [] } = useQuery({
+    queryKey: ["/api/goals"],
+  });
 
-  // Text-to-speech functionality
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window && voiceEnabled) {
-      setIsSpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
-      utterance.onend = () => setIsSpeaking(false);
-      speechSynthesis.speak(utterance);
+  const [editData, setEditData] = useState({
+    bio: "",
+    preferences: {
+      favoritePersona: "sarah",
+      sessionFrequency: "daily",
+      reminderTime: "9:00",
+      privacyLevel: "private"
     }
-  };
+  });
 
-  const stopSpeaking = () => {
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  };
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/profile", "PUT", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      setIsEditing(false);
+      toast({ title: "Profile updated successfully!" });
+    },
+  });
 
-  // Add goal handler
-  const handleAddGoal = () => {
-    if (newGoal.trim()) {
-      const updatedGoals = [...(profile.goals || []), newGoal.trim()];
-      const updatedProfile = { ...profile, goals: updatedGoals };
-      setProfile(updatedProfile);
-      updateProfileMutation.mutate(updatedProfile);
-      setNewGoal("");
-    }
-  };
+  const createGoalMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("/api/goals", "POST", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
+      setIsGoalDialogOpen(false);
+      toast({ title: "Goal created successfully!" });
+    },
+  });
 
-  // Remove goal handler
-  const handleRemoveGoal = (index: number) => {
-    const updatedGoals = (profile.goals || []).filter((_, i) => i !== index);
-    const updatedProfile = { ...profile, goals: updatedGoals };
-    setProfile(updatedProfile);
-    updateProfileMutation.mutate(updatedProfile);
-  };
-
-  // Add interest handler
-  const handleAddInterest = () => {
-    if (newInterest.trim()) {
-      const updatedInterests = [...(profile.interests || []), newInterest.trim()];
-      const updatedProfile = { ...profile, interests: updatedInterests };
-      setProfile(updatedProfile);
-      updateProfileMutation.mutate(updatedProfile);
-      setNewInterest("");
-    }
-  };
-
-  // Remove interest handler
-  const handleRemoveInterest = (index: number) => {
-    const updatedInterests = (profile.interests || []).filter((_, i) => i !== index);
-    const updatedProfile = { ...profile, interests: updatedInterests };
-    setProfile(updatedProfile);
-    updateProfileMutation.mutate(updatedProfile);
-  };
-
-  // Privacy settings handler
-  const handlePrivacyUpdate = (key: string, value: any) => {
-    const updatedProfile = {
-      ...profile,
-      privacySettings: {
-        ...profile.privacySettings,
-        [key]: value
-      }
-    };
-    setProfile(updatedProfile);
-    updateProfileMutation.mutate(updatedProfile);
-  };
-
-  // Data export handler
-  const handleDataExport = async () => {
-    try {
-      const response = await fetch('/api/profile/anonymous/export');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'soulsense-data-export.json';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Data Export Complete",
-        description: "Your data has been downloaded successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "Unable to export your data. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Account deletion handler
-  const handleAccountDeletion = async () => {
-    try {
-      await apiRequest("/api/profile/anonymous/delete-account", "DELETE", {
-        confirmDeletion: true
-      });
-      
-      toast({
-        title: "Account Deleted",
-        description: "Your account and all data have been permanently deleted.",
-      });
-      
-      // Redirect to home page
-      window.location.href = '/';
-    } catch (error) {
-      toast({
-        title: "Deletion Failed",
-        description: "Unable to delete your account. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+  const updateGoalMutation = useMutation({
+    mutationFn: ({ id, ...data }: any) => apiRequest(`/api/goals/${id}`, "PUT", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/goals"] });
+      toast({ title: "Goal updated successfully!" });
+    },
+  });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your profile...</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
+  const handleSaveProfile = () => {
+    updateProfileMutation.mutate(editData);
+  };
+
+  const startEditing = () => {
+    setEditData({
+      bio: profile?.bio || "",
+      preferences: profile?.preferences || {
+        favoritePersona: "sarah",
+        sessionFrequency: "daily",
+        reminderTime: "9:00",
+        privacyLevel: "private"
+      }
+    });
+    setIsEditing(true);
+  };
+
+  const completedGoals = goals.filter((goal: any) => goal.status === "completed").length;
+  const activeGoals = goals.filter((goal: any) => goal.status === "active").length;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-        <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20 border-4 border-white/20">
-                <AvatarImage src={profile.avatar} />
-                <AvatarFallback className="bg-white/20 text-2xl font-bold">
-                  {profile.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold">{profile.name || 'Your Profile'}</h1>
-                <p className="text-purple-100">{profile.email}</p>
-                <p className="text-sm text-purple-200">
-                  Member since {new Date(profile.joinedDate || '').toLocaleDateString()}
-                </p>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation("/")}
+                className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Your Profile
+                  </h1>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Manage your wellness journey and goals</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              {voiceEnabled && (
+            
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                {goals.length} Goals
+              </Badge>
+              {!isEditing ? (
                 <Button
-                  variant={isSpeaking ? "destructive" : "secondary"}
+                  onClick={startEditing}
+                  variant="outline"
                   size="sm"
-                  onClick={isSpeaking ? stopSpeaking : () => speakText("Welcome to your SoulSense profile")}
+                  className="hover:bg-purple-50 hover:border-purple-300"
                 >
-                  {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
                 </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfileMutation.isPending}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               )}
-              <Button
-                variant="secondary"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                {isEditing ? 'Cancel' : 'Edit Profile'}
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="goals">Goals & Interests</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy & Data</TabsTrigger>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Profile Header */}
+        <div className="text-center mb-12">
+          <div className="relative inline-block mb-6">
+            <Avatar className="w-32 h-32 ring-4 ring-white/50 shadow-xl">
+              <AvatarImage src={profile?.avatar} alt="Profile" />
+              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-4xl font-bold">
+                {profile?.userId?.[0]?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Welcome Back!
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+            {profile?.bio || "Your wellness journey continues here. Track your progress and achieve your goals."}
+          </p>
+        </div>
+
+        <Tabs defaultValue="overview" className="space-y-8">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl">
+            <TabsTrigger value="overview" className="rounded-2xl">Overview</TabsTrigger>
+            <TabsTrigger value="goals" className="rounded-2xl">Goals</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-2xl">Settings</TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile">
-            <Card>
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-8">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.totalSessions || 0}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Sessions</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.currentStreak || 0}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Current Streak</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Award className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{completedGoals}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Goals Achieved</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-6 text-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Heart className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {profile?.stats?.averageMood ? profile.stats.averageMood.toFixed(1) : "—"}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Avg Mood</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="w-5 h-5 mr-2" />
-                  Personal Information
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Recent Activity
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      value={profile.name || ''}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                      disabled={!isEditing}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={profile.email || ''}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      disabled={!isEditing}
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={profile.bio || ''}
-                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                    disabled={!isEditing}
-                    placeholder="Tell us about yourself..."
-                    className="min-h-[100px]"
-                  />
-                </div>
-                {isEditing && (
-                  <Button
-                    onClick={() => updateProfileMutation.mutate(profile)}
-                    disabled={updateProfileMutation.isPending}
-                    className="w-full"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+              <CardContent>
+                <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                  Your recent wellness activities will appear here as you engage with SoulSense.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Goals Tab */}
+          <TabsContent value="goals" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Your Wellness Goals
+              </h3>
+              <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Goal
                   </Button>
+                </DialogTrigger>
+                <GoalDialog
+                  isOpen={isGoalDialogOpen}
+                  onClose={() => setIsGoalDialogOpen(false)}
+                  onSubmit={(data) => createGoalMutation.mutate(data)}
+                  isLoading={createGoalMutation.isPending}
+                />
+              </Dialog>
+            </div>
+
+            {goals.length === 0 ? (
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                <CardContent className="p-12 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                    <Target className="h-10 w-10 text-purple-600" />
+                  </div>
+                  <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    Set Your First Goal
+                  </h4>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    Create meaningful goals to guide your wellness journey and track your personal growth.
+                  </p>
+                  <Button
+                    onClick={() => setIsGoalDialogOpen(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-2xl font-medium"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Your First Goal
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {goals.map((goal: any) => {
+                  const category = goalCategories[goal.category as keyof typeof goalCategories] || goalCategories.personal;
+                  const IconComponent = category.icon;
+                  const isCompleted = goal.status === "completed";
+                  
+                  return (
+                    <Card
+                      key={goal.id}
+                      className="group border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                            <IconComponent className="h-6 w-6 text-white" />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex-1 truncate">
+                                {goal.title}
+                              </h4>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => updateGoalMutation.mutate({
+                                  id: goal.id,
+                                  status: isCompleted ? "active" : "completed"
+                                })}
+                                className="p-1 h-auto"
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-gray-400" />
+                                )}
+                              </Button>
+                            </div>
+                            
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                              {goal.description}
+                            </p>
+                            
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                              <Badge variant="outline" className={category.accent}>
+                                {goal.category}
+                              </Badge>
+                              {goal.targetDate && (
+                                <span>Due: {format(new Date(goal.targetDate), 'MMM d, yyyy')}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea
+                        id="bio"
+                        value={editData.bio}
+                        onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
+                        placeholder="Tell us about yourself..."
+                        className="rounded-2xl"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <Label>Bio</Label>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
+                      {profile?.bio || "No bio added yet."}
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Profile Stats */}
-            <Card>
+            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Your Journey Stats</CardTitle>
+                <CardTitle>Preferences</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{profile.stats?.totalSessions || 0}</div>
-                    <div className="text-sm text-muted-foreground">Total Sessions</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{profile.stats?.totalMessages || 0}</div>
-                    <div className="text-sm text-muted-foreground">Messages</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{profile.stats?.streakDays || 0}</div>
-                    <div className="text-sm text-muted-foreground">Day Streak</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{profile.stats?.averageMood || 0}</div>
-                    <div className="text-sm text-muted-foreground">Avg Mood</div>
-                  </div>
-                </div>
+              <CardContent className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <Label htmlFor="favoritePersona">Favorite Persona</Label>
+                      <Select
+                        value={editData.preferences.favoritePersona}
+                        onValueChange={(value) => setEditData({
+                          ...editData,
+                          preferences: { ...editData.preferences, favoritePersona: value }
+                        })}
+                      >
+                        <SelectTrigger className="rounded-2xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sarah">Dr. Sarah</SelectItem>
+                          <SelectItem value="alex">Alex</SelectItem>
+                          <SelectItem value="marcus">Marcus</SelectItem>
+                          <SelectItem value="maya">Maya</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="sessionFrequency">Session Frequency</Label>
+                      <Select
+                        value={editData.preferences.sessionFrequency}
+                        onValueChange={(value) => setEditData({
+                          ...editData,
+                          preferences: { ...editData.preferences, sessionFrequency: value }
+                        })}
+                      >
+                        <SelectTrigger className="rounded-2xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Favorite Persona</Label>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1 capitalize">
+                        {profile?.preferences?.favoritePersona || "None selected"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Session Frequency</Label>
+                      <p className="text-gray-600 dark:text-gray-400 mt-1 capitalize">
+                        {profile?.preferences?.sessionFrequency || "Not set"}
+                      </p>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Preferences Tab */}
-          <TabsContent value="preferences">
-            <div className="space-y-6">
-              {/* App Preferences */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Settings className="w-5 h-5 mr-2" />
-                    App Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Preferred Persona */}
-                  <div>
-                    <Label className="text-sm font-medium">Preferred Persona</Label>
-                    <Select
-                      value={profile.preferences?.preferredPersona || 'sarah'}
-                      onValueChange={(value) =>
-                        setProfile({
-                          ...profile,
-                          preferences: {
-                            ...profile.preferences,
-                            preferredPersona: value,
-                          },
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full mt-2">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sarah">Dr. Sarah (Therapist)</SelectItem>
-                        <SelectItem value="alex">Alex (Life Coach)</SelectItem>
-                        <SelectItem value="marcus">Marcus (Fitness Coach)</SelectItem>
-                        <SelectItem value="maya">Maya (Mindfulness Guide)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Voice Interface */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Voice Interface</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Enable speech-to-text and text-to-speech
-                      </p>
-                    </div>
-                    <Switch
-                      checked={voiceEnabled}
-                      onCheckedChange={handleVoiceToggle}
-                    />
-                  </div>
-
-                  {/* Dark Mode */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Dark Mode</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Use dark theme throughout the app
-                      </p>
-                    </div>
-                    <Switch
-                      checked={theme === "dark"}
-                      onCheckedChange={handleDarkModeToggle}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Notifications */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Bell className="w-5 h-5 mr-2" />
-                    Notifications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Daily Check-ins</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Remind me to log my daily mood
-                      </p>
-                    </div>
-                    <Switch
-                      checked={profile.preferences?.notifications?.dailyCheckins || false}
-                      onCheckedChange={(checked) => {
-                        const updatedProfile = {
-                          ...profile,
-                          preferences: {
-                            ...profile.preferences,
-                            notifications: {
-                              ...profile.preferences?.notifications,
-                              dailyCheckins: checked
-                            }
-                          }
-                        };
-                        setProfile(updatedProfile);
-                        updateProfileMutation.mutate(updatedProfile);
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Session Reminders</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Notify me about scheduled therapy sessions
-                      </p>
-                    </div>
-                    <Switch
-                      checked={profile.preferences?.notifications?.sessionReminders || false}
-                      onCheckedChange={(checked) => {
-                        const updatedProfile = {
-                          ...profile,
-                          preferences: {
-                            ...profile.preferences,
-                            notifications: {
-                              ...profile.preferences?.notifications,
-                              sessionReminders: checked
-                            }
-                          }
-                        };
-                        setProfile(updatedProfile);
-                        updateProfileMutation.mutate(updatedProfile);
-                      }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Progress Updates</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Weekly summaries of my mental health journey
-                      </p>
-                    </div>
-                    <Switch
-                      checked={profile.preferences?.notifications?.progressUpdates || false}
-                      onCheckedChange={(checked) => {
-                        const updatedProfile = {
-                          ...profile,
-                          preferences: {
-                            ...profile.preferences,
-                            notifications: {
-                              ...profile.preferences?.notifications,
-                              progressUpdates: checked
-                            }
-                          }
-                        };
-                        setProfile(updatedProfile);
-                        updateProfileMutation.mutate(updatedProfile);
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Goals & Interests Tab */}
-          <TabsContent value="goals">
-            <div className="space-y-6">
-              {/* Personal Goals */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="w-5 h-5 mr-2" />
-                    Personal Goals
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newGoal}
-                      onChange={(e) => setNewGoal(e.target.value)}
-                      placeholder="Add a new goal..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddGoal()}
-                    />
-                    <Button onClick={handleAddGoal} disabled={!newGoal.trim()}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(profile.goals || []).map((goal, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center space-x-1">
-                        <span>{goal}</span>
-                        <X
-                          className="w-3 h-3 cursor-pointer hover:text-destructive"
-                          onClick={() => handleRemoveGoal(index)}
-                        />
-                      </Badge>
-                    ))}
-                    {(!profile.goals || profile.goals.length === 0) && (
-                      <p className="text-sm text-muted-foreground">No goals added yet</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Interests & Hobbies */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Heart className="w-5 h-5 mr-2" />
-                    Interests & Hobbies
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newInterest}
-                      onChange={(e) => setNewInterest(e.target.value)}
-                      placeholder="Add an interest..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddInterest()}
-                    />
-                    <Button onClick={handleAddInterest} disabled={!newInterest.trim()}>
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(profile.interests || []).map((interest, index) => (
-                      <Badge key={index} variant="outline" className="flex items-center space-x-1">
-                        <span>{interest}</span>
-                        <X
-                          className="w-3 h-3 cursor-pointer hover:text-destructive"
-                          onClick={() => handleRemoveInterest(index)}
-                        />
-                      </Badge>
-                    ))}
-                    {(!profile.interests || profile.interests.length === 0) && (
-                      <p className="text-sm text-muted-foreground">No interests added yet</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Privacy & Data Tab */}
-          <TabsContent value="privacy">
-            <div className="space-y-6">
-              {/* Privacy Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Shield className="w-5 h-5 mr-2" />
-                    Privacy Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Share Analytics</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Help improve SoulSense by sharing anonymous usage data
-                      </p>
-                    </div>
-                    <Switch
-                      checked={profile.privacySettings?.shareAnalytics || false}
-                      onCheckedChange={(checked) => handlePrivacyUpdate('shareAnalytics', checked)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data Retention Period</Label>
-                    <Select
-                      value={profile.privacySettings?.dataRetention || "1year"}
-                      onValueChange={(value) => handlePrivacyUpdate('dataRetention', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3months">3 months</SelectItem>
-                        <SelectItem value="6months">6 months</SelectItem>
-                        <SelectItem value="1year">1 year</SelectItem>
-                        <SelectItem value="2years">2 years</SelectItem>
-                        <SelectItem value="indefinite">Indefinite</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Data Management */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Data Management</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Download My Data</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Export all your personal data in JSON format for your records or to transfer to another service.
-                      </p>
-                      <Button onClick={handleDataExport} variant="outline">
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Data
-                      </Button>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <h4 className="font-medium mb-2 text-destructive">Delete Account</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Permanently delete your account and all associated data. This action cannot be undone.
-                      </p>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Account
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your account
-                              and remove all your data from our servers, including:
-                              <ul className="list-disc list-inside mt-2 space-y-1">
-                                <li>Profile information and settings</li>
-                                <li>All conversation history</li>
-                                <li>Goals and progress tracking</li>
-                                <li>Mood entries and assessments</li>
-                                <li>All personal data and preferences</li>
-                              </ul>
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleAccountDeletion}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Yes, delete my account
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+// Goal Dialog Component
+function GoalDialog({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  isLoading 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "personal",
+    targetDate: "",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+    setFormData({ title: "", description: "", category: "personal", targetDate: "" });
+  };
+
+  return (
+    <DialogContent className="max-w-md">
+      <DialogHeader>
+        <DialogTitle>Create New Goal</DialogTitle>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="title">Goal Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="e.g., Practice daily meditation"
+            required
+            className="rounded-2xl"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            placeholder="Describe your goal..."
+            rows={3}
+            className="rounded-2xl"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="category">Category</Label>
+          <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+            <SelectTrigger className="rounded-2xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mental">Mental Health</SelectItem>
+              <SelectItem value="emotional">Emotional Wellbeing</SelectItem>
+              <SelectItem value="personal">Personal Growth</SelectItem>
+              <SelectItem value="social">Social Connection</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <Label htmlFor="targetDate">Target Date (Optional)</Label>
+          <Input
+            id="targetDate"
+            type="date"
+            value={formData.targetDate}
+            onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
+            className="rounded-2xl"
+          />
+        </div>
+        
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-2xl"
+          >
+            {isLoading ? "Creating..." : "Create Goal"}
+          </Button>
+          <Button type="button" variant="outline" onClick={onClose} className="rounded-2xl">
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
   );
 }
