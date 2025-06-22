@@ -12,7 +12,7 @@ import { z } from "zod";
 const createChatMessageRequestSchema = z.object({
   message: z.string().min(1),
   personaId: z.string(),
-  conversationId: z.number().optional(),
+  conversationId: z.number().optional().nullable(),
   userId: z.string().default("anonymous"),
   isFirstMessage: z.boolean().default(false),
   userMood: z.string().optional(),
@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/mood-entries', async (req, res) => {
     try {
       const userId = req.query.userId as string || "anonymous";
-      const entries = await storage.getUserMoodEntries(userId);
+      const entries = await storage.getUserMoodEntries(userId, "all");
       res.json(entries);
     } catch (error) {
       console.error("Error fetching mood entries:", error);

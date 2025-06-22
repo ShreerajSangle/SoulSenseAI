@@ -91,8 +91,8 @@ export default function EnhancedChatScreen() {
   });
 
   useEffect(() => {
-    if (conversationMessages.length > 0) {
-      setMessages(conversationMessages);
+    if (conversationMessages && Array.isArray(conversationMessages) && conversationMessages.length > 0) {
+      setMessages(conversationMessages as Message[]);
     }
   }, [conversationMessages]);
 
@@ -106,7 +106,7 @@ export default function EnhancedChatScreen() {
         userId: "anonymous",
         isFirstMessage: !conversationId
       });
-      return response;
+      return response as any;
     },
     onSuccess: (data) => {
       if (!conversationId) {
@@ -227,8 +227,12 @@ export default function EnhancedChatScreen() {
             key={message.id}
             message={message.content}
             sender={message.sender}
-            timestamp={message.timestamp}
-            persona={persona}
+            timestamp={new Date(message.timestamp).toISOString()}
+            persona={{
+              ...persona,
+              specialty: persona.role,
+              avatarUrl: persona.avatar
+            }}
             emotion={message.emotionDetected}
           />
         ))}

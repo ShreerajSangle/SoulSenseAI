@@ -60,7 +60,7 @@ export interface IStorage {
   
   // Mood tracking
   createMoodEntry(entry: any): Promise<any>;
-  getUserMoodEntries(userId: string, range: string): Promise<any[]>;
+  getUserMoodEntries(userId: string, range?: string): Promise<any[]>;
   
   // Micro-tools tracking
   createMicroToolUsage(usage: any): Promise<any>;
