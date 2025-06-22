@@ -189,30 +189,30 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
           {!sessionStarted ? (
             /* Session Check-in */
             <div className="flex-1 flex items-center justify-center p-8">
-              <Card className="max-w-md w-full border-0 shadow-lg bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <Card className="max-w-md w-full border-0 shadow-lg bg-gradient-to-br from-white/40 to-[#F8F6FF] dark:from-[#352843] dark:to-[#453354] backdrop-blur-sm animate-fade-in">
                 <CardContent className="p-8 text-center space-y-6">
-                  <div className="text-6xl mb-4">{persona.emoji}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Welcome to your session
+                  <div className="text-6xl mb-4 animate-float">{persona.emoji}</div>
+                  <h3 className="text-xl font-semibold text-[#3A2548] dark:text-[#F2D4F2]">
+                    Welcome to your session with {persona.name}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    How are you feeling today? What would you like to discuss or explore in our conversation?
+                  <p className="text-[#5A3F70] dark:text-[#A678AB] leading-relaxed">
+                    Take a moment to connect with yourself. How are you feeling today? What would you like to explore in our safe space together?
                   </p>
                   
                   <div className="space-y-4">
                     <Textarea
-                      placeholder="Share what's on your mind..."
+                      placeholder="Share what's on your mind and heart..."
                       value={checkInResponse}
                       onChange={(e) => setCheckInResponse(e.target.value)}
                       onKeyDown={handleKeyPress}
-                      className="min-h-[100px] rounded-2xl border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400"
+                      className="min-h-[100px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm"
                     />
                     <Button
                       onClick={handleStartSession}
                       disabled={!checkInResponse.trim()}
-                      className="w-full rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-medium py-3"
+                      className="w-full rounded-2xl bg-gradient-to-r from-[#B794D1] to-[#EC4899] hover:from-[#9B7CB8] hover:to-[#DB2777] text-white font-medium py-3 shadow-lg animate-float"
                     >
-                      Begin Conversation
+                      Begin Our Conversation
                     </Button>
                   </div>
                 </CardContent>
@@ -222,30 +222,30 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
             /* Chat Interface */
             <>
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-950">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#F8F6FF]/30 to-[#E6E6FA]/20 dark:from-[#352843]/30 dark:to-[#2A2035]">
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex items-start gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                  <div key={message.id} className={`flex items-start gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
                     {message.sender === "ai" && (
-                      <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
+                      <Avatar className="w-8 h-8 flex-shrink-0 mt-1 animate-float">
                         <AvatarImage src={persona.avatar} alt={persona.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold text-xs">
+                        <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-xs">
                           {persona.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                     )}
                     
-                    <div className={`max-w-[70%] px-4 py-3 rounded-2xl ${
+                    <div className={`max-w-[70%] px-4 py-3 rounded-2xl backdrop-blur-sm ${
                       message.sender === "user" 
-                        ? "bg-gradient-to-r from-purple-500 to-indigo-500 text-white ml-auto shadow-lg" 
-                        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 shadow-sm"
+                        ? "bg-gradient-to-r from-[#B794D1] to-[#EC4899] text-white ml-auto shadow-lg border border-[#D8C2F5]/30" 
+                        : "bg-white/60 dark:bg-[#453354]/60 text-[#3A2548] dark:text-[#F2D4F2] border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 shadow-sm"
                     }`}>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                       {message.emotion && (
-                        <Badge variant="secondary" className="mt-2 text-xs bg-purple-100 text-purple-700">
-                          {message.emotion}
+                        <Badge variant="secondary" className="mt-2 text-xs bg-[#F3EFFF] text-[#7A5A95] border border-[#D8C2F5]">
+                          💜 {message.emotion}
                         </Badge>
                       )}
-                      <div className={`text-xs mt-1 ${message.sender === "user" ? "text-white/70" : "text-gray-500"}`}>
+                      <div className={`text-xs mt-1 ${message.sender === "user" ? "text-white/70" : "text-[#78716C] dark:text-[#A678AB]"}`}>
                         {message.timestamp.toLocaleTimeString()}
                       </div>
                     </div>
@@ -253,18 +253,18 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 ))}
                 
                 {isTyping && (
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8 flex-shrink-0 mt-1">
+                  <div className="flex items-start gap-3 animate-fade-in">
+                    <Avatar className="w-8 h-8 flex-shrink-0 mt-1 animate-float">
                       <AvatarImage src={persona.avatar} alt={persona.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold text-xs">
+                      <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-xs">
                         {persona.name.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="bg-white dark:bg-gray-800 px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div className="bg-white/60 dark:bg-[#453354]/60 px-4 py-3 rounded-2xl border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 shadow-sm backdrop-blur-sm">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        <div className="w-2 h-2 bg-[#B794D1] rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-[#C8A2E8] rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                        <div className="w-2 h-2 bg-[#EC4899] rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                       </div>
                     </div>
                   </div>
@@ -273,23 +273,23 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
               </div>
 
               {/* Input Area */}
-              <div className="border-t border-gray-200/50 dark:border-gray-700/50 p-6 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
-                <div className="flex items-end gap-3">
+              <div className="border-t border-[#D8C2F5]/50 dark:border-[#5A4267]/50 p-6 bg-gradient-to-r from-white/40 to-[#F8F6FF]/60 dark:from-[#352843]/60 dark:to-[#453354]/80 backdrop-blur-sm">
+                <div className="flex items-end gap-4">
                   <div className="flex-1 relative">
                     <Textarea
-                      placeholder="Share your thoughts..."
+                      placeholder="Share your thoughts and feelings in this safe space..."
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       disabled={isTyping}
-                      className="min-h-[50px] max-h-[120px] rounded-2xl border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 resize-none pr-12"
+                      className="min-h-[50px] max-h-[120px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] resize-none bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm text-[#3A2548] dark:text-[#F2D4F2] placeholder:text-[#78716C] dark:placeholder:text-[#A678AB]"
                     />
                   </div>
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
                     size="lg"
-                    className="rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white h-[50px] px-6 shadow-lg"
+                    className="rounded-2xl bg-gradient-to-r from-[#B794D1] to-[#EC4899] hover:from-[#9B7CB8] hover:to-[#DB2777] text-white h-[50px] px-6 shadow-lg animate-float transition-all duration-300"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
