@@ -215,8 +215,8 @@ export default function EnhancedMemoryScreen() {
                 return (
                   <Card
                     key={conversation.id}
-                    className="group border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                    onClick={() => setLocation(`/chat/${conversation.personaId}`)}
+                    className="group border-0 shadow-lg bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                    onClick={() => setLocation(`/chat/session/${conversation.id}`)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
