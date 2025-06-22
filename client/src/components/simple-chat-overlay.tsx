@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Send } from "lucide-react";
+import { X, Send, Wind, Target } from "lucide-react";
+import BreathingExercise from "@/components/breathing-exercise";
+import GoalCreationModal from "@/components/goal-creation-modal";
+import EmojiSelector from "@/components/emoji-selector";
 
 interface Message {
   id: number;
@@ -38,6 +41,8 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [checkInResponse, setCheckInResponse] = useState("");
   const [currentEmotion, setCurrentEmotion] = useState("Neutral");
   const [emotionIntensity, setEmotionIntensity] = useState(50);
+  const [breathingModalOpen, setBreathingModalOpen] = useState(false);
+  const [goalModalOpen, setGoalModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +52,15 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const sendMessage = async (message: string) => {
     try {
       setIsTyping(true);
+      
+      // Check for wellness feature triggers
+      const lowerMessage = message.toLowerCase();
+      if (lowerMessage.includes('stress') || lowerMessage.includes('anxious') || lowerMessage.includes('overwhelm') || lowerMessage.includes('panic')) {
+        setBreathingModalOpen(true);
+      }
+      if (lowerMessage.includes('goal') || lowerMessage.includes('improve') || lowerMessage.includes('want to') || lowerMessage.includes('stay on track')) {
+        setGoalModalOpen(true);
+      }
       
       // Add user message immediately
       const userMessage: Message = {
@@ -274,6 +288,28 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
               {/* Input Area */}
               <div className="border-t border-[#D8C2F5]/50 dark:border-[#5A4267]/50 p-6 bg-gradient-to-r from-white/40 to-[#F8F6FF]/60 dark:from-[#352843]/60 dark:to-[#453354]/80 backdrop-blur-sm">
+                {/* Wellness Feature Buttons */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setBreathingModalOpen(true)}
+                    className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-purple-50 dark:hover:bg-purple-900/20 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300"
+                  >
+                    <Wind className="h-4 w-4" />
+                    Breathing Exercise
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setGoalModalOpen(true)}
+                    className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-pink-50 dark:hover:bg-pink-900/20 border-pink-200 dark:border-pink-700 text-pink-700 dark:text-pink-300"
+                  >
+                    <Target className="h-4 w-4" />
+                    Set Goal
+                  </Button>
+                </div>
+
                 <div className="flex items-end gap-4">
                   <div className="flex-1 relative">
                     <Textarea
@@ -285,6 +321,13 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                       className="min-h-[50px] max-h-[120px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] resize-none bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm text-[#3A2548] dark:text-[#F2D4F2] placeholder:text-[#78716C] dark:placeholder:text-[#A678AB]"
                     />
                   </div>
+                  
+                  {/* Emoji Selector */}
+                  <EmojiSelector 
+                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
+                    className="self-end mb-1"
+                  />
+                  
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
