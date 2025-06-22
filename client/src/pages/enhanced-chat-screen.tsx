@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
-import { TopNavBar } from "@/components/top-nav-bar";
+
 import { MessageBubble } from "@/components/message-bubble";
 import { InputBar } from "@/components/input-bar";
 import { TypingIndicator } from "@/components/typing-indicator";
@@ -13,8 +13,6 @@ import { BreathingExercise, GroundingTechnique, CBTJournal } from "@/components/
 import { MoodTrackerDashboard } from "@/components/mood-tracker-dashboard";
 import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components/voice-interface";
 import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
-import { UnifiedNavigation } from "@/components/unified-navigation";
-import { IntegratedSessionHistory } from "@/components/integrated-session-history";
 import RedesignedSessionHistory from "@/components/redesigned-session-history";
 
 import { Button } from "@/components/ui/button";
@@ -732,26 +730,23 @@ export default function EnhancedChatScreen() {
               )}
             </div>
             
-            {/* Header Actions */}
+            {/* Clean Header Actions - Only History */}
             <div className="flex items-center gap-3">
-              {/* Session History Button */}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowUnifiedHistory(!showUnifiedHistory)}
-                className="text-purple-700 hover:bg-purple-50 rounded-xl"
+                onClick={() => setShowUnifiedHistory(true)}
+                className="text-purple-700 hover:bg-purple-50 rounded-xl px-4 py-2"
               >
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 mr-2" />
+                History
               </Button>
 
               {/* Connection Status */}
               {memoryStats && (
-                <div className="flex gap-3">
-                  <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-                    Trust: {Math.round(memoryStats.trustLevel * 100)}%
-                  </Badge>
-                  <Badge className="bg-pink-100 text-pink-800 border-pink-200">
-                    Connection: {Math.round(memoryStats.intimacyDepth * 100)}%
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200 text-xs">
+                    Trust {Math.round(memoryStats.trustLevel * 100)}%
                   </Badge>
                 </div>
               )}
