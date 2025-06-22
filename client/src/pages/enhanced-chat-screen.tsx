@@ -5,15 +5,11 @@ import { apiRequest } from "@/lib/queryClient";
 
 
 import { MessageBubble } from "@/components/message-bubble";
-import { InputBar } from "@/components/input-bar";
 import { TypingIndicator } from "@/components/typing-indicator";
-import { CrisisAlert } from "@/components/crisis-alert";
 import { MoodCheckInWidget, MoodCheckInData } from "@/components/mood-checkin-widget";
-import { BreathingExercise, GroundingTechnique, CBTJournal } from "@/components/micro-tools";
 import { MoodTrackerDashboard } from "@/components/mood-tracker-dashboard";
-import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components/voice-interface";
-import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
 import RedesignedSessionHistory from "@/components/redesigned-session-history";
+import { SimpleInput } from "@/components/simple-input";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
