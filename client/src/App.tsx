@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import PersonaSelector from "@/pages/persona-selector";
-import ChatScreen from "@/pages/chat-screen";
 import EnhancedChatScreen from "@/pages/enhanced-chat-screen";
 import MemoryScreen from "@/pages/memory-screen";
 import SessionSummary from "@/pages/session-summary";
@@ -26,7 +25,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={PersonaSelector} />
-      <Route path="/chat" component={EnhancedChatScreen} />
+
       <Route path="/chat/:persona" component={EnhancedChatScreen} />
       <Route path="/replika-demo" component={ReplikaQualityDemo} />
       <Route path="/specialized-demo" component={SpecializedPersonaDemo} />
