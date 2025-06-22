@@ -120,7 +120,7 @@ export default function PersonaSelector() {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {personas.map((persona) => {
+            {personas.map((persona: any) => {
               const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || Brain;
               const gradient = personaGradients[persona.id as keyof typeof personaGradients] || "from-slate-500 to-slate-600";
               const accent = personaAccents[persona.id as keyof typeof personaAccents] || "text-slate-600 bg-slate-50 border-slate-200";

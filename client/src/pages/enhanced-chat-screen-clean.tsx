@@ -120,7 +120,7 @@ export default function EnhancedChatScreen() {
         conversationId: data.conversationId,
         content: data.message.content,
         sender: "user",
-        timestamp: new Date().toISOString()
+        timestamp: new Date()
       };
       
       const aiMessage: Message = {
@@ -128,8 +128,8 @@ export default function EnhancedChatScreen() {
         conversationId: data.conversationId,
         content: data.aiResponse,
         sender: "ai",
-        timestamp: new Date().toISOString(),
-        emotionDetected: data.emotionDetected
+        timestamp: new Date(),
+        emotionDetected: data.emotionDetected || null
       };
       
       setMessages(prev => [...prev, userMessage, aiMessage]);
@@ -152,7 +152,8 @@ export default function EnhancedChatScreen() {
         conversationId: conversationId || 0,
         content: message,
         sender: "user", 
-        timestamp: new Date().toISOString()
+        timestamp: new Date(),
+        emotionDetected: null
       };
       
       setMessages(prev => [...prev, userMessage]);
@@ -227,15 +228,32 @@ export default function EnhancedChatScreen() {
         )}
         
         {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            persona={{
-              ...persona,
-              specialty: persona.role,
-              avatarUrl: persona.avatar
-            }}
-          />
+          <div key={message.id} className={`flex items-start gap-3 mb-4 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+            {message.sender === "ai" && persona && (
+              <Avatar className="w-10 h-10 flex-shrink-0 mt-1">
+                <AvatarImage src={persona.avatar} alt={persona.name} />
+                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold">
+                  {persona.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            
+            <div className={`max-w-[75%] lg:max-w-md px-4 py-3 rounded-2xl relative ${
+              message.sender === "user" 
+                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto" 
+                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
+            }`}>
+              <p className="text-sm leading-relaxed">{message.content}</p>
+              {message.emotionDetected && (
+                <Badge variant="secondary" className="mt-2 text-xs">
+                  {message.emotionDetected}
+                </Badge>
+              )}
+              <div className="text-xs opacity-70 mt-1">
+                {new Date(message.timestamp).toLocaleTimeString()}
+              </div>
+            </div>
+          </div>
         ))}
         
         {isTyping && (
