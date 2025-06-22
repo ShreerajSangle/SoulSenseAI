@@ -93,61 +93,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate AI response using Claude
       const conversationHistory = await storage.getConversationMessages(currentConversationId);
-      const responseGenerator = await claudeConversationSystem.generateStreamingResponse(
-        message,
-        personaId,
-        userId,
-        conversationHistory
-      );
-
-      let fullContent = "";
-      let emotionalTone = "supportive";
       
-      // Process streaming response with timeout
-      const timeout = setTimeout(() => {
-        throw new Error("Claude response timeout");
-      }, 25000);
-
       try {
-        for await (const chunk of responseGenerator) {
-          if (chunk.content) {
-            fullContent += chunk.content;
-          }
-          if (chunk.emotion) {
-            emotionalTone = chunk.emotion;
-          }
-          if (chunk.isComplete) {
-            break;
-          }
-        }
-      } finally {
-        clearTimeout(timeout);
+        const responseGenerator = await claudeConversationSystem.generateStreamingResponse(
+          message,
+          personaId,
+          userId,
+          conversationHistory
+        );
+
+        const { value: firstChunk } = await responseGenerator.next();
+        const fullContent = firstChunk?.content || "I hear you, and I'm here to support you through this.";
+        const emotionalTone = firstChunk?.emotion || "supportive";
+
+        console.log('Claude response processed successfully:', fullContent.substring(0, 50) + '...');
+
+        // Save AI message
+        const aiMessage = await storage.createMessage({
+          conversationId: currentConversationId,
+          content: fullContent,
+          sender: "ai",
+          emotionDetected: emotionalTone,
+        });
+
+        // Background sync AI message
+        supabaseSync.syncMessage(userId, currentConversationId.toString(), {
+          sender: "ai",
+          content: fullContent,
+          emotionDetected: emotionalTone,
+          timestamp: new Date()
+        });
+
+        res.json({
+          conversationId: currentConversationId,
+          message: aiMessage,
+          aiResponse: fullContent,
+          emotionDetected: emotionalTone,
+          followUpQuestions: [],
+          therapeuticTechniques: []
+        });
+
+      } catch (claudeError) {
+        console.error("Claude API error:", claudeError);
+        
+        // Fallback response when Claude fails
+        const fallbackResponse = "I hear you, and I want you to know that your feelings are completely valid. Sometimes it helps to take a moment and acknowledge what we're experiencing. What feels most important for you to talk about right now?";
+        
+        const aiMessage = await storage.createMessage({
+          conversationId: currentConversationId,
+          content: fallbackResponse,
+          sender: "ai",
+          emotionDetected: "supportive",
+        });
+
+        res.json({
+          conversationId: currentConversationId,
+          message: aiMessage,
+          aiResponse: fallbackResponse,
+          emotionDetected: "supportive",
+          followUpQuestions: [],
+          therapeuticTechniques: []
+        });
       }
-
-      // Save AI message
-      const aiMessage = await storage.createMessage({
-        conversationId: currentConversationId,
-        content: fullContent,
-        sender: "ai",
-        emotionDetected: emotionalTone,
-      });
-
-      // Background sync AI message
-      supabaseSync.syncMessage(userId, currentConversationId.toString(), {
-        sender: "ai",
-        content: fullContent,
-        emotionDetected: emotionalTone,
-        timestamp: new Date()
-      });
-
-      res.json({
-        conversationId: currentConversationId,
-        message: aiMessage,
-        aiResponse: fullContent,
-        emotionDetected: emotionalTone,
-        followUpQuestions: [],
-        therapeuticTechniques: []
-      });
     } catch (error) {
       console.error("Error processing chat message:", error);
       if (error instanceof z.ZodError) {
