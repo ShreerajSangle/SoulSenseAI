@@ -1,11 +1,13 @@
 import { EventEmitter } from 'events';
 
-// Claude Instant v1 via OpenRouter configuration
-const CLAUDE_MODEL = "anthropic/claude-instant-v1";
+// Claude 3 Haiku via OpenRouter configuration
+const CLAUDE_MODEL = "anthropic/claude-3-haiku";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // OpenRouter API client setup
 async function makeClaudeRequest(messages: any[]) {
+  console.log('Making Claude request with messages:', JSON.stringify(messages, null, 2));
+  
   const response = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
@@ -24,7 +26,9 @@ async function makeClaudeRequest(messages: any[]) {
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenRouter API error details:', errorText);
+    throw new Error(`OpenRouter API error: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
   return response.json();

@@ -127,18 +127,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Background sync AI message
       supabaseSync.syncMessage(userId, currentConversationId.toString(), {
         sender: "ai",
-        content: aiResponse.content,
-        emotionDetected: aiResponse.emotionalTone,
+        content: fullContent,
+        emotionDetected: emotionalTone,
         timestamp: new Date()
       });
 
       res.json({
         conversationId: currentConversationId,
         message: aiMessage,
-        aiResponse: aiResponse.content,
-        emotionDetected: aiResponse.emotionalTone,
-        followUpQuestions: aiResponse.followUpQuestions || [],
-        therapeuticTechniques: aiResponse.therapeuticTechniques || []
+        aiResponse: fullContent,
+        emotionDetected: emotionalTone,
+        followUpQuestions: [],
+        therapeuticTechniques: []
       });
     } catch (error) {
       console.error("Error processing chat message:", error);
