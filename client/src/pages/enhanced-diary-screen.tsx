@@ -256,7 +256,7 @@ export default function EnhancedDiaryScreen() {
         </div>
 
         {/* Filters & Search */}
-        <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm mb-8">
+        <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 mb-8">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -329,7 +329,7 @@ export default function EnhancedDiaryScreen() {
               return (
                 <Card
                   key={entry.id}
-                  className="group border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                  className="group border-0 shadow-lg bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                   onClick={() => {
                     setSelectedEntry(entry);
                     setIsViewDialogOpen(true);
