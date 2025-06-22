@@ -26,17 +26,17 @@ const personaIcons = {
 };
 
 const personaGradients = {
-  sarah: "from-rose-500 to-pink-500",
-  alex: "from-blue-500 to-indigo-500", 
-  marcus: "from-green-500 to-emerald-500",
-  maya: "from-purple-500 to-violet-500",
+  sarah: "from-[#EC4899] to-[#F472B6]",
+  alex: "from-[#B794D1] to-[#9B7CB8]", 
+  marcus: "from-[#C8A2E8] to-[#B794D1]",
+  maya: "from-[#7A5A95] to-[#5A3F70]",
 };
 
 const personaAccents = {
-  sarah: "text-rose-600 bg-rose-50 border-rose-200",
-  alex: "text-blue-600 bg-blue-50 border-blue-200",
-  marcus: "text-green-600 bg-green-50 border-green-200", 
-  maya: "text-purple-600 bg-purple-50 border-purple-200",
+  sarah: "text-[#DB2777] bg-[#FCE7F3] border-[#F9A8D4]",
+  alex: "text-[#7A5A95] bg-[#F3EFFF] border-[#D8C2F5]",
+  marcus: "text-[#9B7CB8] bg-[#F8F6FF] border-[#E6E6FA]", 
+  maya: "text-[#5A3F70] bg-[#FBCFE8] border-[#F9A8D4]",
 };
 
 export default function UnifiedHome() {
@@ -71,20 +71,20 @@ export default function UnifiedHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8F6FF] via-[#E6E6FA] to-[#FBCFE8] dark:from-[#2A2035] dark:via-[#352843] dark:to-[#453354] particles-bg">
       {/* Header */}
-      <div className="bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-40">
+      <div className="bg-white/60 dark:bg-[#2A2035]/80 backdrop-blur-sm border-b border-[#D8C2F5]/50 dark:border-[#5A4267]/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#B794D1] to-[#EC4899] rounded-3xl flex items-center justify-center animate-float shadow-lg">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#7A5A95] to-[#DB2777] bg-clip-text text-transparent">
                   SoulSense
                 </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Your AI Wellness Companion</p>
+                <p className="text-xs text-[#78716C] dark:text-[#A678AB]">Your AI Wellness Companion</p>
               </div>
             </div>
             
@@ -95,7 +95,7 @@ export default function UnifiedHome() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/memory")}
-                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Memory & Insights
@@ -104,7 +104,7 @@ export default function UnifiedHome() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/diary")}
-                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
                 >
                   <BookOpen className="h-4 w-4 mr-2" />
                   Diary
@@ -113,14 +113,14 @@ export default function UnifiedHome() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/profile")}
-                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Button>
               </div>
               
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className="bg-[#FCE7F3] text-[#DB2777] border-[#F9A8D4] animate-pulse-gentle">
                 4 Personas Active
               </Badge>
               
@@ -185,22 +185,22 @@ export default function UnifiedHome() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Welcome Section */}
-        <div className="text-center mb-16 space-y-6">
-          <div className="inline-flex items-center gap-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200/50 dark:border-gray-700/50">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Ready to support you</span>
+        <div className="text-center mb-16 space-y-6 animate-fade-in">
+          <div className="inline-flex items-center gap-2 bg-white/40 dark:bg-[#352843]/60 backdrop-blur-sm px-6 py-3 rounded-full border border-[#D8C2F5]/30 dark:border-[#5A4267]/50 shadow-lg">
+            <div className="w-3 h-3 bg-gradient-to-r from-[#B794D1] to-[#EC4899] rounded-full animate-pulse-gentle"></div>
+            <span className="text-sm text-[#5A3F70] dark:text-[#C294C4] font-medium">Ready to support you with care</span>
           </div>
           
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-bold text-[#3A2548] dark:text-[#F2D4F2] leading-tight">
             Welcome to your
-            <span className="block bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-[#7A5A95] via-[#B794D1] to-[#DB2777] bg-clip-text text-transparent animate-shimmer">
               Personal Wellness Journey
             </span>
           </h2>
           
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-[#5A3F70] dark:text-[#A678AB] max-w-2xl mx-auto leading-relaxed">
             Choose from four specialized AI companions, each designed to provide personalized emotional support, 
-            therapeutic guidance, and meaningful conversations tailored to your unique needs.
+            therapeutic guidance, and meaningful conversations in a safe, nurturing environment.
           </p>
         </div>
 
@@ -214,10 +214,10 @@ export default function UnifiedHome() {
             return (
               <Card
                 key={persona.id}
-                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:scale-[1.02] cursor-pointer"
+                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/40 dark:bg-[#352843]/60 backdrop-blur-sm hover:scale-[1.03] cursor-pointer animate-fade-in"
                 onClick={() => handlePersonaSelect(persona)}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
                 
                 <CardContent className="p-8 relative">
                   <div className="flex items-start gap-6">

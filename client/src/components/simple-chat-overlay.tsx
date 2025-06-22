@@ -138,36 +138,37 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl h-[85vh] bg-white dark:bg-gray-950 rounded-3xl shadow-2xl overflow-hidden border border-gray-200/50 dark:border-gray-800/50">
+    <div className="fixed inset-0 bg-[#B794D1]/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="w-full max-w-4xl h-[85vh] bg-white/60 dark:bg-[#2A2035]/90 rounded-3xl shadow-2xl overflow-hidden border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 backdrop-blur-sm">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
+        <div className="bg-gradient-to-r from-[#F8F6FF] to-[#FBCFE8] dark:from-[#352843] dark:to-[#453354] px-6 py-5 border-b border-[#D8C2F5]/50 dark:border-[#5A4267]/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="w-12 h-12 ring-2 ring-white/50">
+              <Avatar className="w-14 h-14 ring-3 ring-[#B794D1]/30 animate-float">
                 <AvatarImage src={persona.avatar} alt={persona.name} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold text-lg">
+                <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-lg">
                   {persona.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <h2 className="text-xl font-semibold text-[#3A2548] dark:text-[#F2D4F2] flex items-center gap-2">
                   {persona.name}
+                  <span className="text-2xl">{persona.emoji}</span>
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {persona.role}
+                <p className="text-sm text-[#7A5A95] dark:text-[#A678AB] font-medium">
+                  {persona.role} • Here to support you
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3 text-sm">
-                <Badge variant="outline" className="bg-white/50 text-gray-700 border-gray-300">
-                  Emotion: {currentEmotion}
+                <Badge variant="outline" className="bg-[#F3EFFF] text-[#7A5A95] border-[#D8C2F5] animate-pulse-gentle">
+                  💜 {currentEmotion}
                 </Badge>
-                <Badge variant="outline" className="bg-white/50 text-gray-700 border-gray-300">
-                  Intensity: {emotionIntensity}%
+                <Badge variant="outline" className="bg-[#FCE7F3] text-[#DB2777] border-[#F9A8D4]">
+                  ✨ {emotionIntensity}%
                 </Badge>
               </div>
               
@@ -175,7 +176,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-gray-500 hover:text-gray-700 hover:bg-white/50"
+                className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] rounded-2xl transition-all duration-300"
               >
                 <X className="h-5 w-5" />
               </Button>
