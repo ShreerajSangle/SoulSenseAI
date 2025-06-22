@@ -74,6 +74,10 @@ export default function EnhancedDiaryScreen() {
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ["/api/diary-entries"],
+    queryFn: async () => {
+      const response = await fetch("/api/diary-entries?userId=anonymous");
+      return response.json();
+    }
   });
 
   const createEntryMutation = useMutation({

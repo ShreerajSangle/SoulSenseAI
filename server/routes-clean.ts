@@ -251,9 +251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/profile/:userId', async (req, res) => {
+  app.put('/api/profile', async (req, res) => {
     try {
-      const userId = req.params.userId;
+      const userId = req.body.userId || "anonymous";
       const updatedProfile = await storage.updateUserProfile(userId, req.body);
       
       // Background sync to Supabase
