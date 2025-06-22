@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Save, Heart, Brain, Star, Coffee } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 interface MiniJournalModalProps {
@@ -66,36 +66,44 @@ export default function MiniJournalModal({ isOpen, onClose, persona, conversatio
     textareaRef.current?.focus();
   };
 
-  const handleSave = async () => {
-    if (!entry.trim()) return;
-
-    setIsSaving(true);
-    try {
-      await apiRequest('/api/journal-entries', 'POST', {
-        content: entry,
-        moods: selectedMoods,
-        personaId: persona.id,
-        conversationId: conversationId || null,
-        userId: "anonymous"
+  const saveMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/journal-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
-
+      if (!response.ok) throw new Error('Failed to save entry');
+      return response.json();
+    },
+    onSuccess: () => {
       toast({
         title: "Journal entry saved",
         description: "Your reflection has been saved privately.",
       });
-
       setEntry("");
       setSelectedMoods([]);
       onClose();
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error saving entry",
         description: "Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
+  });
+
+  const handleSave = () => {
+    if (!entry.trim()) return;
+    
+    saveMutation.mutate({
+      content: entry,
+      moods: selectedMoods,
+      personaId: persona.id,
+      conversationId: conversationId || null,
+      userId: "anonymous"
+    });
   };
 
   return (
@@ -183,11 +191,11 @@ export default function MiniJournalModal({ isOpen, onClose, persona, conversatio
             </Button>
             <Button
               onClick={handleSave}
-              disabled={!entry.trim() || isSaving}
+              disabled={!entry.trim() || saveMutation.isPending}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isSaving ? "Saving..." : "Save Entry"}
+              {saveMutation.isPending ? "Saving..." : "Save Entry"}
             </Button>
           </div>
         </div>

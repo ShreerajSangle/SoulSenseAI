@@ -421,6 +421,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Journal entries
+  app.post('/api/journal-entries', async (req, res) => {
+    try {
+      const entryData = {
+        ...req.body,
+        userId: req.body.userId || "anonymous",
+        createdAt: new Date()
+      };
+      
+      const entry = await storage.createDiaryEntry(entryData);
+      
+      // Background sync to Supabase
+      supabaseSync.syncDiaryEntry(entryData.userId, entry.id.toString(), {
+        content: entry.content,
+        moods: entryData.moods || [],
+        personaId: entryData.personaId,
+        conversationId: entryData.conversationId,
+        createdAt: new Date()
+      });
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Error creating journal entry:", error);
+      res.status(500).json({ error: "Failed to create journal entry" });
+    }
+  });
+
+  app.get('/api/journal-entries', async (req, res) => {
+    try {
+      const userId = req.query.userId as string || "anonymous";
+      const entries = await storage.getDiaryEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching journal entries:", error);
+      res.status(500).json({ error: "Failed to fetch journal entries" });
+    }
+  });
+
+  // Session recaps
+  app.post('/api/session-recaps', async (req, res) => {
+    try {
+      const recapData = {
+        ...req.body,
+        userId: req.body.userId || "anonymous",
+        createdAt: new Date()
+      };
+      
+      // Store recap as a special diary entry for now
+      const recap = await storage.createDiaryEntry({
+        ...recapData,
+        content: recapData.summary,
+        type: 'session_recap'
+      });
+      
+      // Background sync to Supabase
+      supabaseSync.syncSessionRecap(recapData.userId, recap.id.toString(), {
+        conversationId: recapData.conversationId,
+        summary: recapData.summary,
+        emotions: recapData.emotions || [],
+        topics: recapData.topics || [],
+        toolsUsed: recapData.toolsUsed || [],
+        insights: recapData.insights || [],
+        createdAt: new Date()
+      });
+      
+      res.json(recap);
+    } catch (error) {
+      console.error("Error creating session recap:", error);
+      res.status(500).json({ error: "Failed to create session recap" });
+    }
+  });
+
   // Health check and status
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

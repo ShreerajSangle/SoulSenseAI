@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, Brain, Target, Wind, BookOpen, Save, Share2 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 interface SessionRecapModalProps {
@@ -64,34 +64,42 @@ export default function SessionRecapModal({ isOpen, onClose, persona, conversati
     return summary;
   };
 
-  const handleSaveRecap = async () => {
-    setIsSaving(true);
-    try {
-      await apiRequest('/api/session-recaps', 'POST', {
-        conversationId: conversationData.id,
-        summary: generateRecapSummary(),
-        emotions: conversationData.emotions,
-        topics: conversationData.topics,
-        toolsUsed: conversationData.toolsUsed,
-        insights: conversationData.insights,
-        userId: "anonymous"
+  const saveRecapMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/session-recaps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
-
+      if (!response.ok) throw new Error('Failed to save recap');
+      return response.json();
+    },
+    onSuccess: () => {
       toast({
         title: "Session recap saved",
         description: "Your conversation summary has been saved privately.",
       });
-      
       onClose();
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error saving recap",
         description: "Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
+  });
+
+  const handleSaveRecap = () => {
+    saveRecapMutation.mutate({
+      conversationId: conversationData.id,
+      summary: generateRecapSummary(),
+      emotions: conversationData.emotions,
+      topics: conversationData.topics,
+      toolsUsed: conversationData.toolsUsed,
+      insights: conversationData.insights,
+      userId: "anonymous"
+    });
   };
 
   const getIconForTool = (tool: string) => {
@@ -204,11 +212,11 @@ export default function SessionRecapModal({ isOpen, onClose, persona, conversati
               </Button>
               <Button
                 onClick={handleSaveRecap}
-                disabled={isSaving}
+                disabled={saveRecapMutation.isPending}
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {isSaving ? "Saving..." : "Save Recap"}
+                {saveRecapMutation.isPending ? "Saving..." : "Save Recap"}
               </Button>
             </div>
           </div>
