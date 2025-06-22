@@ -34,7 +34,11 @@ import {
   ThumbsDown,
   Sparkles,
   ArrowLeft,
-  BarChart3
+  BarChart3,
+  Clock,
+  Mic,
+  Calendar,
+  LogOut
 } from "lucide-react";
 
 export default function EnhancedChatScreen() {
@@ -697,26 +701,7 @@ export default function EnhancedChatScreen() {
         <div className="absolute bottom-20 left-1/3 w-28 h-28 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000"></div>
       </div>
 
-      {/* Unified Navigation */}
-      <UnifiedNavigation
-        onHistoryToggle={() => setIsHistoryOpen(!isHistoryOpen)}
-        onJournalToggle={() => setIsJournalOpen(!isJournalOpen)}
-        onProfileToggle={() => setIsProfileOpen(!isProfileOpen)}
-        onInsightsToggle={() => setIsInsightsOpen(!isInsightsOpen)}
-        isHistoryOpen={isHistoryOpen}
-        isJournalOpen={isJournalOpen}
-        isProfileOpen={isProfileOpen}
-        isInsightsOpen={isInsightsOpen}
-        unreadCount={0}
-      />
 
-      {/* Integrated Session History Panel */}
-      <IntegratedSessionHistory
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        onSessionSelect={handleSessionSelect}
-        currentPersonaId={personaId}
-      />
 
       {/* Main Chat Container */}
       <div className="relative z-10 h-full flex flex-col">

@@ -98,7 +98,7 @@ export default function UnifiedSessionHistory({
     enabled: !!selectedSession,
   });
 
-  const filteredSessions = sessions.filter((session: ChatSession) => {
+  const filteredSessions = (sessions as ChatSession[]).filter((session: ChatSession) => {
     const matchesSearch = session.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          session.topics.some(topic => topic.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesPersona = filterPersona === "all" || session.personaId === filterPersona;
@@ -322,7 +322,7 @@ export default function UnifiedSessionHistory({
               
               <ScrollArea className="h-96 pr-4">
                 <div className="space-y-4">
-                  {sessionMessages.map((message: ChatMessage) => (
+                  {(sessionMessages as ChatMessage[]).map((message: ChatMessage) => (
                     <div
                       key={message.id}
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
