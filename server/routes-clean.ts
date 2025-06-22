@@ -103,17 +103,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let fullContent = "";
       let emotionalTone = "supportive";
       
-      // Process streaming response
-      for await (const chunk of responseGenerator) {
-        if (chunk.content) {
-          fullContent += chunk.content;
+      // Process streaming response with timeout
+      const timeout = setTimeout(() => {
+        throw new Error("Claude response timeout");
+      }, 25000);
+
+      try {
+        for await (const chunk of responseGenerator) {
+          if (chunk.content) {
+            fullContent += chunk.content;
+          }
+          if (chunk.emotion) {
+            emotionalTone = chunk.emotion;
+          }
+          if (chunk.isComplete) {
+            break;
+          }
         }
-        if (chunk.emotion) {
-          emotionalTone = chunk.emotion;
-        }
-        if (chunk.isComplete) {
-          break;
-        }
+      } finally {
+        clearTimeout(timeout);
       }
 
       // Save AI message

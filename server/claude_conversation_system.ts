@@ -352,32 +352,17 @@ export class ClaudeConversationSystem extends EventEmitter {
         return;
       }
 
-      // Split content into natural chunks for streaming effect
-      const words = fullContent.split(/(\s+)/);
-      let chunkBuffer = "";
-      let currentContent = "";
+      console.log('Claude response received:', fullContent.substring(0, 100) + '...');
 
-      for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-        chunkBuffer += word;
-        currentContent += word;
-
-        // Send chunks at natural boundaries (every 3-5 words or punctuation)
-        if ((i + 1) % 4 === 0 || word.match(/[.!?,:;]/) || i === words.length - 1) {
-          yield {
-            content: chunkBuffer,
-            isComplete: false,
-            emotion: this.detectResponseEmotion(currentContent, persona),
-            confidence: this.calculateResponseConfidence(currentContent, emotionalContext),
-            memoryUpdates: [],
-            thoughtProcess: this.generateThoughtProcess(persona, emotionalContext, memory)
-          };
-          chunkBuffer = "";
-          
-          // Add natural delay between chunks for realistic streaming
-          await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100));
-        }
-      }
+      // Yield the complete response at once for now (simpler and more reliable)
+      yield {
+        content: fullContent,
+        isComplete: false,
+        emotion: this.detectResponseEmotion(fullContent, persona),
+        confidence: this.calculateResponseConfidence(fullContent, emotionalContext),
+        memoryUpdates: [],
+        thoughtProcess: this.generateThoughtProcess(persona, emotionalContext, memory)
+      };
 
       // Final response with memory updates
       const memoryUpdates = await this.finalizeMemoryUpdate(memory, fullContent, emotionalContext);
