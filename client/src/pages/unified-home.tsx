@@ -214,7 +214,7 @@ export default function UnifiedHome() {
             return (
               <Card
                 key={persona.id}
-                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white/40 dark:bg-[#352843]/60 backdrop-blur-sm hover:scale-[1.03] cursor-pointer animate-fade-in"
+                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white dark:bg-[#352843] hover:scale-[1.03] cursor-pointer animate-fade-in"
                 onClick={() => handlePersonaSelect(persona)}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
@@ -284,7 +284,7 @@ export default function UnifiedHome() {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
               onClick={() => setLocation("/memory")}
             >
               <CardContent className="p-6 text-center space-y-4">
@@ -300,7 +300,7 @@ export default function UnifiedHome() {
             </Card>
 
             <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
               onClick={() => setLocation("/diary")}
             >
               <CardContent className="p-6 text-center space-y-4">
@@ -316,7 +316,7 @@ export default function UnifiedHome() {
             </Card>
 
             <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
               onClick={() => setLocation("/profile")}
             >
               <CardContent className="p-6 text-center space-y-4">

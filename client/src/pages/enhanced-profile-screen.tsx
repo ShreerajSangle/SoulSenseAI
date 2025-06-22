@@ -275,7 +275,7 @@ export default function EnhancedProfileScreen() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white dark:bg-gray-800 rounded-2xl">
             <TabsTrigger value="overview" className="rounded-2xl">Overview</TabsTrigger>
             <TabsTrigger value="goals" className="rounded-2xl">Goals</TabsTrigger>
             <TabsTrigger value="settings" className="rounded-2xl">Settings</TabsTrigger>
@@ -329,7 +329,7 @@ export default function EnhancedProfileScreen() {
             </div>
 
             {/* Recent Activity */}
-            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
@@ -397,7 +397,7 @@ export default function EnhancedProfileScreen() {
                   return (
                     <Card
                       key={goal.id}
-                      className="group border-0 shadow-lg bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                      className="group border-0 shadow-lg bg-white dark:bg-gray-900 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
                     >
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
@@ -451,7 +451,7 @@ export default function EnhancedProfileScreen() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
-            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
               </CardHeader>
@@ -480,7 +480,7 @@ export default function EnhancedProfileScreen() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
               <CardHeader>
                 <CardTitle>Preferences</CardTitle>
               </CardHeader>
