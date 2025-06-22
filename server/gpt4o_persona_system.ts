@@ -219,7 +219,7 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
     });
   }
 
-  async generatePersonaResponse(
+  async generateResponse(
     personaId: string,
     userMessage: string,
     userId: string,

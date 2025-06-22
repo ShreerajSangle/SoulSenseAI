@@ -4,51 +4,11 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { spawn } from "child_process";
 import path from "path";
-import { conversationalAI } from "./conversational_ai";
-import { emotionDetector } from "./emotion_detection";
-import { advancedAI } from "./advanced_ai_engine";
-import { replikaEngine } from "./replika_engine";
-import { llmEngine } from "./llm_conversation_engine";
-import { streamingConversation } from "./streaming_conversation";
-import { specializedPersonaEngine } from "./specialized_persona_engine";
-import { personaKnowledgeModules } from "./persona_knowledge_modules";
-import { soulSensePersonaEngine } from "./soulSense_persona_engine";
-import { enhancedConversationSystem } from "./enhanced_conversation_system";
-import { cakeChatEngine, type CakeChatResponse } from "./cakechat_engine";
-import { advancedLLMEngine } from "./advanced_llm_engine";
-import { emotionDetectionEngine } from "./emotion_detection_engine";
 import { gpt4oConversationSystem } from "./gpt4o_conversation_system";
-import { clinicalAssessmentEngine } from "./clinical_assessment_engine";
-import { therapeuticInterventionEngine } from "./therapeutic_intervention_engine";
-import { enhancedPersonaSystem } from "./enhanced_persona_system";
 import { gpt4oPersonaSystem } from "./gpt4o_persona_system";
 import { supabaseSync } from "./supabase-sync";
 
-// Import Python module interfaces
-interface MemoryUpdate {
-  update_emotional_pattern: (userId: string, emotion: string, intensity: number, context: string, triggers?: string[]) => void;
-  get_emotional_insights: (userId: string) => any;
-  get_personalized_recommendations: (userId: string) => any;
-}
-
-interface ClinicalOutcomes {
-  process_phq9_assessment: (userId: string, responses: Record<string, number>) => any;
-  process_gad7_assessment: (userId: string, responses: Record<string, number>) => any;
-  generate_clinical_insights: (userId: string) => any;
-}
-
-interface DialogueManager {
-  make_clinical_decision: (userContext: any) => any;
-  explain_intervention: (intervention: string, userContext: any) => any;
-}
-
-interface GoalTracker {
-  create_personalized_goal: (userId: string, goalType: string, userInput: any) => any;
-  generate_journey_dashboard: (userId: string) => any;
-  suggest_new_goals: (userId: string, context: any) => any;
-}
-
-import { registerClinicalRoutes } from "./clinical_routes";
+// Core schemas
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import { z } from "zod";
 import * as fs from "fs";
