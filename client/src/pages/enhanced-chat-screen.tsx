@@ -15,7 +15,7 @@ import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components
 import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
 import { UnifiedNavigation } from "@/components/unified-navigation";
 import { IntegratedSessionHistory } from "@/components/integrated-session-history";
-import UnifiedSessionHistory from "@/components/unified-session-history";
+import RedesignedSessionHistory from "@/components/redesigned-session-history";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,11 +80,7 @@ export default function EnhancedChatScreen() {
   const [activeMicroTool, setActiveMicroTool] = useState<'breathing' | 'grounding' | 'cbt' | null>(null);
   const [showDashboard, setShowDashboard] = useState(false);
 
-  // Unified navigation state
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isJournalOpen, setIsJournalOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+  // Session history state
   const [showUnifiedHistory, setShowUnifiedHistory] = useState(false);
 
   // UI state
@@ -764,7 +760,7 @@ export default function EnhancedChatScreen() {
         </div>
 
         {/* Main Chat Area */}
-        <div className={`flex-1 flex transition-all duration-300 ${isHistoryOpen ? 'mr-96' : ''}`}>
+        <div className="flex-1 flex transition-all duration-300">
           {/* Chat Messages Container */}
           <div className="flex-1 flex flex-col bg-white/80 backdrop-blur-sm rounded-3xl m-6 shadow-xl border border-white/50 overflow-hidden">
             {/* Therapeutic Context Bar (Subtle) */}
@@ -942,8 +938,8 @@ export default function EnhancedChatScreen() {
         </div>
       </div>
 
-      {/* Unified Session History Overlay */}
-      <UnifiedSessionHistory
+      {/* Redesigned Session History Overlay */}
+      <RedesignedSessionHistory
         isOpen={showUnifiedHistory}
         onClose={() => setShowUnifiedHistory(false)}
         currentPersonaId={personaId}
