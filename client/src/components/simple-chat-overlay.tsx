@@ -73,6 +73,15 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
     try {
       setIsTyping(true);
       
+      // Add user message immediately
+      const userMessage: Message = {
+        id: Date.now(),
+        content: message,
+        sender: "user",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
       // Check for wellness feature triggers
       const lowerMessage = message.toLowerCase();
       if (lowerMessage.includes('stress') || lowerMessage.includes('anxious') || lowerMessage.includes('overwhelm') || lowerMessage.includes('panic')) {
@@ -103,21 +112,26 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
       };
 
       // Update conversation data
-      setConversationData(prev => ({
-        ...prev,
-        messages: [...prev.messages, userMessage],
-        topics: [...new Set([...prev.topics, ...extractTopics(message)])],
-        emotions: [...new Set([...prev.emotions, ...extractEmotions(message)])]
-      }));
+      const newTopics = extractTopics(message);
+      const newEmotions = extractEmotions(message);
       
-      // Add user message immediately
-      const userMessage: Message = {
-        id: Date.now(),
-        content: message,
-        sender: "user",
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userMessage]);
+      setConversationData(prev => {
+        const uniqueTopics = [...prev.topics];
+        newTopics.forEach(topic => {
+          if (!uniqueTopics.includes(topic)) uniqueTopics.push(topic);
+        });
+        
+        const uniqueEmotions = [...prev.emotions];
+        newEmotions.forEach(emotion => {
+          if (!uniqueEmotions.includes(emotion)) uniqueEmotions.push(emotion);
+        });
+        
+        return {
+          ...prev,
+          topics: uniqueTopics,
+          emotions: uniqueEmotions
+        };
+      });
 
       const response = await fetch("/api/chat/message", {
         method: "POST",
@@ -311,6 +325,18 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                         {message.timestamp.toLocaleTimeString()}
                       </div>
                     </div>
+                    
+                    {/* Quick Reply Bubbles for AI messages */}
+                    {message.sender === "ai" && messages.indexOf(message) === messages.length - 1 && !isTyping && (
+                      <QuickReplyBubbles
+                        onReplySelect={(reply) => {
+                          setInputMessage(reply);
+                          handleSendMessage();
+                        }}
+                        messageType={message.content.length > 100 ? 'advice' : 'general'}
+                        className="ml-11"
+                      />
+                    )}
                   </div>
                 ))}
                 
@@ -356,6 +382,17 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                     <Target className="h-4 w-4" />
                     Set Goal
                   </Button>
+                  {messages.length > 5 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSessionRecapOpen(true)}
+                      className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Session Recap
+                    </Button>
+                  )}
                 </div>
 
                 <div className="flex items-end gap-4">
@@ -369,6 +406,17 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                       className="min-h-[50px] max-h-[120px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] resize-none bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm text-[#3A2548] dark:text-[#F2D4F2] placeholder:text-[#78716C] dark:placeholder:text-[#A678AB]"
                     />
                   </div>
+                  
+                  {/* Mini-Journal Entry Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setJournalModalOpen(true)}
+                    className="self-end mb-1 bg-white/70 dark:bg-gray-800/70 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 p-2"
+                    title="Quick Journal Entry"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                  </Button>
                   
                   {/* Emoji Selector */}
                   <EmojiSelector 
@@ -404,8 +452,26 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         onGoalCreated={(goal) => {
           console.log('Goal created:', goal);
           setGoalModalOpen(false);
+          setConversationData(prev => ({
+            ...prev,
+            toolsUsed: [...prev.toolsUsed, 'goals']
+          }));
         }}
         persona={persona}
+      />
+      
+      <MiniJournalModal
+        isOpen={journalModalOpen}
+        onClose={() => setJournalModalOpen(false)}
+        persona={persona}
+        conversationId={conversationData.id}
+      />
+      
+      <SessionRecapModal
+        isOpen={sessionRecapOpen}
+        onClose={() => setSessionRecapOpen(false)}
+        persona={persona}
+        conversationData={conversationData}
       />
     </div>
   );
