@@ -19,19 +19,38 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
   const [count, setCount] = useState(4);
   const [cycle, setCycle] = useState(0);
 
-  // Different breathing patterns based on persona
-  const getBreathingPattern = () => {
-    switch (persona.id) {
-      case 'maya':
-        return { inhale: 5, hold: 5, exhale: 5 }; // 5-5-5 calming
-      case 'sarah':
-        return { inhale: 4, hold: 7, exhale: 8 }; // 4-7-8 therapeutic
-      default:
-        return { inhale: 4, hold: 4, exhale: 6 }; // 4-4-6 balanced
+  // Multiple breathing technique options
+  const [selectedTechnique, setSelectedTechnique] = useState<'relaxing' | 'energizing' | 'calming' | 'rescue'>('relaxing');
+  
+  const breathingTechniques = {
+    relaxing: {
+      name: "4-7-8 Relaxing",
+      pattern: { inhale: 4, hold: 7, exhale: 8 },
+      description: "Calms nervous system and reduces anxiety",
+      color: "blue"
+    },
+    energizing: {
+      name: "4-4-4 Box Breathing",
+      pattern: { inhale: 4, hold: 4, exhale: 4 },
+      description: "Balances energy and improves focus",
+      color: "green"
+    },
+    calming: {
+      name: "5-5-5 Equal Breathing",
+      pattern: { inhale: 5, hold: 5, exhale: 5 },
+      description: "Gentle technique for stress relief",
+      color: "purple"
+    },
+    rescue: {
+      name: "4-4-6-2 Rescue Breathing",
+      pattern: { inhale: 4, hold: 4, exhale: 6 },
+      description: "Emergency technique for panic attacks and intense anxiety",
+      color: "red"
     }
-  };
+  } as const;
 
-  const pattern = getBreathingPattern();
+  const currentTechnique = breathingTechniques[selectedTechnique];
+  const pattern = currentTechnique.pattern;
 
   const getPersonaGuidance = () => {
     switch (persona.id) {
@@ -129,6 +148,36 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
           </div>
 
           <div className="text-center space-y-6">
+            {/* Technique Selection */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Choose a breathing technique:
+              </h4>
+              <div className="grid grid-cols-1 gap-2">
+                {(['relaxing', 'energizing', 'calming', 'rescue'] as const).map((key) => {
+                  const technique = breathingTechniques[key];
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedTechnique(key)}
+                      className={`p-3 rounded-lg border text-left transition-all ${
+                        selectedTechnique === key
+                          ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="font-medium text-sm text-gray-800 dark:text-gray-200">
+                        {technique.name}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        {technique.description}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Breathing Circle Animation */}
             <div className="relative mx-auto w-32 h-32 flex items-center justify-center">
               <div 
