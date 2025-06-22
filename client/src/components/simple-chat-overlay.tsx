@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Send, Wind, Target } from "lucide-react";
+import { X, Send, Wind, Target, BookOpen, MessageCircle } from "lucide-react";
 import BreathingExercise from "@/components/breathing-exercise";
 import GoalCreationModal from "@/components/goal-creation-modal";
 import EmojiSelector from "@/components/emoji-selector";
+import MiniJournalModal from "@/components/mini-journal-modal";
+import QuickReplyBubbles from "@/components/quick-reply-bubbles";
+import SessionRecapModal from "@/components/session-recap-modal";
 
 interface Message {
   id: number;
@@ -43,6 +46,23 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [emotionIntensity, setEmotionIntensity] = useState(50);
   const [breathingModalOpen, setBreathingModalOpen] = useState(false);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
+  const [journalModalOpen, setJournalModalOpen] = useState(false);
+  const [sessionRecapOpen, setSessionRecapOpen] = useState(false);
+  const [conversationData, setConversationData] = useState<{
+    id: number;
+    messages: Message[];
+    emotions: string[];
+    topics: string[];
+    toolsUsed: string[];
+    insights: string[];
+  }>({
+    id: 0,
+    messages: [],
+    emotions: [],
+    topics: [],
+    toolsUsed: [],
+    insights: []
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +81,34 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
       if (lowerMessage.includes('goal') || lowerMessage.includes('improve') || lowerMessage.includes('want to') || lowerMessage.includes('stay on track')) {
         setGoalModalOpen(true);
       }
+      
+      // Helper functions for conversation tracking
+      const extractTopics = (msg: string) => {
+        const topics = [];
+        if (msg.toLowerCase().includes('work') || msg.toLowerCase().includes('job')) topics.push('work');
+        if (msg.toLowerCase().includes('family') || msg.toLowerCase().includes('relationship')) topics.push('relationships');
+        if (msg.toLowerCase().includes('sleep') || msg.toLowerCase().includes('tired')) topics.push('sleep');
+        if (msg.toLowerCase().includes('stress') || msg.toLowerCase().includes('anxiety')) topics.push('stress management');
+        return topics;
+      };
+
+      const extractEmotions = (msg: string) => {
+        const emotions = [];
+        if (msg.toLowerCase().includes('happy') || msg.toLowerCase().includes('joy') || msg.toLowerCase().includes('great')) emotions.push('happy');
+        if (msg.toLowerCase().includes('sad') || msg.toLowerCase().includes('down') || msg.toLowerCase().includes('upset')) emotions.push('sad');
+        if (msg.toLowerCase().includes('anxious') || msg.toLowerCase().includes('worried') || msg.toLowerCase().includes('nervous')) emotions.push('anxious');
+        if (msg.toLowerCase().includes('angry') || msg.toLowerCase().includes('frustrated') || msg.toLowerCase().includes('mad')) emotions.push('angry');
+        if (msg.toLowerCase().includes('stress') || msg.toLowerCase().includes('overwhelmed')) emotions.push('stressed');
+        return emotions;
+      };
+
+      // Update conversation data
+      setConversationData(prev => ({
+        ...prev,
+        messages: [...prev.messages, userMessage],
+        topics: [...new Set([...prev.topics, ...extractTopics(message)])],
+        emotions: [...new Set([...prev.emotions, ...extractEmotions(message)])]
+      }));
       
       // Add user message immediately
       const userMessage: Message = {
