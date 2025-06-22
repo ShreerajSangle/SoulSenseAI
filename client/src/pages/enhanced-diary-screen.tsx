@@ -72,7 +72,7 @@ export default function EnhancedDiaryScreen() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: entries = [], isLoading } = useQuery({
+  const { data: entries = [], isLoading } = useQuery<DiaryEntry[]>({
     queryKey: ["/api/diary-entries"],
     queryFn: async () => {
       const response = await fetch("/api/diary-entries?userId=anonymous");

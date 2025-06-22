@@ -106,8 +106,12 @@ export default function EnhancedProfileScreen() {
     }
   });
 
-  const { data: goals = [] } = useQuery({
+  const { data: goals = [] } = useQuery<any[]>({
     queryKey: ["/api/goals"],
+    queryFn: async () => {
+      const response = await fetch("/api/goals?userId=anonymous");
+      return response.json();
+    }
   });
 
   const [editData, setEditData] = useState({
