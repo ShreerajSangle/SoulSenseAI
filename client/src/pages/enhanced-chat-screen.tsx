@@ -15,6 +15,7 @@ import { VoiceInterface, useVoiceInterface, getPersonaVoice } from "@/components
 import { SessionFeedbackDialog } from "@/components/ui/session-feedback-dialog";
 import { UnifiedNavigation } from "@/components/unified-navigation";
 import { IntegratedSessionHistory } from "@/components/integrated-session-history";
+import UnifiedSessionHistory from "@/components/unified-session-history";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +81,7 @@ export default function EnhancedChatScreen() {
   const [isJournalOpen, setIsJournalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
+  const [showUnifiedHistory, setShowUnifiedHistory] = useState(false);
 
   // UI state
   const [suggestedTools, setSuggestedTools] = useState<string[]>([]);
@@ -749,17 +751,30 @@ export default function EnhancedChatScreen() {
               )}
             </div>
             
-            {/* Connection Status */}
-            {memoryStats && (
-              <div className="flex gap-3">
-                <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-                  Trust: {Math.round(memoryStats.trustLevel * 100)}%
-                </Badge>
-                <Badge className="bg-pink-100 text-pink-800 border-pink-200">
-                  Connection: {Math.round(memoryStats.intimacyDepth * 100)}%
-                </Badge>
-              </div>
-            )}
+            {/* Header Actions */}
+            <div className="flex items-center gap-3">
+              {/* Session History Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowUnifiedHistory(!showUnifiedHistory)}
+                className="text-purple-700 hover:bg-purple-50 rounded-xl"
+              >
+                <Clock className="w-4 h-4" />
+              </Button>
+
+              {/* Connection Status */}
+              {memoryStats && (
+                <div className="flex gap-3">
+                  <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                    Trust: {Math.round(memoryStats.trustLevel * 100)}%
+                  </Badge>
+                  <Badge className="bg-pink-100 text-pink-800 border-pink-200">
+                    Connection: {Math.round(memoryStats.intimacyDepth * 100)}%
+                  </Badge>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -941,6 +956,16 @@ export default function EnhancedChatScreen() {
           </div>
         </div>
       </div>
+
+      {/* Unified Session History Overlay */}
+      <UnifiedSessionHistory
+        isOpen={showUnifiedHistory}
+        onClose={() => setShowUnifiedHistory(false)}
+        currentPersonaId={personaId}
+        onSessionSelect={(sessionId) => {
+          console.log('Selected session:', sessionId);
+        }}
+      />
 
       {/* Session Feedback Dialog */}
       <SessionFeedbackDialog
