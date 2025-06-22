@@ -22,6 +22,7 @@ import { clinicalAssessmentEngine } from "./clinical_assessment_engine";
 import { therapeuticInterventionEngine } from "./therapeutic_intervention_engine";
 import { enhancedPersonaSystem } from "./enhanced_persona_system";
 import { gpt4oPersonaSystem } from "./gpt4o_persona_system";
+import { supabaseSync } from "./supabase-sync";
 
 // Import Python module interfaces
 interface MemoryUpdate {
@@ -550,6 +551,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }),
       });
 
+      // Background sync to Supabase
+      supabaseSync.syncMessage(userId, currentConversationId.toString(), {
+        sender: "ai",
+        content: aiResponse.content,
+        emotionDetected: aiResponse.emotionalTone,
+        timestamp: new Date()
+      });
+
       res.json({
         conversationId: currentConversationId,
         message: aiMessage,
@@ -862,6 +871,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/diary-entries', async (req, res) => {
     try {
       const entry = await storage.createDiaryEntry(req.body);
+      
+      // Background sync to Supabase
+      supabaseSync.syncDiaryEntry(req.body.userId || 'anonymous', entry);
+      
       res.json(entry);
     } catch (error) {
       console.error("Error creating diary entry:", error);
@@ -921,6 +934,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.params.userId;
       const updatedProfile = await storage.updateUserProfile(userId, req.body);
+      
+      // Background sync to Supabase
+      supabaseSync.syncProfile(userId, req.body);
+      
       res.json(updatedProfile);
     } catch (error) {
       console.error("Error updating user profile:", error);
@@ -931,6 +948,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Supabase sync status
+  app.get("/api/supabase/status", (req, res) => {
+    const syncStatus = supabaseSync.getSyncStatus();
+    res.json({
+      ...syncStatus,
+      message: syncStatus.enabled ? "Supabase sync active - data is being backed up to cloud" : "Supabase sync disabled - using local database only"
+    });
   });
 
   // Session feedback endpoint
@@ -1195,6 +1221,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'active',
         progress: 0,
         milestones: []
+      });
+
+      // Background sync to Supabase
+      supabaseSync.syncGoal(userId, {
+        title: customizations.title || template.title,
+        description: customizations.description || template.description,
+        category: template.category,
+        status: 'active',
+        progress: 0,
+        targetDate,
+        createdAt: new Date()
       });
 
       res.json(goal);
