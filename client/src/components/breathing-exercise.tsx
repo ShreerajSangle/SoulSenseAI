@@ -160,12 +160,15 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
                     <button
                       key={key}
                       onClick={() => setSelectedTechnique(key)}
-                      className={`p-3 rounded-lg border text-left transition-all ${
+                      className={`p-3 rounded-lg border text-left transition-all relative ${
                         selectedTechnique === key
                           ? 'border-purple-400 bg-purple-50 dark:bg-purple-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
+                      {selectedTechnique === key && (
+                        <div className="absolute top-2 right-2 w-2 h-2 bg-purple-500 rounded-full"></div>
+                      )}
                       <div className="font-medium text-sm text-gray-800 dark:text-gray-200">
                         {technique.name}
                       </div>
