@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { ChatOverlay } from "@/components/chat-overlay";
+import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
 
 interface Persona {
   id: string;
@@ -42,7 +42,7 @@ export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
-  const { data: personas = [], isLoading } = useQuery({
+  const { data: personas = [], isLoading } = useQuery<Persona[]>({
     queryKey: ["/api/personas"],
   });
 
@@ -118,7 +118,7 @@ export default function UnifiedHome() {
 
         {/* Persona Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {personas.map((persona: any) => {
+          {personas.map((persona) => {
             const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || Brain;
             const gradient = personaGradients[persona.id as keyof typeof personaGradients] || "from-slate-500 to-slate-600";
             const accent = personaAccents[persona.id as keyof typeof personaAccents] || "text-slate-600 bg-slate-50 border-slate-200";
@@ -226,7 +226,7 @@ export default function UnifiedHome() {
 
       {/* Chat Overlay */}
       {selectedPersona && (
-        <ChatOverlay
+        <SimpleChatOverlay
           persona={selectedPersona}
           isOpen={chatOpen}
           onClose={handleCloseChat}
