@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, User, Trophy, Leaf, Sparkles, Brain, MessageCircle, Calendar, BookOpen, Settings, ChevronRight, Star, Activity, Target } from "lucide-react";
-import { usePersonas } from "@/hooks/use-chat";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import type { Persona } from "@shared/schema";
 

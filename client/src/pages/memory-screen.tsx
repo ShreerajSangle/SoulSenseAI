@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useConversations } from "@/hooks/use-chat";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
