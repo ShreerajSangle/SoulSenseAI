@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles } from "lucide-react";
+import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
+import { useLocation } from "wouter";
 
 interface Persona {
   id: string;
@@ -41,6 +42,8 @@ const personaAccents = {
 export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   const { data: personas = [], isLoading } = useQuery<Persona[]>({
     queryKey: ["/api/personas"],
@@ -85,12 +88,97 @@ export default function UnifiedHome() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              {/* Navigation Menu */}
+              <div className="hidden md:flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/memory")}
+                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Memory & Insights
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/diary")}
+                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Diary
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/profile")}
+                  className="text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </div>
+              
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                 4 Personas Active
               </Badge>
+              
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden text-gray-600 hover:text-purple-600"
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
             </div>
           </div>
+          
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm">
+              <div className="px-6 py-4 space-y-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setLocation("/memory");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Memory & Insights
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setLocation("/diary");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Diary
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setLocation("/profile");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -189,12 +277,68 @@ export default function UnifiedHome() {
           })}
         </div>
 
-        {/* Additional Features */}
+        {/* Quick Access Features */}
+        <div className="mt-16">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
+            All Your Wellness Tools in One Place
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <Card 
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              onClick={() => setLocation("/memory")}
+            >
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                  <BarChart3 className="h-8 w-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Memory & Insights</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Track your emotional patterns and conversation insights</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  View Insights
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              onClick={() => setLocation("/diary")}
+            >
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Personal Diary</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Write, edit, and reflect on your daily thoughts and experiences</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  Open Diary
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:scale-105"
+              onClick={() => setLocation("/profile")}
+            >
+              <CardContent className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Your Profile</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage settings, goals, and personalize your experience</p>
+                <Button variant="outline" size="sm" className="w-full">
+                  View Profile
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Core Features Overview */}
         <div className="mt-20 text-center">
           <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
             <CardContent className="p-12">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                Designed for Your Well-being
+                Comprehensive Wellness Platform
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
                 <div className="text-center space-y-3">
@@ -208,15 +352,15 @@ export default function UnifiedHome() {
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
                     <Heart className="h-6 w-6 text-green-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Empathetic Support</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Compassionate conversations that understand your needs</p>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Complete Toolkit</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Diary, memory tracking, profiles, and therapeutic conversations</p>
                 </div>
                 <div className="text-center space-y-3">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto">
                     <Target className="h-6 w-6 text-blue-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Goal-Oriented</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Structured guidance to help you achieve wellness goals</p>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Text-Focused Design</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Clean, distraction-free interface optimized for meaningful conversations</p>
                 </div>
               </div>
             </CardContent>
