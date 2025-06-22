@@ -403,13 +403,10 @@ export class GPT4oConversationSystem extends EventEmitter {
     }
 
     try {
-      // Use GPT-4o for emotion detection with GoEmotions-style classification
-      const response = await openai.chat.completions.create({
-        // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-        model: DEFAULT_MODEL_STR,
-        messages: [{
-          role: "system",
-          content: `You are an expert emotion detection system. Analyze the text for emotions using the GoEmotions taxonomy. Respond with JSON containing:
+      // Use Claude for emotion detection with GoEmotions-style classification
+      const response = await makeClaudeRequest([{
+        role: "system",
+        content: `You are an expert emotion detection system. Analyze the text for emotions using the GoEmotions taxonomy. Respond with JSON containing:
 - detectedEmotions: array of detected emotions (joy, sadness, anger, fear, surprise, disgust, love, optimism, pessimism, anxiety, etc.)
 - intensity: emotion intensity 0-1
 - valence: emotional valence -1 to 1 (negative to positive)
@@ -417,15 +414,12 @@ export class GPT4oConversationSystem extends EventEmitter {
 - emotionalTriggers: array of what might be triggering these emotions
 - supportNeeds: array of what kind of support might be helpful
 - crisisIndicators: array of any crisis/safety concerns (empty if none)`
-        }, {
+      }, {
           role: "user",
           content: message
-        }],
-        response_format: { type: "json_object" },
-        temperature: 0.3
-      });
+        }]);
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const result = JSON.parse(response.choices[0]?.message?.content || "{}");
       
       const emotionalContext: EmotionalContext = {
         detectedEmotions: result.detectedEmotions || ["neutral"],

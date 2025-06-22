@@ -2,8 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { gpt4oConversationSystem } from "./gpt4o_conversation_system";
-import { gpt4oPersonaSystem } from "./gpt4o_persona_system";
+import { claudeConversationSystem } from "./claude_conversation_system";
 import { supabaseSync } from "./supabase-sync";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import { z } from "zod";
@@ -92,20 +91,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date()
       });
 
-      // Generate AI response using GPT-4o
-      const aiResponse = await gpt4oPersonaSystem.generateResponse(
-        personaId,
+      // Generate AI response using Claude
+      const conversationHistory = await storage.getConversationMessages(currentConversationId);
+      const responseGenerator = await claudeConversationSystem.generateStreamingResponse(
         message,
+        personaId,
         userId,
-        { userMood, isFirstMessage }
+        conversationHistory
       );
+
+      let fullContent = "";
+      let emotionalTone = "supportive";
+      
+      // Process streaming response
+      for await (const chunk of responseGenerator) {
+        if (chunk.content) {
+          fullContent += chunk.content;
+        }
+        if (chunk.emotion) {
+          emotionalTone = chunk.emotion;
+        }
+        if (chunk.isComplete) {
+          break;
+        }
+      }
 
       // Save AI message
       const aiMessage = await storage.createMessage({
         conversationId: currentConversationId,
-        content: aiResponse.content,
+        content: fullContent,
         sender: "ai",
-        emotionDetected: aiResponse.emotionalTone,
+        emotionDetected: emotionalTone,
       });
 
       // Background sync AI message
