@@ -446,10 +446,11 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
       };
     } catch (error) {
       console.error("Streaming processing error:", error);
+      const fallback = this.generateFallbackResponse(persona, "");
       yield {
-        content: this.generateFallbackResponse(persona, ""),
+        content: fallback.content,
         isComplete: true,
-        emotion: "supportive",
+        emotion: fallback.emotionalTone,
         confidence: 0.5,
       };
     }
@@ -461,9 +462,9 @@ Remember: You guide toward inner wisdom and self-awareness through mindfulness p
   ): AsyncGenerator<StreamingResponse, void, unknown> {
     const fallbackResponse = this.generateFallbackResponse(persona, userMessage);
     yield {
-      content: fallbackResponse,
+      content: fallbackResponse.content,
       isComplete: true,
-      emotion: "supportive",
+      emotion: fallbackResponse.emotionalTone,
       confidence: 0.5,
     };
   }

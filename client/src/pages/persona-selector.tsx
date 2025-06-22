@@ -28,7 +28,13 @@ const personaAccents = {
 };
 
 export default function PersonaSelector() {
-  const { data: personas = [], isLoading } = usePersonas();
+  const { data: personas = [], isLoading } = useQuery({
+    queryKey: ["/api/personas"],
+    queryFn: async () => {
+      const response = await fetch("/api/personas");
+      return response.json();
+    }
+  });
   const [, setLocation] = useLocation();
 
   const handlePersonaSelect = (persona: Persona) => {
