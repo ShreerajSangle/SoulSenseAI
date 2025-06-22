@@ -342,6 +342,23 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
           )}
         </div>
       </div>
+
+      {/* Wellness Modals */}
+      <BreathingExercise
+        isOpen={breathingModalOpen}
+        onClose={() => setBreathingModalOpen(false)}
+        persona={persona}
+      />
+      
+      <GoalCreationModal
+        isOpen={goalModalOpen}
+        onClose={() => setGoalModalOpen(false)}
+        onGoalCreated={(goal) => {
+          console.log('Goal created:', goal);
+          setGoalModalOpen(false);
+        }}
+        persona={persona}
+      />
     </div>
   );
 }
