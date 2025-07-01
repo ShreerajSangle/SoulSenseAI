@@ -435,7 +435,7 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
       }]);
 
       // Clean the response to ensure it's valid JSON
-      let cleanResponse = response.trim();
+      let cleanResponse = String(response).trim();
       
       // Remove any markdown formatting
       if (cleanResponse.startsWith('```json')) {
