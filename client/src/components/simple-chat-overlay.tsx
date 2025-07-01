@@ -374,75 +374,23 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Area */}
-              <div className="border-t border-[#D8C2F5]/50 dark:border-[#5A4267]/50 p-6 bg-gradient-to-r from-white/40 to-[#F8F6FF]/60 dark:from-[#352843]/60 dark:to-[#453354]/80 backdrop-blur-sm">
-                {/* Wellness Feature Buttons */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBreathingModalOpen(true)}
-                    className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-purple-50 dark:hover:bg-purple-900/20 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-300"
-                  >
-                    <Wind className="h-4 w-4" />
-                    Breathing Exercise
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setGoalModalOpen(true)}
-                    className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-pink-50 dark:hover:bg-pink-900/20 border-pink-200 dark:border-pink-700 text-pink-700 dark:text-pink-300"
-                  >
-                    <Target className="h-4 w-4" />
-                    Set Goal
-                  </Button>
-                  {messages.length > 5 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSessionRecapOpen(true)}
-                      className="flex items-center gap-2 bg-white/70 dark:bg-gray-800/70 hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-300"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                      Session Recap
-                    </Button>
-                  )}
-                </div>
-
-                <div className="flex items-end gap-4">
-                  <div className="flex-1 relative">
+              {/* Minimalist Input Area */}
+              <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-900">
+                <div className="flex items-end gap-3">
+                  <div className="flex-1">
                     <Textarea
-                      placeholder="Share your thoughts and feelings in this safe space..."
+                      placeholder={`Message ${persona.name}...`}
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       disabled={isTyping}
-                      className="min-h-[50px] max-h-[120px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] resize-none bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm text-[#3A2548] dark:text-[#F2D4F2] placeholder:text-[#78716C] dark:placeholder:text-[#A678AB]"
+                      className="resize-none min-h-[50px] max-h-[120px] border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-all"
                     />
                   </div>
-                  
-                  {/* Mini-Journal Entry Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setJournalModalOpen(true)}
-                    className="self-end mb-1 bg-white/70 dark:bg-gray-800/70 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-orange-200 dark:border-orange-700 text-orange-700 dark:text-orange-300 p-2"
-                    title="Quick Journal Entry"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                  </Button>
-                  
-                  {/* Emoji Selector */}
-                  <EmojiSelector 
-                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
-                    className="self-end mb-1"
-                  />
-                  
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    size="lg"
-                    className="rounded-2xl bg-gradient-to-r from-[#B794D1] to-[#EC4899] hover:from-[#9B7CB8] hover:to-[#DB2777] text-white h-[50px] px-6 shadow-lg animate-float transition-all duration-300"
+                    className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

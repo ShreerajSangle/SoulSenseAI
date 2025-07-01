@@ -71,40 +71,40 @@ export default function UnifiedHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8F6FF] via-[#E6E6FA] to-[#FBCFE8] dark:from-[#2A2035] dark:via-[#352843] dark:to-[#453354] particles-bg">
-      {/* Header */}
-      <div className="bg-white/60 dark:bg-[#2A2035]/80 backdrop-blur-sm border-b border-[#D8C2F5]/50 dark:border-[#5A4267]/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Clean Header */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-[#B794D1] to-[#EC4899] rounded-3xl flex items-center justify-center animate-float shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#7A5A95] to-[#DB2777] bg-clip-text text-transparent">
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                   SoulSense
                 </h1>
-                <p className="text-xs text-[#78716C] dark:text-[#A678AB]">Your AI Wellness Companion</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Mental wellness companion</p>
               </div>
             </div>
             
             <div className="flex items-center gap-4">
-              {/* Navigation Menu */}
-              <div className="hidden md:flex items-center gap-2">
+              {/* Clean Navigation */}
+              <div className="hidden md:flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/memory")}
-                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  Memory & Insights
+                  Insights
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/diary")}
-                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
                 >
                   <BookOpen className="h-4 w-4 mr-2" />
                   Diary
@@ -113,16 +113,12 @@ export default function UnifiedHome() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setLocation("/profile")}
-                  className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] dark:text-[#A678AB] dark:hover:text-[#DEB4DE] dark:hover:bg-[#453354] rounded-2xl transition-all duration-300"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
                 >
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Button>
               </div>
-              
-              <Badge variant="outline" className="bg-[#FCE7F3] text-[#DB2777] border-[#F9A8D4] animate-pulse-gentle">
-                4 Personas Active
-              </Badge>
               
               {/* Mobile Menu Button */}
               <Button
@@ -183,24 +179,18 @@ export default function UnifiedHome() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Welcome Section */}
-        <div className="text-center mb-16 space-y-6 animate-fade-in">
-          <div className="inline-flex items-center gap-2 bg-white/40 dark:bg-[#352843]/60 backdrop-blur-sm px-6 py-3 rounded-full border border-[#D8C2F5]/30 dark:border-[#5A4267]/50 shadow-lg">
-            <div className="w-3 h-3 bg-gradient-to-r from-[#B794D1] to-[#EC4899] rounded-full animate-pulse-gentle"></div>
-            <span className="text-sm text-[#5A3F70] dark:text-[#C294C4] font-medium">Ready to support you with care</span>
-          </div>
-          
-          <h2 className="text-4xl lg:text-5xl font-bold text-[#3A2548] dark:text-[#F2D4F2] leading-tight">
-            Welcome to your
-            <span className="block bg-gradient-to-r from-[#7A5A95] via-[#B794D1] to-[#DB2777] bg-clip-text text-transparent animate-shimmer">
-              Personal Wellness Journey
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        {/* Clean Welcome Section */}
+        <div className="text-center mb-20 space-y-6">
+          <h1 className="text-5xl font-light text-gray-900 dark:text-white leading-tight">
+            Welcome to
+            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium">
+              SoulSense
             </span>
-          </h2>
+          </h1>
           
-          <p className="text-lg text-[#5A3F70] dark:text-[#A678AB] max-w-2xl mx-auto leading-relaxed">
-            Choose from four specialized AI companions, each designed to provide personalized emotional support, 
-            therapeutic guidance, and meaningful conversations in a safe, nurturing environment.
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
+            Your personal AI wellness companion. Choose from four specialized therapeutic personas designed to support your mental health journey.
           </p>
         </div>
 
