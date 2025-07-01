@@ -5,13 +5,16 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Recent Changes
 
-### Enhanced Memory Architecture & Emotional Intelligence (January 2025)
-- ✓ Integrated advanced memory system combining short-term (session context) and long-term (user patterns) memory
-- ✓ Enhanced emotion detection with Claude 3 Haiku using GoEmotions taxonomy
-- ✓ Implemented adaptive response tuning based on detected emotional states
-- ✓ Added conversation memory with trust level tracking and relationship dynamics
-- ✓ Created prompt debugging dashboard for system monitoring and optimization
-- ✓ Enhanced chat interface with Mini-Journal Entry, Quick Reply Bubbles, and Session Recap modals
+### Comprehensive Intelligence Upgrade (January 2025)
+- ✓ **Conversation Flow Engine**: Finite state machine managing therapeutic dialogue progression through phases (emotional check-in → exploratory dialogue → emotional reflection → solution framing → closure)
+- ✓ **Enhanced Persona System**: Four deeply developed personas with therapeutic techniques, phase-specific prompts, and emotion-specific guidance
+  - Dr. Sarah: CBT-focused with cognitive reframing and thought record techniques
+  - Maya: Mindfulness-based with breathing, body scan, and loving-kindness practices  
+  - Marcus: Solution-focused coaching with goal setting and strength identification
+  - Alex: Peer support with normalization, humor therapy, and relatability
+- ✓ **Quality Evaluation System**: Real-time scoring of responses on empathy, relevance, persona consistency, emotional appropriateness, and therapeutic value
+- ✓ **Dynamic Prompt Integration**: Context-aware prompt generation based on conversation phase, emotional state, memory, and persona specialization
+- ✓ **Advanced Memory Architecture**: Enhanced pattern recognition, relationship dynamics tracking, and therapeutic progress monitoring
 
 ### Chat Interface Enhancements
 - ✓ Mini-Journal Entry button (notebook icon) for quick emotional reflections with mood tagging

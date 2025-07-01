@@ -1,4 +1,7 @@
 import { EventEmitter } from 'events';
+import { conversationFlowEngine, ConversationPhase } from './conversation_flow_engine';
+import { enhancedPersonaSystem, EnhancedPersonaConfig } from './enhanced_persona_system';
+import { qualityEvaluator, QualityEvaluation } from './conversation_quality_evaluator';
 
 // Claude 3 Haiku via OpenRouter configuration
 const CLAUDE_MODEL = "anthropic/claude-3-haiku";
@@ -450,7 +453,19 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
         cleanResponse = jsonMatch[0];
       }
 
-      const result = JSON.parse(cleanResponse);
+      let result;
+      try {
+        result = JSON.parse(cleanResponse);
+      } catch (parseError) {
+        console.log('JSON parse failed, attempting to extract object:', cleanResponse);
+        // If direct parsing fails, try to find and parse a JSON object
+        const jsonMatch = cleanResponse.match(/\{[^{}]*\}/);
+        if (jsonMatch) {
+          result = JSON.parse(jsonMatch[0]);
+        } else {
+          throw parseError;
+        }
+      }
       
       const emotionalContext: EmotionalContext = {
         detectedEmotions: result.detectedEmotions || ["neutral"],
