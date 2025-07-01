@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X } from "lucide-react";
+import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
 import { useLocation } from "wouter";
@@ -194,69 +194,51 @@ export default function UnifiedHome() {
           </p>
         </div>
 
-        {/* Persona Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        {/* Clean Persona Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {personas.map((persona) => {
             const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || Brain;
-            const gradient = personaGradients[persona.id as keyof typeof personaGradients] || "from-slate-500 to-slate-600";
-            const accent = personaAccents[persona.id as keyof typeof personaAccents] || "text-slate-600 bg-slate-50 border-slate-200";
             
             return (
               <Card
                 key={persona.id}
-                className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-white dark:bg-[#352843] hover:scale-[1.03] cursor-pointer animate-fade-in"
+                className="group border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 cursor-pointer"
                 onClick={() => handlePersonaSelect(persona)}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-                
-                <CardContent className="p-8 relative">
-                  <div className="flex items-start gap-6">
-                    {/* Avatar & Icon */}
-                    <div className="relative flex-shrink-0">
-                      <Avatar className="w-20 h-20 ring-4 ring-white/50 shadow-lg">
-                        <AvatarImage src={persona.avatar} alt={persona.name} />
-                        <AvatarFallback className={`bg-gradient-to-br ${gradient} text-white font-bold text-xl`}>
-                          {persona.name.split(' ').map((n: string) => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className={`absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br ${gradient} rounded-full flex items-center justify-center shadow-lg`}>
-                        <IconComponent className="h-5 w-5 text-white" />
-                      </div>
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    {/* Clean Avatar */}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="h-6 w-6 text-white" />
                     </div>
-
+                    
                     {/* Content */}
-                    <div className="flex-1 space-y-4">
+                    <div className="flex-1 space-y-3">
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {persona.name}
-                          </h3>
-                          <div className="text-3xl">{persona.emoji}</div>
-                        </div>
-                        <Badge variant="outline" className={`${accent} font-medium`}>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          {persona.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {persona.role}
-                        </Badge>
+                        </p>
                       </div>
                       
-                      <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                      <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                         {persona.description}
                       </p>
                       
-                      <div className="flex items-center justify-between pt-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          Available now
-                        </div>
-                        
-                        <Button
-                          className={`bg-gradient-to-r ${gradient} hover:shadow-lg transition-all duration-300 text-white font-medium px-6 rounded-full group-hover:scale-105`}
+                      {/* Simple CTA */}
+                      <div className="pt-2">
+                        <Button 
+                          size="sm"
+                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             handlePersonaSelect(persona);
                           }}
                         >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Start Conversation
+                          Start Chat
+                          <ArrowRight className="ml-1 h-3 w-3" />
                         </Button>
                       </div>
                     </div>
