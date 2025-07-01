@@ -2,6 +2,8 @@ import { EventEmitter } from 'events';
 import { conversationFlowEngine, ConversationPhase } from './conversation_flow_engine';
 import { enhancedPersonaSystem, EnhancedPersonaConfig } from './enhanced_persona_system';
 import { qualityEvaluator, QualityEvaluation } from './conversation_quality_evaluator';
+import { advancedIntelligenceEngine } from './advanced_intelligence_engine';
+import { gpt4oLevelProcessor } from './gpt4o_level_processor';
 
 // Claude 3 Haiku via OpenRouter configuration
 const CLAUDE_MODEL = "anthropic/claude-3-haiku";
@@ -345,11 +347,194 @@ export class ClaudeConversationSystem extends EventEmitter {
     // Update memory with current interaction
     await this.updateConversationMemory(memory, message, emotionalContext);
     
-    // Build context-aware prompt
-    const systemPrompt = this.buildPersonalizedSystemPrompt(persona, memory, emotionalContext);
-    const conversationPrompt = this.buildConversationPrompt(message, conversationHistory, memory, emotionalContext);
+    // GPT-4o Level Intelligence Processing
+    const gpt4oResponse = await gpt4oLevelProcessor.processWithGPT4oIntelligence(
+      message,
+      personaId,
+      conversationHistory,
+      emotionalContext,
+      memory
+    );
 
-    return this.streamClaudeResponse(systemPrompt, conversationPrompt, persona, memory, emotionalContext);
+    // Advanced Intelligence Engine Processing
+    const advancedResponse = await advancedIntelligenceEngine.generateAdvancedResponse(
+      message,
+      personaId,
+      conversationHistory,
+      emotionalContext,
+      memory
+    );
+
+    // Build enhanced context-aware prompt with advanced intelligence
+    const systemPrompt = this.buildAdvancedSystemPrompt(persona, memory, emotionalContext, gpt4oResponse, advancedResponse);
+    const conversationPrompt = this.buildEnhancedConversationPrompt(message, conversationHistory, memory, emotionalContext, gpt4oResponse);
+
+    return this.streamAdvancedClaudeResponse(systemPrompt, conversationPrompt, persona, memory, emotionalContext, gpt4oResponse);
+  }
+
+  private buildAdvancedSystemPrompt(
+    persona: PersonaConfig, 
+    memory: ConversationMemory, 
+    emotionalContext: EmotionalContext,
+    gpt4oResponse: any,
+    advancedResponse: any
+  ): string {
+    const basePrompt = this.buildPersonalizedSystemPrompt(persona, memory, emotionalContext);
+    
+    const advancedInstructions = `
+
+ADVANCED INTELLIGENCE ENHANCEMENT:
+- Emotional Nuances Detected: ${gpt4oResponse.emotionalValidation?.join('; ') || 'none'}
+- Therapeutic Opportunities: ${gpt4oResponse.therapeuticTechniques?.join(', ') || 'general support'}
+- Adaptive Strategy: ${gpt4oResponse.adaptivePersonality?.therapeuticModality || 'integrative'}
+- Recommended Metaphors: ${gpt4oResponse.metaphors?.join('; ') || 'none'}
+
+CONTEXTUAL INTELLIGENCE:
+- Multi-step Reasoning: ${advancedResponse.reasoningSteps?.map((s: any) => s.conclusion).join(' → ') || 'direct response'}
+- Memory Integration: ${advancedResponse.memoryIntegration?.emotionalPatterns?.join(', ') || 'establishing patterns'}
+- Personality Alignment: ${advancedResponse.personalityAlignment?.therapeuticApproach || 'standard approach'}
+
+Apply this enhanced intelligence to craft a response that feels naturally therapeutic, emotionally attuned, and distinctly aligned with your persona.`;
+
+    return basePrompt + advancedInstructions;
+  }
+
+  private buildEnhancedConversationPrompt(
+    message: string,
+    conversationHistory: any[],
+    memory: ConversationMemory,
+    emotionalContext: EmotionalContext,
+    gpt4oResponse: any
+  ): string {
+    const basePrompt = this.buildConversationPrompt(message, conversationHistory, memory, emotionalContext);
+    
+    const enhancedContext = `
+
+ENHANCED EMOTIONAL INTELLIGENCE:
+- Primary emotion: ${gpt4oResponse.emotionalAnalysis?.primaryEmotion || 'neutral'}
+- Secondary emotions: ${gpt4oResponse.emotionalAnalysis?.secondaryEmotions?.join(', ') || 'none'}
+- Vulnerability level: ${Math.round((gpt4oResponse.emotionalAnalysis?.vulnerabilityLevel || 0) * 100)}%
+- Underlying needs: ${gpt4oResponse.emotionalAnalysis?.underlyingNeeds?.join(', ') || 'general support'}
+- Resilience indicators: ${gpt4oResponse.emotionalAnalysis?.resilienceIndicators?.join(', ') || 'seeking help'}
+
+THERAPEUTIC GUIDANCE:
+- Suggested validation: ${gpt4oResponse.emotionalValidation?.[0] || 'acknowledge their feelings'}
+- Recommended reframe: ${gpt4oResponse.reframes?.[0] || 'offer perspective'}
+- Follow-up focus: ${gpt4oResponse.followUpQuestions?.[0] || 'explore deeper'}
+
+Respond with this enhanced understanding, maintaining your authentic persona voice while demonstrating deep emotional intelligence.`;
+
+    return basePrompt + enhancedContext;
+  }
+
+  private async *streamAdvancedClaudeResponse(
+    systemPrompt: string,
+    conversationPrompt: string,
+    persona: PersonaConfig,
+    memory: ConversationMemory,
+    emotionalContext: EmotionalContext,
+    gpt4oResponse: any
+  ): AsyncGenerator<StreamingResponse, void, unknown> {
+    try {
+      const messages = [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: conversationPrompt }
+      ];
+
+      console.log('Making Claude request with advanced intelligence:', JSON.stringify(messages, null, 2));
+      const response = await makeClaudeRequest(messages);
+      const content = response.choices?.[0]?.message?.content || "I'm here to support you.";
+
+      console.log('Claude response received:', content.substring(0, 100) + '...');
+      
+      // Enhanced post-processing with GPT-4o intelligence
+      const enhancedContent = this.applyGPT4oEnhancements(content, gpt4oResponse, emotionalContext);
+      
+      console.log('Claude response processed successfully:', enhancedContent.substring(0, 50) + '...');
+
+      const emotion = this.detectResponseEmotion(enhancedContent, persona);
+      const confidence = this.calculateResponseConfidence(enhancedContent, emotionalContext);
+
+      // Quality evaluation with advanced metrics
+      const quality = qualityEvaluator.evaluateResponse(
+        conversationPrompt,
+        enhancedContent,
+        emotionalContext,
+        persona.id
+      );
+
+      const streamingResponse: StreamingResponse = {
+        content: enhancedContent,
+        isComplete: true,
+        emotion,
+        confidence: Math.max(confidence, 0.8), // Boost confidence with advanced processing
+        memoryUpdates: [],
+        thoughtProcess: `Advanced processing applied: ${gpt4oResponse.therapeuticTechniques?.join(', ') || 'general support'}`
+      };
+
+      // Finalize memory with enhanced insights
+      await this.finalizeMemoryUpdate(memory, enhancedContent, emotionalContext);
+
+      yield streamingResponse;
+
+    } catch (error) {
+      console.error('Advanced Claude response error:', error);
+      yield* this.generateAdvancedFallbackResponse(persona, emotionalContext, memory, gpt4oResponse);
+    }
+  }
+
+  private applyGPT4oEnhancements(
+    content: string, 
+    gpt4oResponse: any, 
+    emotionalContext: EmotionalContext
+  ): string {
+    let enhancedContent = content;
+
+    // Apply emotional validation if high vulnerability detected
+    if (gpt4oResponse.emotionalAnalysis?.vulnerabilityLevel > 0.6) {
+      if (!enhancedContent.toLowerCase().includes('understand') && !enhancedContent.toLowerCase().includes('hear')) {
+        enhancedContent = `I can sense how difficult this is for you. ${enhancedContent}`;
+      }
+    }
+
+    // Apply therapeutic reframes if appropriate
+    if (gpt4oResponse.reframes?.length > 0 && emotionalContext.intensity > 0.5) {
+      const reframe = gpt4oResponse.reframes[0];
+      if (!enhancedContent.includes(reframe.substring(0, 20))) {
+        enhancedContent += ` Remember, ${reframe.toLowerCase()}.`;
+      }
+    }
+
+    // Ensure follow-up engagement
+    if (gpt4oResponse.followUpQuestions?.length > 0 && !enhancedContent.includes('?')) {
+      enhancedContent += ` ${gpt4oResponse.followUpQuestions[0]}`;
+    }
+
+    return enhancedContent;
+  }
+
+  private async *generateAdvancedFallbackResponse(
+    persona: PersonaConfig,
+    emotionalContext: EmotionalContext,
+    memory: ConversationMemory,
+    gpt4oResponse: any
+  ): AsyncGenerator<StreamingResponse, void, unknown> {
+    
+    let fallbackContent = this.generateContextualFallbackResponse(persona, emotionalContext, memory);
+    
+    // Apply GPT-4o enhancements to fallback
+    if (gpt4oResponse.emotionalValidation?.length > 0) {
+      fallbackContent = `${gpt4oResponse.emotionalValidation[0]}. ${fallbackContent}`;
+    }
+
+    yield {
+      content: fallbackContent,
+      isComplete: true,
+      emotion: 'supportive',
+      confidence: 0.7,
+      memoryUpdates: [],
+      thoughtProcess: 'Advanced fallback with emotional intelligence applied'
+    };
   }
 
   private async *streamClaudeResponse(
