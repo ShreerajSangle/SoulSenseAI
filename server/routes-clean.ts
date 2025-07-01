@@ -493,6 +493,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug dashboard endpoints
+  app.get('/api/debug/conversation-logs', (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const logs = claudeConversationSystem.getDebugLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching debug logs:", error);
+      res.status(500).json({ error: "Failed to fetch debug logs" });
+    }
+  });
+
+  app.get('/api/debug/memory-stats/:userId/:personaId', (req, res) => {
+    try {
+      const { userId, personaId } = req.params;
+      const stats = claudeConversationSystem.getConversationMemoryStats(userId, personaId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching memory stats:", error);
+      res.status(500).json({ error: "Failed to fetch memory stats" });
+    }
+  });
+
   // Health check and status
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

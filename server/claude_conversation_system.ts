@@ -129,10 +129,28 @@ interface StreamingResponse {
   thoughtProcess?: string;
 }
 
+// Debug logging interface for prompt debugging dashboard
+interface PromptDebugLog {
+  timestamp: Date;
+  userId: string;
+  personaId: string;
+  userInput: string;
+  generatedPrompt: string;
+  finalOutput: string;
+  emotionalContext: EmotionalContext;
+  memoryContext: any;
+  responseMetrics: {
+    responseTime: number;
+    confidence: number;
+    emotionAccuracy?: number;
+  };
+}
+
 export class ClaudeConversationSystem extends EventEmitter {
   private personaConfigs: Map<string, PersonaConfig> = new Map();
   private conversationMemories: Map<string, ConversationMemory> = new Map();
   private emotionDetectionCache: Map<string, EmotionalContext> = new Map();
+  private debugLogs: PromptDebugLog[] = [];
 
   constructor() {
     super();
@@ -395,20 +413,44 @@ export class ClaudeConversationSystem extends EventEmitter {
       // Use Claude for emotion detection with GoEmotions-style classification
       const response = await makeClaudeRequest([{
         role: "system",
-        content: `You are an expert emotion detection system. Analyze the text for emotions using the GoEmotions taxonomy. Respond with JSON containing:
-- detectedEmotions: array of detected emotions (joy, sadness, anger, fear, surprise, disgust, love, optimism, pessimism, anxiety, etc.)
-- intensity: emotion intensity 0-1
-- valence: emotional valence -1 to 1 (negative to positive)
-- arousal: emotional arousal 0-1 (calm to excited)
-- emotionalTriggers: array of what might be triggering these emotions
-- supportNeeds: array of what kind of support might be helpful
-- crisisIndicators: array of any crisis/safety concerns (empty if none)`
+        content: `You are an expert emotion detection system. Analyze the text for emotions using the GoEmotions taxonomy. 
+
+CRITICAL: You must respond with ONLY valid JSON, no additional text or formatting.
+
+Respond with this exact JSON structure:
+{
+  "detectedEmotions": ["emotion1", "emotion2"],
+  "intensity": 0.5,
+  "valence": 0.0,
+  "arousal": 0.5,
+  "emotionalTriggers": ["trigger1"],
+  "supportNeeds": ["need1"],
+  "crisisIndicators": []
+}
+
+Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimism, pessimism, anxiety, excitement, gratitude, confusion, curiosity, neutral, etc.`
       }, {
         role: "user",
-        content: message
+        content: `Analyze this message for emotions and respond with JSON only: "${message}"`
       }]);
 
-      const result = JSON.parse(response.choices[0]?.message?.content || "{}");
+      // Clean the response to ensure it's valid JSON
+      let cleanResponse = response.trim();
+      
+      // Remove any markdown formatting
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.replace(/```json\n?/, '').replace(/\n?```$/, '');
+      } else if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.replace(/```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      // Find JSON object if there's extra text
+      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanResponse = jsonMatch[0];
+      }
+
+      const result = JSON.parse(cleanResponse);
       
       const emotionalContext: EmotionalContext = {
         detectedEmotions: result.detectedEmotions || ["neutral"],
@@ -506,10 +548,10 @@ export class ClaudeConversationSystem extends EventEmitter {
         shortTermMemory: [],
         longTermMemory: [],
         emotionalProfile: {
-          dominantEmotions: [],
+          dominantEmotions: ["neutral"],
           triggers: [],
           copingMechanisms: [],
-          supportNeeds: [],
+          supportNeeds: ["General support"],
           vulnerabilityAreas: [],
           strengthAreas: []
         },
