@@ -11,6 +11,9 @@ import EmojiSelector from "@/components/emoji-selector";
 import MiniJournalModal from "@/components/mini-journal-modal";
 import QuickReplyBubbles from "@/components/quick-reply-bubbles";
 import SessionRecapModal from "@/components/session-recap-modal";
+import EmotionIndicator from "@/components/emotion-indicator";
+import MessageTimestamp from "@/components/message-timestamp";
+import ConversationNavigator from "@/components/conversation-navigator";
 
 interface Message {
   id: number;
@@ -18,6 +21,9 @@ interface Message {
   sender: "user" | "ai";
   timestamp: Date;
   emotion?: string;
+  emotions?: string[];
+  intensity?: number;
+  persona?: string;
 }
 
 interface Persona {
@@ -145,20 +151,36 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
       if (response.ok) {
         const data = await response.json();
         
+        // Update user message with detected emotions
+        if (data.emotionalContext && data.emotionalContext.detectedEmotions) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === userMessage.id 
+              ? { 
+                  ...msg, 
+                  emotions: data.emotionalContext.detectedEmotions,
+                  intensity: data.emotionalContext.intensity 
+                }
+              : msg
+          ));
+          
+          // Update global emotion state
+          const primaryEmotion = data.emotionalContext.detectedEmotions[0];
+          if (primaryEmotion) {
+            setCurrentEmotion(primaryEmotion.charAt(0).toUpperCase() + primaryEmotion.slice(1));
+            setEmotionIntensity(Math.round(data.emotionalContext.intensity * 100));
+          }
+        }
+        
         const aiMessage: Message = {
           id: Date.now() + 1,
-          content: data.aiResponse || "I'm here to help. Could you tell me more about what you're experiencing?",
+          content: data.message?.content || data.aiResponse || "I'm here to help. Could you tell me more about what you're experiencing?",
           sender: "ai",
           timestamp: new Date(),
+          persona: persona.name,
           emotion: data.emotionDetected
         };
         
         setMessages(prev => [...prev, aiMessage]);
-        
-        if (data.emotionDetected) {
-          setCurrentEmotion(data.emotionDetected);
-          setEmotionIntensity(Math.floor(Math.random() * 40) + 40);
-        }
       } else {
         // Fallback response if API fails
         const fallbackMessage: Message = {
@@ -248,6 +270,20 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 </Badge>
               </div>
               
+              {/* Conversation Navigator */}
+              {sessionStarted && messages.length > 0 && (
+                <ConversationNavigator
+                  conversationHistory={messages.map(msg => ({
+                    ...msg,
+                    createdAt: msg.timestamp,
+                    sender: msg.sender,
+                    persona: msg.sender === 'ai' ? persona.name : undefined
+                  }))}
+                  onSessionSummary={() => setSessionRecapOpen(true)}
+                  className="text-[#7A5A95] hover:text-[#B794D1]"
+                />
+              )}
+              
               <Button
                 variant="ghost"
                 size="sm"
@@ -300,7 +336,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#F8F6FF]/30 to-[#E6E6FA]/20 dark:from-[#352843]/30 dark:to-[#2A2035]">
                 {messages.map((message) => (
-                  <div key={message.id} className={`flex items-start gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
+                  <div key={message.id} className={`group flex items-start gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
                     {message.sender === "ai" && (
                       <Avatar className="w-8 h-8 flex-shrink-0 mt-1 animate-float">
                         <AvatarImage src={persona.avatar} alt={persona.name} />
@@ -316,23 +352,40 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                         : "bg-white/60 dark:bg-[#453354]/60 text-[#3A2548] dark:text-[#F2D4F2] border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 shadow-sm"
                     }`}>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                      {message.emotion && (
+                      
+                      {/* Emotion indicator for user messages */}
+                      {message.sender === "user" && message.emotions && (
+                        <div className="mt-2">
+                          <EmotionIndicator 
+                            emotions={message.emotions} 
+                            intensity={message.intensity}
+                            className="inline-flex"
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Legacy emotion support */}
+                      {message.emotion && !message.emotions && (
                         <Badge variant="secondary" className="mt-2 text-xs bg-[#F3EFFF] text-[#7A5A95] border border-[#D8C2F5]">
                           💜 {message.emotion}
                         </Badge>
                       )}
-                      <div className={`text-xs mt-1 ${message.sender === "user" ? "text-white/70" : "text-[#78716C] dark:text-[#A678AB]"}`}>
-                        {message.timestamp.toLocaleTimeString()}
-                      </div>
+                      
+                      {/* Improved timestamp - shows on hover */}
+                      <MessageTimestamp 
+                        timestamp={message.timestamp}
+                        className={`mt-1 ${message.sender === "user" ? "text-white/70" : "text-[#78716C] dark:text-[#A678AB]"}`}
+                      />
                     </div>
                     
-                    {/* Quick Reply Bubbles for AI messages */}
+                    {/* Persona-specific Quick Reply Bubbles for AI messages */}
                     {message.sender === "ai" && messages.indexOf(message) === messages.length - 1 && !isTyping && (
                       <QuickReplyBubbles
                         onReplySelect={(reply) => {
                           setInputMessage(reply);
                           handleSendMessage();
                         }}
+                        personaId={persona.id}
                         messageType={message.content.length > 100 ? 'advice' : 'general'}
                         className="ml-11"
                       />
