@@ -437,8 +437,11 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
         content: `Analyze this message for emotions and respond with JSON only: "${message}"`
       }]);
 
+      // Extract the actual message content from OpenRouter response
+      const responseContent = response.choices?.[0]?.message?.content || response;
+
       // Clean the response to ensure it's valid JSON
-      let cleanResponse = String(response).trim();
+      let cleanResponse = String(responseContent).trim();
       
       // Remove any markdown formatting
       if (cleanResponse.startsWith('```json')) {
@@ -457,13 +460,23 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
       try {
         result = JSON.parse(cleanResponse);
       } catch (parseError) {
-        console.log('JSON parse failed, attempting to extract object:', cleanResponse);
-        // If direct parsing fails, try to find and parse a JSON object
-        const jsonMatch = cleanResponse.match(/\{[^{}]*\}/);
-        if (jsonMatch) {
-          result = JSON.parse(jsonMatch[0]);
+        console.log('JSON parse failed for emotion detection:', cleanResponse);
+        console.log('Parse error:', (parseError as Error).message);
+        
+        // Try to extract JSON from markdown code blocks or wrapped text
+        const codeBlockMatch = cleanResponse.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+        if (codeBlockMatch) {
+          result = JSON.parse(codeBlockMatch[1]);
         } else {
-          throw parseError;
+          // Try a more comprehensive JSON extraction
+          const jsonMatch = cleanResponse.match(/\{[\s\S]*?\}/);
+          if (jsonMatch) {
+            result = JSON.parse(jsonMatch[0]);
+          } else {
+            // If all parsing fails, return fallback emotion detection
+            console.log('Using fallback emotion detection due to parse failure');
+            return this.fallbackEmotionDetection(message);
+          }
         }
       }
       
