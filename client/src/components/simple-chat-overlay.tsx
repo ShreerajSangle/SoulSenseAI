@@ -236,61 +236,45 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#B794D1]/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="w-full max-w-4xl h-[85vh] bg-white/60 dark:bg-[#2A2035]/90 rounded-3xl shadow-2xl overflow-hidden border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#F8F6FF] to-[#FBCFE8] dark:from-[#352843] dark:to-[#453354] px-6 py-5 border-b border-[#D8C2F5]/50 dark:border-[#5A4267]/50">
+        {/* Minimalist Header */}
+        <div className="bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="w-14 h-14 ring-3 ring-[#B794D1]/30 animate-float">
-                <AvatarImage src={persona.avatar} alt={persona.name} />
-                <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-white font-medium text-sm">
                   {persona.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
+                </span>
+              </div>
               <div>
-                <h2 className="text-xl font-semibold text-[#3A2548] dark:text-[#F2D4F2] flex items-center gap-2">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">
                   {persona.name}
-                  <span className="text-2xl">{persona.emoji}</span>
                 </h2>
-                <p className="text-sm text-[#7A5A95] dark:text-[#A678AB] font-medium">
-                  {persona.role} • Here to support you
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {persona.role}
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 text-sm">
-                <Badge variant="outline" className="bg-[#F3EFFF] text-[#7A5A95] border-[#D8C2F5] animate-pulse-gentle">
-                  💜 {currentEmotion}
-                </Badge>
-                <Badge variant="outline" className="bg-[#FCE7F3] text-[#DB2777] border-[#F9A8D4]">
-                  ✨ {emotionIntensity}%
-                </Badge>
-              </div>
-              
-              {/* Conversation Navigator */}
-              {sessionStarted && messages.length > 0 && (
-                <ConversationNavigator
-                  conversationHistory={messages.map(msg => ({
-                    ...msg,
-                    createdAt: msg.timestamp,
-                    sender: msg.sender,
-                    persona: msg.sender === 'ai' ? persona.name : undefined
-                  }))}
-                  onSessionSummary={() => setSessionRecapOpen(true)}
-                  className="text-[#7A5A95] hover:text-[#B794D1]"
-                />
+            <div className="flex items-center gap-3">
+              {/* Minimalist Status Indicators */}
+              {sessionStarted && (
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Online</span>
+                </div>
               )}
               
+              {/* Clean Close Button */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="text-[#78716C] hover:text-[#7A5A95] hover:bg-[#F3EFFF] rounded-2xl transition-all duration-300"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -299,113 +283,90 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         {/* Session Check-in or Chat Content */}
         <div className="flex-1 flex flex-col h-[calc(85vh-80px)]">
           {!sessionStarted ? (
-            /* Session Check-in */
+            /* Minimalist Session Check-in */
             <div className="flex-1 flex items-center justify-center p-8">
-              <Card className="max-w-md w-full border-0 shadow-lg bg-gradient-to-br from-white/40 to-[#F8F6FF] dark:from-[#352843] dark:to-[#453354] backdrop-blur-sm animate-fade-in">
-                <CardContent className="p-8 text-center space-y-6">
-                  <div className="text-6xl mb-4 animate-float">{persona.emoji}</div>
-                  <h3 className="text-xl font-semibold text-[#3A2548] dark:text-[#F2D4F2]">
-                    Welcome to your session with {persona.name}
-                  </h3>
-                  <p className="text-[#5A3F70] dark:text-[#A678AB] leading-relaxed">
-                    Take a moment to connect with yourself. How are you feeling today? What would you like to explore in our safe space together?
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <Textarea
-                      placeholder="Share what's on your mind and heart..."
-                      value={checkInResponse}
-                      onChange={(e) => setCheckInResponse(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      className="min-h-[100px] rounded-2xl border-[#D8C2F5] dark:border-[#5A4267] focus:ring-2 focus:ring-[#B794D1]/30 focus:border-[#B794D1] bg-white/60 dark:bg-[#2A2035]/60 backdrop-blur-sm"
-                    />
-                    <Button
-                      onClick={handleStartSession}
-                      disabled={!checkInResponse.trim()}
-                      className="w-full rounded-2xl bg-gradient-to-r from-[#B794D1] to-[#EC4899] hover:from-[#9B7CB8] hover:to-[#DB2777] text-white font-medium py-3 shadow-lg animate-float"
-                    >
-                      Begin Our Conversation
-                    </Button>
+              <div className="max-w-lg w-full space-y-8">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <span className="text-white text-xl font-medium">
+                      {persona.name.split(' ').map(n => n[0]).join('')}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  <h3 className="text-2xl font-light text-gray-900 dark:text-white">
+                    {persona.name}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    How are you feeling today?
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Tell me what's on your mind..."
+                    value={checkInResponse}
+                    onChange={(e) => setCheckInResponse(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="min-h-[120px] resize-none border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-all"
+                  />
+                  <Button
+                    onClick={handleStartSession}
+                    disabled={!checkInResponse.trim()}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Start Conversation
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             /* Chat Interface */
             <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-[#F8F6FF]/30 to-[#E6E6FA]/20 dark:from-[#352843]/30 dark:to-[#2A2035]">
+              {/* Clean Messages Area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 dark:bg-gray-800">
                 {messages.map((message) => (
-                  <div key={message.id} className={`group flex items-start gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
-                    {message.sender === "ai" && (
-                      <Avatar className="w-8 h-8 flex-shrink-0 mt-1 animate-float">
-                        <AvatarImage src={persona.avatar} alt={persona.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-xs">
-                          {persona.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    
-                    <div className={`max-w-[70%] px-4 py-3 rounded-2xl backdrop-blur-sm ${
-                      message.sender === "user" 
-                        ? "bg-gradient-to-r from-[#B794D1] to-[#EC4899] text-white ml-auto shadow-lg border border-[#D8C2F5]/30" 
-                        : "bg-white/60 dark:bg-[#453354]/60 text-[#3A2548] dark:text-[#F2D4F2] border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 shadow-sm"
-                    }`}>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                      
-                      {/* Emotion indicator for user messages */}
-                      {message.sender === "user" && message.emotions && (
-                        <div className="mt-2">
-                          <EmotionIndicator 
-                            emotions={message.emotions} 
-                            intensity={message.intensity}
-                            className="inline-flex"
-                          />
+                  <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                    <div className={`flex items-start gap-3 max-w-[70%] ${message.sender === "user" ? "flex-row-reverse" : ""}`}>
+                      {message.sender === "ai" && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-medium">
+                            {persona.name.split(' ').map(n => n[0]).join('')}
+                          </span>
                         </div>
                       )}
                       
-                      {/* Legacy emotion support */}
-                      {message.emotion && !message.emotions && (
-                        <Badge variant="secondary" className="mt-2 text-xs bg-[#F3EFFF] text-[#7A5A95] border border-[#D8C2F5]">
-                          💜 {message.emotion}
-                        </Badge>
-                      )}
-                      
-                      {/* Improved timestamp - shows on hover */}
-                      <MessageTimestamp 
-                        timestamp={message.timestamp}
-                        className={`mt-1 ${message.sender === "user" ? "text-white/70" : "text-[#78716C] dark:text-[#A678AB]"}`}
-                      />
+                      <div className={`px-4 py-3 rounded-2xl ${
+                        message.sender === "user" 
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white" 
+                          : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600"
+                      }`}>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        
+                        {/* Clean timestamp */}
+                        <div className={`text-xs mt-2 ${
+                          message.sender === "user" ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                        }`}>
+                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
                     </div>
-                    
-                    {/* Persona-specific Quick Reply Bubbles for AI messages */}
-                    {message.sender === "ai" && messages.indexOf(message) === messages.length - 1 && !isTyping && (
-                      <QuickReplyBubbles
-                        onReplySelect={(reply) => {
-                          setInputMessage(reply);
-                          handleSendMessage();
-                        }}
-                        personaId={persona.id}
-                        messageType={message.content.length > 100 ? 'advice' : 'general'}
-                        className="ml-11"
-                      />
-                    )}
                   </div>
                 ))}
                 
+                {/* Minimalist Typing Indicator */}
                 {isTyping && (
-                  <div className="flex items-start gap-3 animate-fade-in">
-                    <Avatar className="w-8 h-8 flex-shrink-0 mt-1 animate-float">
-                      <AvatarImage src={persona.avatar} alt={persona.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-[#C8A2E8] to-[#EC4899] text-white font-semibold text-xs">
-                        {persona.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="bg-white/60 dark:bg-[#453354]/60 px-4 py-3 rounded-2xl border border-[#D8C2F5]/50 dark:border-[#5A4267]/50 shadow-sm backdrop-blur-sm">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-[#B794D1] rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-[#C8A2E8] rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-2 h-2 bg-[#EC4899] rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                  <div className="flex justify-start">
+                    <div className="flex items-start gap-3 max-w-[70%]">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-medium">
+                          {persona.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="bg-white dark:bg-gray-700 px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        </div>
                       </div>
                     </div>
                   </div>

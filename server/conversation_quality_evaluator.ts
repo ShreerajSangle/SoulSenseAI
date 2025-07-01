@@ -408,13 +408,13 @@ export class ConversationQualityEvaluator {
     if (evaluations.length === 0) return null;
 
     const recent = evaluations.slice(-10);
-    const averageQuality = recent.reduce((sum, eval) => sum + eval.metrics.overallQuality, 0) / recent.length;
+    const averageQuality = recent.reduce((sum, evaluation) => sum + evaluation.metrics.overallQuality, 0) / recent.length;
     
     return {
       averageQuality,
       improvementTrend: recent.length > 5 ? 
-        recent.slice(-3).reduce((sum, eval) => sum + eval.metrics.overallQuality, 0) / 3 -
-        recent.slice(0, 3).reduce((sum, eval) => sum + eval.metrics.overallQuality, 0) / 3 : 0,
+        recent.slice(-3).reduce((sum, evaluation) => sum + evaluation.metrics.overallQuality, 0) / 3 -
+        recent.slice(0, 3).reduce((sum, evaluation) => sum + evaluation.metrics.overallQuality, 0) / 3 : 0,
       commonIssues: this.findCommonIssues(recent)
     };
   }
@@ -422,8 +422,8 @@ export class ConversationQualityEvaluator {
   private findCommonIssues(evaluations: QualityEvaluation[]): string[] {
     const issueCount: Record<string, number> = {};
     
-    evaluations.forEach(eval => {
-      eval.feedback.forEach(feedback => {
+    evaluations.forEach(evaluation => {
+      evaluation.feedback.forEach(feedback => {
         issueCount[feedback] = (issueCount[feedback] || 0) + 1;
       });
     });
