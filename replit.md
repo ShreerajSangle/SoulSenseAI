@@ -49,22 +49,29 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Technical Features
 
-### Advanced Memory System
-- **Short-term Memory:** Tracks recent conversation context, emotional states, and interaction patterns
-- **Long-term Memory:** Stores significant breakthroughs, recurring themes, and therapeutic progress
-- **Emotional Profiling:** Builds user emotional patterns using GoEmotions taxonomy
-- **Relationship Dynamics:** Tracks trust levels, intimacy depth, and communication preferences
+### Conversation Flow Engine (Finite State Machine)
+- **Phase Management:** Automatic progression through therapeutic dialogue stages
+- **Crisis Detection:** Immediate transition to crisis support when safety indicators detected
+- **Engagement Tracking:** Real-time monitoring of user engagement and emotional intensity
+- **Phase-Specific Guidance:** Each conversation phase has tailored therapeutic approaches
 
-### Emotion Detection & Response Adaptation
-- **Real-time Emotion Analysis:** Uses Claude 3 Haiku to detect emotions with intensity and valence scoring
-- **Adaptive Response Tuning:** Automatically adjusts tone and content based on detected emotional states
-- **Crisis Detection:** Identifies safety concerns and adjusts responses accordingly
-- **Therapeutic Context:** Each persona uses specific therapeutic approaches (CBT for Dr. Sarah, mindfulness for Maya)
+### Enhanced Persona Intelligence
+- **Therapeutic Specializations:** Each persona equipped with specific techniques and interventions
+- **Dynamic Prompt Generation:** Context-aware prompts based on conversation phase and emotional state
+- **Persona Consistency:** Quality evaluation ensures responses match persona characteristics
+- **Crisis Protocols:** Specialized safety responses for each persona type
 
-### Debug & Monitoring Dashboard
-- **Prompt Logging:** Tracks user inputs, generated prompts, and AI responses
-- **Performance Metrics:** Response times, confidence scores, emotion accuracy
-- **Memory Analytics:** Conversation patterns, trust progression, therapeutic milestones
+### Quality Evaluation & Continuous Improvement
+- **Real-time Scoring:** Evaluates responses on empathy, relevance, therapeutic value, and safety
+- **Automatic Retry:** Low-quality responses are automatically regenerated
+- **Performance Analytics:** Tracks conversation quality trends and identifies improvement areas
+- **Therapeutic Effectiveness:** Monitors technique usage and emotional progression
+
+### Advanced Memory & Context System
+- **Conversation Memory:** Enhanced pattern recognition for therapeutic progress tracking
+- **Emotional Profiling:** Builds comprehensive emotional patterns using GoEmotions taxonomy
+- **Relationship Dynamics:** Trust levels, intimacy depth, and therapeutic rapport tracking
+- **Context Integration:** Memory context automatically injected into dynamic prompts
 
 ## User Preferences
 - **Communication Style:** Warm, conversational, friend-like responses (2-4 sentences)
