@@ -128,15 +128,7 @@ export default function EnhancedProfileScreen() {
     }
   });
 
-  const [editData, setEditData] = useState({
-    bio: "",
-    preferences: {
-      favoritePersona: "sarah",
-      sessionFrequency: "daily",
-      reminderTime: "9:00",
-      privacyLevel: "private"
-    }
-  });
+
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -191,19 +183,22 @@ export default function EnhancedProfileScreen() {
   }
 
   const handleSaveProfile = () => {
-    updateProfileMutation.mutate(editData);
+    updateProfileMutation.mutate(editForm);
+  };
+
+  const handleCreateGoal = () => {
+    if (!newGoal.title.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter a goal title.",
+        variant: "destructive"
+      });
+      return;
+    }
+    createGoalMutation.mutate(newGoal);
   };
 
   const startEditing = () => {
-    setEditData({
-      bio: profile?.bio || "",
-      preferences: profile?.preferences || {
-        favoritePersona: "sarah",
-        sessionFrequency: "daily",
-        reminderTime: "9:00",
-        privacyLevel: "private"
-      }
-    });
     setIsEditing(true);
   };
 
