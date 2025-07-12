@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,6 +81,26 @@ export default function GoalsPage() {
     category: "",
     priority: "medium"
   });
+  const [savedGoals, setSavedGoals] = useState<Goal[]>([]);
+
+  // Load goals from localStorage on mount
+  React.useEffect(() => {
+    const stored = localStorage.getItem('soulsense-goals');
+    if (stored) {
+      try {
+        setSavedGoals(JSON.parse(stored));
+      } catch (error) {
+        console.error('Failed to parse stored goals:', error);
+      }
+    }
+  }, []);
+
+  // Save goals to localStorage whenever goals change
+  React.useEffect(() => {
+    if (savedGoals.length > 0) {
+      localStorage.setItem('soulsense-goals', JSON.stringify(savedGoals));
+    }
+  }, [savedGoals]);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();

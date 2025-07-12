@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +35,10 @@ import {
 
 interface UserProfile {
   userId: string;
+  name?: string;
   bio: string;
+  pronouns?: string;
+  moodTagline?: string;
   avatar: string | null;
   preferences: {
     favoritePersona: string;
@@ -71,6 +74,17 @@ const goalCategories = {
 export default function EnhancedProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    bio: "",
+    pronouns: "",
+    moodTagline: ""
+  });
+  const [newGoal, setNewGoal] = useState({
+    title: "",
+    description: "",
+    category: "personal"
+  });
   const [, setLocation] = useLocation();
   
   const queryClient = useQueryClient();
@@ -125,10 +139,25 @@ export default function EnhancedProfileScreen() {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/profile", "PUT", data),
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "anonymous",
+          ...data
+        })
+      });
+      if (!response.ok) throw new Error("Failed to update profile");
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
       setIsEditing(false);
+      toast({
+        title: "Profile updated! 🌸",
+        description: "Your personal information has been saved successfully.",
+      });
       toast({ title: "Profile updated successfully!" });
     },
   });
@@ -357,12 +386,71 @@ export default function EnhancedProfileScreen() {
                     New Goal
                   </Button>
                 </DialogTrigger>
-                <GoalDialog
-                  isOpen={isGoalDialogOpen}
-                  onClose={() => setIsGoalDialogOpen(false)}
-                  onSubmit={(data) => createGoalMutation.mutate(data)}
-                  isLoading={createGoalMutation.isPending}
-                />
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="font-body text-xl">Create New Goal</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="goalTitle" className="font-body font-medium">Goal Title</Label>
+                      <Input
+                        id="goalTitle"
+                        value={newGoal.title}
+                        onChange={(e) => setNewGoal(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="e.g., Journal 3x this week, Sleep 8 hours"
+                        className="mt-1 font-body rounded-xl"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="goalDescription" className="font-body font-medium">Description</Label>
+                      <Textarea
+                        id="goalDescription"
+                        value={newGoal.description}
+                        onChange={(e) => setNewGoal(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Describe your goal in more detail..."
+                        className="mt-1 font-body rounded-xl"
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="goalCategory" className="font-body font-medium">Category</Label>
+                      <Select 
+                        value={newGoal.category} 
+                        onValueChange={(value) => setNewGoal(prev => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger className="mt-1 font-body rounded-xl">
+                          <SelectValue placeholder="Choose a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mental" className="font-body">Mental Health</SelectItem>
+                          <SelectItem value="emotional" className="font-body">Emotional Wellbeing</SelectItem>
+                          <SelectItem value="personal" className="font-body">Personal Growth</SelectItem>
+                          <SelectItem value="social" className="font-body">Social Connection</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsGoalDialogOpen(false)}
+                        className="flex-1 font-body rounded-xl"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleCreateGoal}
+                        disabled={createGoalMutation.isPending}
+                        className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-body rounded-xl"
+                      >
+                        {createGoalMutation.isPending ? "Creating..." : "Save Goal"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
               </Dialog>
             </div>
 
@@ -451,30 +539,89 @@ export default function EnhancedProfileScreen() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
-            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+            <Card className="border-0 shadow-lg bg-white/60 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle className="font-body text-gray-900">Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {isEditing ? (
                   <>
-                    <div>
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        value={editData.bio}
-                        onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                        placeholder="Tell us about yourself..."
-                        className="rounded-2xl"
-                      />
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name" className="font-body font-medium text-gray-700">Name</Label>
+                        <Input
+                          id="name"
+                          value={editForm.name}
+                          onChange={(e) => handleEditFormChange("name", e.target.value)}
+                          placeholder="Your name (optional)"
+                          className="mt-1 font-body rounded-xl"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="pronouns" className="font-body font-medium text-gray-700">Pronouns</Label>
+                        <Input
+                          id="pronouns"
+                          value={editForm.pronouns}
+                          onChange={(e) => handleEditFormChange("pronouns", e.target.value)}
+                          placeholder="they/them, she/her, he/him, etc."
+                          className="mt-1 font-body rounded-xl"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="moodTagline" className="font-body font-medium text-gray-700">Mood Tagline</Label>
+                        <Input
+                          id="moodTagline"
+                          value={editForm.moodTagline}
+                          onChange={(e) => handleEditFormChange("moodTagline", e.target.value)}
+                          placeholder="How you're feeling today..."
+                          className="mt-1 font-body rounded-xl"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="bio" className="font-body font-medium text-gray-700">About Me</Label>
+                        <Textarea
+                          id="bio"
+                          value={editForm.bio}
+                          onChange={(e) => handleEditFormChange("bio", e.target.value)}
+                          placeholder="Tell us about yourself, your wellness journey, or what brings you peace..."
+                          className="mt-1 font-body rounded-xl"
+                          rows={3}
+                        />
+                      </div>
                     </div>
                   </>
                 ) : (
-                  <div>
-                    <Label>Bio</Label>
-                    <p className="text-gray-600 dark:text-gray-400 mt-1">
-                      {profile?.bio || "No bio added yet."}
-                    </p>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-body font-medium text-gray-700">Name</Label>
+                      <p className="text-gray-900 mt-1 font-body">
+                        {profile?.name || "Not specified"}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-body font-medium text-gray-700">Pronouns</Label>
+                      <p className="text-gray-900 mt-1 font-body">
+                        {profile?.pronouns || "Not specified"}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-body font-medium text-gray-700">Current Mood</Label>
+                      <p className="text-gray-900 mt-1 font-body">
+                        {profile?.moodTagline || "Not set"}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-body font-medium text-gray-700">About Me</Label>
+                      <p className="text-gray-900 mt-1 font-body leading-relaxed">
+                        {profile?.bio || "Share a bit about yourself to help your SoulSense personas understand you better."}
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>

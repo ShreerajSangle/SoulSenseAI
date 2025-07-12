@@ -32,6 +32,9 @@ export const users = pgTable("users", {
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  name: varchar("name"),
+  pronouns: varchar("pronouns"),
+  moodTagline: varchar("mood_tagline"),
   profileImageUrl: varchar("profile_image_url"),
   bio: text("bio"),
   preferences: jsonb("preferences").default({
