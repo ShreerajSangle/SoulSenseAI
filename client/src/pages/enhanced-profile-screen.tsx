@@ -93,13 +93,14 @@ export default function EnhancedProfileScreen() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["/api/profile"],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/profile");
-        return await response.json();
-      } catch (error) {
+      const response = await fetch("/api/profile?userId=anonymous");
+      if (!response.ok) {
         return {
           userId: "anonymous",
+          name: "",
           bio: "",
+          pronouns: "",
+          moodTagline: "",
           avatar: null,
           preferences: {
             favoritePersona: "sarah",
@@ -117,6 +118,7 @@ export default function EnhancedProfileScreen() {
           }
         };
       }
+      return response.json();
     }
   });
 
@@ -124,6 +126,7 @@ export default function EnhancedProfileScreen() {
     queryKey: ["/api/goals"],
     queryFn: async () => {
       const response = await fetch("/api/goals?userId=anonymous");
+      if (!response.ok) return [];
       return response.json();
     }
   });
@@ -143,14 +146,14 @@ export default function EnhancedProfileScreen() {
       if (!response.ok) throw new Error("Failed to update profile");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
+      queryClient.setQueryData(["/api/profile"], data);
       setIsEditing(false);
       toast({
         title: "Profile updated! 🌸",
         description: "Your personal information has been saved successfully.",
       });
-      toast({ title: "Profile updated successfully!" });
     },
   });
 
@@ -171,6 +174,19 @@ export default function EnhancedProfileScreen() {
     },
   });
 
+  // Initialize edit form when profile loads - MUST be before any early returns
+  React.useEffect(() => {
+    if (profile) {
+      setEditForm({
+        name: profile.name || "",
+        bio: profile.bio || "",
+        pronouns: profile.pronouns || "",
+        moodTagline: profile.moodTagline || ""
+      });
+    }
+  }, [profile]);
+
+  // Early return for loading state - AFTER all hooks
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
