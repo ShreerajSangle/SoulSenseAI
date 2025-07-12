@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight } from "lucide-react";
+import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
 import { useLocation } from "wouter";
@@ -25,24 +25,23 @@ const personaIcons = {
   maya: Leaf,
 };
 
-const personaGradients = {
-  sarah: "from-[#EC4899] to-[#F472B6]",
-  alex: "from-[#B794D1] to-[#9B7CB8]", 
-  marcus: "from-[#C8A2E8] to-[#B794D1]",
-  maya: "from-[#7A5A95] to-[#5A3F70]",
+const personaQuotes = {
+  sarah: "Let's explore what you're feeling together",
+  alex: "I get it - life can be overwhelming sometimes",
+  marcus: "Every challenge is a chance to grow stronger",
+  maya: "Take a breath. You're exactly where you need to be",
 };
 
-const personaAccents = {
-  sarah: "text-[#DB2777] bg-[#FCE7F3] border-[#F9A8D4]",
-  alex: "text-[#7A5A95] bg-[#F3EFFF] border-[#D8C2F5]",
-  marcus: "text-[#9B7CB8] bg-[#F8F6FF] border-[#E6E6FA]", 
-  maya: "text-[#5A3F70] bg-[#FBCFE8] border-[#F9A8D4]",
+const personaDescriptions = {
+  sarah: "Clinical Psychologist",
+  alex: "Peer Support Friend",
+  marcus: "Life Coach & Mentor",
+  maya: "Mindfulness Guide",
 };
 
 export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [, setLocation] = useLocation();
 
   const { data: personas = [], isLoading } = useQuery<Persona[]>({
@@ -59,292 +58,234 @@ export default function UnifiedHome() {
     setSelectedPersona(null);
   };
 
+  const handleStartChatting = () => {
+    if (personas.length > 0) {
+      setSelectedPersona(personas[0]);
+      setChatOpen(true);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your wellness companions...</p>
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-400 rounded-full animate-spin mx-auto"></div>
+          <p className="text-purple-600 font-light">Preparing your safe space...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Clean Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 via-pink-100/30 to-white/80"></div>
+        <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 mb-6 shadow-lg animate-pulse">
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-6xl font-light text-gray-800 mb-4 leading-tight">
+              Meet your digital
+              <span className="block text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text font-normal">
+                emotional companion
+              </span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+              Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={handleStartChatting}
+              className="relative px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full text-lg font-medium shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
+              <span className="relative">Start Chatting</span>
+              <ChevronRight className="ml-2 w-5 h-5 relative transition-transform group-hover:translate-x-1" />
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => document.getElementById('personas')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-8 py-4 border-2 border-purple-200 text-purple-700 hover:bg-purple-50 rounded-full text-lg font-light transition-all duration-300 hover:border-purple-300"
+            >
+              Meet the Personas
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Persona Showcase Section */}
+      <section id="personas" className="py-20 bg-white/50 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-light text-gray-800 mb-4">
+              Who will you talk to today?
+            </h2>
+            <p className="text-gray-600 text-lg font-light">
+              Each companion brings their own therapeutic approach and personality
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {personas.map((persona) => {
+              const Icon = personaIcons[persona.id as keyof typeof personaIcons] || Heart;
+              const quote = personaQuotes[persona.id as keyof typeof personaQuotes] || persona.description;
+              const role = personaDescriptions[persona.id as keyof typeof personaDescriptions] || persona.role;
+              
+              return (
+                <Card 
+                  key={persona.id}
+                  className="group cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 rounded-3xl overflow-hidden"
+                  onClick={() => handlePersonaSelect(persona)}
+                >
+                  <CardContent className="p-8 text-center space-y-6">
+                    <div className="relative">
+                      <div className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${
+                        persona.id === 'sarah' ? 'from-pink-400 to-rose-500' :
+                        persona.id === 'alex' ? 'from-purple-400 to-indigo-500' :
+                        persona.id === 'marcus' ? 'from-blue-400 to-cyan-500' :
+                        'from-green-400 to-emerald-500'
+                      } flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110`}>
+                        <Icon className="w-10 h-10 text-white" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        ✨
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-2xl font-medium text-gray-800 mb-1">
+                        {persona.name}
+                      </h3>
+                      <p className="text-purple-600 font-light mb-4">
+                        {role}
+                      </p>
+                      <blockquote className="text-gray-600 italic text-sm leading-relaxed">
+                        "{quote}"
+                      </blockquote>
+                    </div>
+
+                    <Button 
+                      variant="ghost" 
+                      className="w-full text-purple-600 hover:bg-purple-50 rounded-xl font-medium group-hover:bg-purple-100 transition-colors"
+                    >
+                      Start with {persona.name}
+                      <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Preview Section */}
+      <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-light text-gray-800 mb-4">
+              Your safe space includes...
+            </h2>
+            <p className="text-gray-600 text-lg font-light">
+              Comprehensive wellness tools designed for your mental health journey
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <BookOpen className="w-8 h-8 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  SoulSense
-                </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Mental wellness companion</p>
+              <h3 className="text-xl font-medium text-gray-800 mb-3">Journaling with Memory</h3>
+              <p className="text-gray-600 font-light leading-relaxed">
+                Express your thoughts in a private space that remembers your journey and growth over time.
+              </p>
+            </div>
+
+            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Target className="w-8 h-8 text-white" />
               </div>
+              <h3 className="text-xl font-medium text-gray-800 mb-3">Goal Setting & Tracking</h3>
+              <p className="text-gray-600 font-light leading-relaxed">
+                Set meaningful goals and track your progress with personalized insights and encouragement.
+              </p>
+            </div>
+
+            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Wind className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-800 mb-3">Guided Breathing & Check-ins</h3>
+              <p className="text-gray-600 font-light leading-relaxed">
+                Find calm with breathing exercises and regular emotional check-ins tailored to your needs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-white/30 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <div className="space-y-8">
+            <blockquote className="text-2xl font-light text-gray-700 italic leading-relaxed">
+              "I never thought an AI could understand me this well."
+            </blockquote>
+            <blockquote className="text-2xl font-light text-gray-700 italic leading-relaxed">
+              "Sarah remembered how I felt last week — that meant everything."
+            </blockquote>
+            <div className="flex justify-center space-x-2">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-r from-purple-100 to-pink-100 py-12">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-xl font-medium text-gray-800">SoulSense</span>
+              </div>
+              <p className="text-gray-600 font-light">
+                A safe, AI-powered space to reflect, feel, and grow.
+              </p>
             </div>
             
-            <div className="flex items-center gap-4">
-              {/* Clean Navigation */}
-              <div className="hidden md:flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation("/memory")}
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Insights
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation("/diary")}
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Diary
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLocation("/profile")}
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg transition-colors"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </Button>
-              </div>
-              
-              {/* Mobile Menu Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-gray-600 hover:text-purple-600"
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <div className="flex space-x-6 text-gray-600">
+              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+                About
+              </Button>
+              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+                Privacy
+              </Button>
+              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+                Terms
+              </Button>
+              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+                Contact
               </Button>
             </div>
           </div>
-          
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm">
-              <div className="px-6 py-4 space-y-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setLocation("/memory");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Memory & Insights
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setLocation("/diary");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Diary
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setLocation("/profile");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        {/* Clean Welcome Section */}
-        <div className="text-center mb-20 space-y-6">
-          <h1 className="text-5xl font-light text-gray-900 dark:text-white leading-tight">
-            Welcome to
-            <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-medium">
-              SoulSense
-            </span>
-          </h1>
-          
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-            Your personal AI wellness companion. Choose from four specialized therapeutic personas designed to support your mental health journey.
-          </p>
-        </div>
-
-        {/* Clean Persona Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {personas.map((persona) => {
-            const IconComponent = personaIcons[persona.id as keyof typeof personaIcons] || Brain;
-            
-            return (
-              <Card
-                key={persona.id}
-                className="group border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 cursor-pointer"
-                onClick={() => handlePersonaSelect(persona)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Clean Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="flex-1 space-y-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          {persona.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {persona.role}
-                        </p>
-                      </div>
-                      
-                      <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                        {persona.description}
-                      </p>
-                      
-                      {/* Simple CTA */}
-                      <div className="pt-2">
-                        <Button 
-                          size="sm"
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handlePersonaSelect(persona);
-                          }}
-                        >
-                          Start Chat
-                          <ArrowRight className="ml-1 h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Quick Access Features */}
-        <div className="mt-16">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
-            All Your Wellness Tools in One Place
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
-              onClick={() => setLocation("/memory")}
-            >
-              <CardContent className="p-6 text-center space-y-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Memory & Insights</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Track your emotional patterns and conversation insights</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  View Insights
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
-              onClick={() => setLocation("/diary")}
-            >
-              <CardContent className="p-6 text-center space-y-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                  <BookOpen className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Personal Diary</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Write, edit, and reflect on your daily thoughts and experiences</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  Open Diary
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-105"
-              onClick={() => setLocation("/profile")}
-            >
-              <CardContent className="p-6 text-center space-y-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                  <User className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="font-semibold text-gray-900 dark:text-gray-100">Your Profile</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Manage settings, goals, and personalize your experience</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  View Profile
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Core Features Overview */}
-        <div className="mt-20 text-center">
-          <Card className="max-w-4xl mx-auto border-0 shadow-lg bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-            <CardContent className="p-12">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                Comprehensive Wellness Platform
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto">
-                    <Brain className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">AI-Powered Insights</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Real-time emotion detection and personalized responses</p>
-                </div>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-                    <Heart className="h-6 w-6 text-green-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Complete Toolkit</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Diary, memory tracking, profiles, and therapeutic conversations</p>
-                </div>
-                <div className="text-center space-y-3">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto">
-                    <Target className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100">Text-Focused Design</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Clean, distraction-free interface optimized for meaningful conversations</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </footer>
 
       {/* Chat Overlay */}
-      {selectedPersona && (
+      {chatOpen && selectedPersona && (
         <SimpleChatOverlay
-          persona={selectedPersona}
-          isOpen={chatOpen}
+          personaId={selectedPersona.id}
           onClose={handleCloseChat}
         />
       )}
