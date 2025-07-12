@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { emotionDetectionEngine, type EmotionDetectionResult, type MoodTimelineEntry } from './emotion_detection.js';
 
 interface Message {
   id: number;
@@ -23,6 +24,7 @@ class NaturalConversationSystem extends EventEmitter {
   private personas: Map<string, Persona> = new Map();
   private greetingCounts: Map<string, number> = new Map();
   private sessionMemory: Map<string, any> = new Map();
+  private moodTimelines: Map<string, MoodTimelineEntry[]> = new Map();
 
   constructor() {
     super();
@@ -143,12 +145,23 @@ class NaturalConversationSystem extends EventEmitter {
       preferences: []
     };
 
-    // Update session context based on current message
-    this.updateSessionContext(sessionContext, message, conversationHistory);
+    // Detect emotions in the message
+    const emotionResult = emotionDetectionEngine.detectEmotion(message);
+    
+    // Update session context based on current message and emotions
+    this.updateSessionContext(sessionContext, message, conversationHistory, emotionResult);
     this.sessionMemory.set(sessionKey, sessionContext);
     
-    // Generate natural system prompt with context
-    const systemPrompt = this.buildNaturalSystemPrompt(persona, isFirstMessage, sessionContext);
+    // Add to mood timeline
+    this.addToMoodTimeline(userId, personaId, emotionResult, message);
+    
+    // Generate emotion-adapted system prompt with context
+    const baseSystemPrompt = this.buildNaturalSystemPrompt(persona, isFirstMessage, sessionContext);
+    const systemPrompt = emotionDetectionEngine.generatePersonaAdaptedPrompt(
+      emotionResult, 
+      personaId, 
+      baseSystemPrompt
+    );
     const userPrompt = this.buildContextAwareUserPrompt(message, conversationHistory, sessionContext);
 
     try {
@@ -160,7 +173,10 @@ class NaturalConversationSystem extends EventEmitter {
         isComplete: true,
         emotion: this.detectEmotionalTone(response),
         confidence: 0.9,
-        memoryUpdates: []
+        memoryUpdates: [],
+        detectedUserEmotion: emotionResult.primary,
+        emotionIntensity: emotionResult.intensity,
+        crisisDetected: emotionResult.crisisIndicators.length > 0
       };
     } catch (error) {
       console.error('Natural conversation error:', error);
@@ -168,18 +184,15 @@ class NaturalConversationSystem extends EventEmitter {
     }
   }
 
-  private updateSessionContext(context: any, message: string, history: Message[]): void {
+  private updateSessionContext(context: any, message: string, history: Message[], emotion?: EmotionDetectionResult): void {
     const lowerMessage = message.toLowerCase();
     
-    // Update mood based on message content
-    if (lowerMessage.includes('anxious') || lowerMessage.includes('stressed')) {
-      context.lastMood = 'anxious';
-    } else if (lowerMessage.includes('sad') || lowerMessage.includes('down')) {
-      context.lastMood = 'sad';
-    } else if (lowerMessage.includes('happy') || lowerMessage.includes('good')) {
-      context.lastMood = 'happy';
-    } else if (lowerMessage.includes('frustrated') || lowerMessage.includes('angry')) {
-      context.lastMood = 'frustrated';
+    // Update mood based on emotion detection
+    if (emotion) {
+      context.lastMood = emotion.primary;
+      context.emotionIntensity = emotion.intensity;
+      context.emotionValence = emotion.valence;
+      context.lastEmotionKeywords = emotion.keywords;
     }
 
     // Track topics mentioned
@@ -262,6 +275,40 @@ Respond naturally to what they just shared. Be genuine, present, and human - not
     }
     
     return 'supportive';
+  }
+
+  private addToMoodTimeline(userId: string, personaId: string, emotion: EmotionDetectionResult, message: string): void {
+    const timelineKey = `${userId}`;
+    let timeline = this.moodTimelines.get(timelineKey) || [];
+    
+    const entry = emotionDetectionEngine.createMoodTimelineEntry(emotion, message, personaId);
+    timeline.push(entry);
+    
+    // Keep only last 100 entries
+    if (timeline.length > 100) {
+      timeline = timeline.slice(-100);
+    }
+    
+    this.moodTimelines.set(timelineKey, timeline);
+  }
+
+  getMoodTimeline(userId: string, period: 'week' | 'month' = 'week'): MoodTimelineEntry[] {
+    const timeline = this.moodTimelines.get(userId) || [];
+    const now = new Date();
+    const cutoff = new Date();
+    
+    if (period === 'week') {
+      cutoff.setDate(now.getDate() - 7);
+    } else {
+      cutoff.setMonth(now.getMonth() - 1);
+    }
+    
+    return timeline.filter(entry => entry.timestamp >= cutoff);
+  }
+
+  generateDailyReflection(userId: string, personaId: string): string {
+    const recentMoods = this.getMoodTimeline(userId, 'week');
+    return emotionDetectionEngine.generateDailyReflection(personaId, recentMoods);
   }
 
   private async makeSimpleClaudeRequest(systemPrompt: string, userPrompt: string): Promise<string> {

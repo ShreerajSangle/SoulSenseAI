@@ -11,6 +11,8 @@ import { GoalCreationModal } from "@/components/goal-creation-modal";
 import { MiniJournalModal } from "@/components/mini-journal-modal";
 import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
 import { SessionRecapModal } from "@/components/session-recap-modal";
+import { DynamicTypingIndicator } from "@/components/dynamic-typing-indicator";
+import { MoodTimeline } from "@/components/mood-timeline";
 
 interface Message {
   id: number;
@@ -53,6 +55,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
   const [sessionRecapOpen, setSessionRecapOpen] = useState(false);
+  const [showMoodTimeline, setShowMoodTimeline] = useState(false);
   const [sessionData, setSessionData] = useState({
     emotionalThemes: [] as string[],
     keyInsights: [] as string[],

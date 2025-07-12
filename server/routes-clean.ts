@@ -530,6 +530,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Mood Timeline endpoint
+  app.get("/api/mood-timeline", async (req, res) => {
+    try {
+      const userId = req.query.userId as string || "anonymous";
+      const period = (req.query.period as 'week' | 'month') || 'week';
+      
+      const timeline = naturalConversationSystem.getMoodTimeline(userId, period);
+      res.json(timeline);
+    } catch (error) {
+      console.error("Error fetching mood timeline:", error);
+      res.status(500).json({ error: "Failed to fetch mood timeline" });
+    }
+  });
+
+  // Daily Reflection endpoint
+  app.get("/api/daily-reflection", async (req, res) => {
+    try {
+      const userId = req.query.userId as string || "anonymous";
+      const personaId = req.query.personaId as string;
+      
+      if (!personaId) {
+        return res.status(400).json({ error: "Persona ID required" });
+      }
+      
+      const reflection = naturalConversationSystem.generateDailyReflection(userId, personaId);
+      res.json({ reflection });
+    } catch (error) {
+      console.error("Error generating daily reflection:", error);
+      res.status(500).json({ error: "Failed to generate daily reflection" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
