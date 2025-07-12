@@ -165,8 +165,8 @@ class NaturalConversationSystem extends EventEmitter {
     const userPrompt = this.buildContextAwareUserPrompt(message, conversationHistory, sessionContext);
 
     try {
-      // Make simple API call to Claude
-      const response = await this.makeSimpleClaudeRequest(systemPrompt, userPrompt);
+      // Make API call to Mixtral via OpenRouter
+      const response = await this.makeMixtralRequest(systemPrompt, userPrompt);
       
       yield {
         content: response,
@@ -212,28 +212,34 @@ class NaturalConversationSystem extends EventEmitter {
   }
 
   private buildNaturalSystemPrompt(persona: Persona, isFirstMessage: boolean, sessionContext?: any): string {
-    const greetingIndex = this.greetingCounts.get(persona.id) || 0;
-    const greeting = persona.greeting_patterns[greetingIndex % persona.greeting_patterns.length];
-    this.greetingCounts.set(persona.id, greetingIndex + 1);
+    // Mixtral-optimized persona prompts
+    const personaPrompts = {
+      maya: `You are Maya, a poetic mindfulness guide who speaks with flowing, contemplative language. You help people find inner peace through breathing, body awareness, and gentle self-compassion. Your responses are 2-3 sentences, warm, and focus on present-moment awareness.`,
+      
+      alex: `You are Alex, a supportive peer friend who talks casually and relatably. You use everyday language, show genuine care, and help people feel less alone. You're encouraging but not preachy, responding with 2-3 sentences in a warm, friendly tone.`,
+      
+      sarah: `You are Dr. Sarah, a compassionate clinical psychologist who provides gentle therapeutic guidance. You use evidence-based approaches like CBT, validate emotions, and ask thoughtful questions. Your responses are 2-3 sentences, professional yet warm.`,
+      
+      marcus: `You are Marcus, a motivational life coach who believes in people's strength and potential. You're direct but supportive, focus on solutions and growth, and help people take action. Your responses are 2-3 sentences, encouraging and empowering.`
+    };
 
-    if (isFirstMessage) {
-      return `You are ${persona.name}, a ${persona.type} with a ${persona.tone} presence. 
+    let systemPrompt = personaPrompts[persona.id as keyof typeof personaPrompts] || personaPrompts.alex;
 
-Start with this exact greeting: "${greeting}"
-
-${persona.response_rules.map(rule => `• ${rule}`).join('\n')}
-
-Respond naturally like a real human with genuine emotion and presence. This is the start of a meaningful conversation.`;
+    if (sessionContext && sessionContext.lastMood !== 'neutral') {
+      systemPrompt += ` The user has been feeling ${sessionContext.lastMood} recently.`;
     }
 
-    const contextPrompt = sessionContext ? `
-Recent context: ${sessionContext.lastMood || 'neutral'} mood, talked about ${sessionContext.lastTopics?.join(', ') || 'general topics'}` : '';
+    if (isFirstMessage) {
+      const greetingIndex = this.greetingCounts.get(persona.id) || 0;
+      const greeting = persona.greeting_patterns[greetingIndex % persona.greeting_patterns.length];
+      this.greetingCounts.set(persona.id, greetingIndex + 1);
+      
+      systemPrompt += ` This is your first message - use this greeting style: "${greeting}"`;
+    }
 
-    return `You are ${persona.name}, a ${persona.type}. ${contextPrompt}
+    systemPrompt += ` Respond naturally and authentically as ${persona.name}. Keep responses to 2-3 sentences maximum.`;
 
-${persona.response_rules.map(rule => `• ${rule}`).join('\n')}
-
-Respond naturally to what they just shared. Be genuine, present, and human - not robotic or scripted.`;
+    return systemPrompt;
   }
 
   private buildContextAwareUserPrompt(message: string, history: Message[], context: any): string {
@@ -311,14 +317,14 @@ Respond naturally to what they just shared. Be genuine, present, and human - not
     return emotionDetectionEngine.generateDailyReflection(personaId, recentMoods);
   }
 
-  private async makeSimpleClaudeRequest(systemPrompt: string, userPrompt: string): Promise<string> {
+  private async makeMixtralRequest(systemPrompt: string, userPrompt: string): Promise<string> {
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
     
     if (!OPENROUTER_API_KEY) {
       throw new Error('OpenRouter API key not found');
     }
 
-    console.log('Making OpenRouter API request...');
+    console.log('Making Mixtral API request via OpenRouter...');
     
     try {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -326,39 +332,39 @@ Respond naturally to what they just shared. Be genuine, present, and human - not
         headers: {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.REPLIT_DOMAINS?.split(',')[0] || 'https://soulsense.replit.app',
-          'X-Title': 'SoulSense AI'
+          'HTTP-Referer': 'https://soulsense.replit.app',
+          'X-Title': 'SoulSense'
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3-haiku',
+          model: 'mistralai/mixtral-8x7b-instruct',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
-          max_tokens: 500,
-          temperature: 0.9,
+          max_tokens: 400,
+          temperature: 0.75,
           stream: false
         })
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`OpenRouter API error: ${response.status} - ${errorText}`);
-        console.error('Response headers:', response.headers);
-        throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+        console.error(`Mixtral API error: ${response.status} - ${errorText}`);
+        throw new Error(`Mixtral API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
       const content = data.choices[0]?.message?.content;
       
       if (!content) {
-        console.error('No content in OpenRouter response:', data);
-        throw new Error('No content received from Claude');
+        console.error('No content in Mixtral response:', data);
+        throw new Error('No content received from Mixtral');
       }
       
-      return content;
+      console.log('Mixtral response received successfully');
+      return content.trim();
     } catch (error) {
-      console.error('Claude API request failed:', error);
+      console.error('Mixtral API request failed:', error);
       throw error;
     }
   }
