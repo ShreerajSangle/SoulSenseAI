@@ -102,8 +102,8 @@ export default function UnifiedHome() {
             
             {/* Subheadlines */}
             <div className="space-y-6 max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-body font-light text-gray-700/90 tracking-wide lowercase">
-                meet your digital emotional companion
+              <h2 className="text-2xl md:text-3xl font-body font-light text-gray-700/90 tracking-wide">
+                Meet your digital emotional companion
               </h2>
               <p className="text-lg md:text-xl font-body text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
                 Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
