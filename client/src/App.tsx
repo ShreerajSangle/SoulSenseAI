@@ -8,6 +8,7 @@ import UnifiedHome from "@/pages/unified-home";
 import EnhancedMemoryScreen from "@/pages/enhanced-memory-screen";
 import EnhancedDiaryScreen from "@/pages/enhanced-diary-screen";
 import EnhancedProfileScreen from "@/pages/enhanced-profile-screen";
+import GoalsPage from "@/pages/goals-page";
 import ChatSession from "@/pages/chat-session";
 import NotFound from "@/pages/not-found";
 
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={UnifiedHome} />
       <Route path="/memory" component={EnhancedMemoryScreen} />
       <Route path="/diary" component={EnhancedDiaryScreen} />
+      <Route path="/goals" component={GoalsPage} />
       <Route path="/profile" component={EnhancedProfileScreen} />
       <Route path="/chat/session/:sessionId" component={ChatSession} />
       <Route component={NotFound} />

@@ -224,23 +224,22 @@ export default function UnifiedHome() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Journaling Tab */}
             <div 
-              className="group text-center p-6 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-purple-200"
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-purple-200"
               onClick={() => setLocation("/diary")}
             >
-              <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <BookOpen className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <BookOpen className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-body font-medium text-gray-800 mb-2">Journaling</h3>
-              <p className="text-gray-600 font-body font-light leading-relaxed text-sm mb-4">
-                Express thoughts in your private space that remembers your journey.
+              <h3 className="text-xl font-body font-medium text-gray-800 mb-3">Journaling</h3>
+              <p className="text-gray-600 font-body font-light leading-relaxed mb-4">
+                Express thoughts in your private space that remembers your journey and growth over time.
               </p>
               <Button 
                 variant="ghost" 
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors w-full"
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   setLocation("/diary");
@@ -253,20 +252,19 @@ export default function UnifiedHome() {
 
             {/* Goal Setting Tab */}
             <div 
-              className="group text-center p-6 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-blue-200"
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-blue-200"
               onClick={() => setLocation("/goals")}
             >
-              <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Target className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Target className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-body font-medium text-gray-800 mb-2">Goal Setting</h3>
-              <p className="text-gray-600 font-body font-light leading-relaxed text-sm mb-4">
-                Set meaningful goals and track progress with gentle guidance.
+              <h3 className="text-xl font-body font-medium text-gray-800 mb-3">Goal Setting</h3>
+              <p className="text-gray-600 font-body font-light leading-relaxed mb-4">
+                Set meaningful goals and track your progress with personalized insights and encouragement.
               </p>
               <Button 
                 variant="ghost" 
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors w-full"
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   setLocation("/goals");
@@ -277,48 +275,21 @@ export default function UnifiedHome() {
               </Button>
             </div>
 
-            {/* Guided Check-ins Tab */}
-            <div 
-              className="group text-center p-6 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-green-200"
-              onClick={() => setShowBreathingGuide(true)}
-            >
-              <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Wind className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-lg font-body font-medium text-gray-800 mb-2">Guided Check-ins</h3>
-              <p className="text-gray-600 font-body font-light leading-relaxed text-sm mb-4">
-                Find calm with breathing exercises and emotional check-ins.
-              </p>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors w-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowBreathingGuide(true);
-                }}
-              >
-                Try Breathing
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-
             {/* Profile Tab */}
             <div 
-              className="group text-center p-6 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-rose-200"
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer border border-white/20 hover:border-rose-200"
               onClick={() => setLocation("/profile")}
             >
-              <div className="w-14 h-14 mx-auto mb-4 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <User className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <User className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-body font-medium text-gray-800 mb-2">Profile</h3>
-              <p className="text-gray-600 font-body font-light leading-relaxed text-sm mb-4">
-                View mood history, session stats, and saved reflections.
+              <h3 className="text-xl font-body font-medium text-gray-800 mb-3">Profile</h3>
+              <p className="text-gray-600 font-body font-light leading-relaxed mb-4">
+                View mood history, session stats, and saved reflections from your wellness journey.
               </p>
               <Button 
                 variant="ghost" 
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors w-full"
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   setLocation("/profile");
