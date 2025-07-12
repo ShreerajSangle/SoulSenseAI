@@ -92,16 +92,16 @@ export default function UnifiedHome() {
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center space-y-12 animate-fade-in">
           {/* Main Headline */}
           <div className="space-y-10">
-            <h1 className="text-8xl md:text-9xl font-rosalia font-normal text-transparent bg-gradient-to-r from-purple-600 via-lavender-500 to-pink-500 bg-clip-text tracking-wider leading-tight">
+            <h1 className="text-8xl md:text-9xl font-heading font-normal text-transparent bg-gradient-to-r from-purple-600 via-lavender-500 to-pink-500 bg-clip-text tracking-wider leading-tight">
               Soul Sense
             </h1>
             
             {/* Subheadlines */}
             <div className="space-y-6 max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-sans font-light text-gray-700/90 tracking-wide">
-                Meet your digital emotional companion
+              <h2 className="text-2xl md:text-3xl font-body font-light text-gray-700/90 tracking-wide lowercase">
+                meet your digital emotional companion
               </h2>
-              <p className="text-lg md:text-xl font-sans text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl font-body text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
                 Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
               </p>
             </div>
@@ -117,7 +117,7 @@ export default function UnifiedHome() {
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-lavender-400 rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-2xl"></div>
               <div className="absolute inset-0 bg-gradient-to-r from-purple-300 to-lavender-300 rounded-full opacity-30 animate-pulse"></div>
               
-              <span className="relative flex items-center font-sans">
+              <span className="relative flex items-center font-body font-medium">
                 Start Chatting
                 <ChevronRight className="ml-3 w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
@@ -128,7 +128,7 @@ export default function UnifiedHome() {
               onClick={() => document.getElementById('personas')?.scrollIntoView({ behavior: 'smooth' })}
               className="group px-12 py-6 border-2 border-lavender-300/60 text-purple-700 bg-white/40 backdrop-blur-md hover:bg-lavender-50/70 hover:border-lavender-400 rounded-full text-lg font-light transition-all duration-500 hover:shadow-lg shadow-lavender-200/30"
             >
-              <span className="flex items-center font-sans">
+              <span className="flex items-center font-body font-medium">
                 Meet the Personas
                 <Sparkles className="ml-3 w-5 h-5 transition-transform group-hover:rotate-12" />
               </span>
@@ -148,10 +148,10 @@ export default function UnifiedHome() {
       <section id="personas" className="py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-light text-gray-800 mb-4">
+            <h2 className="text-4xl font-heading font-normal text-gray-800 mb-4">
               Who will you talk to today?
             </h2>
-            <p className="text-gray-600 text-lg font-light">
+            <p className="text-gray-600 text-lg font-body font-light">
               Each companion brings their own therapeutic approach and personality
             </p>
           </div>
@@ -184,20 +184,22 @@ export default function UnifiedHome() {
                     </div>
                     
                     <div>
-                      <h3 className="text-2xl font-medium text-gray-800 mb-1">
+                      <h3 className="text-2xl font-body font-medium text-gray-800 mb-1">
                         {persona.name}
                       </h3>
-                      <p className="text-purple-600 font-light mb-4">
+                      <p className="text-purple-600 font-body font-light mb-4">
                         {role}
                       </p>
-                      <blockquote className="text-gray-600 italic text-sm leading-relaxed">
+                      <blockquote className={`text-gray-600 italic text-sm leading-relaxed ${
+                        persona.id === 'alex' ? 'font-alt' : 'font-body'
+                      }`}>
                         "{quote}"
                       </blockquote>
                     </div>
 
                     <Button 
                       variant="ghost" 
-                      className="w-full text-purple-600 hover:bg-purple-50 rounded-xl font-medium group-hover:bg-purple-100 transition-colors"
+                      className="w-full text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium group-hover:bg-purple-100 transition-colors"
                     >
                       Start with {persona.name}
                       <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -214,10 +216,10 @@ export default function UnifiedHome() {
       <section className="py-20 bg-gradient-to-br from-purple-50 to-pink-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-light text-gray-800 mb-4">
+            <h2 className="text-4xl font-heading font-normal text-gray-800 mb-4">
               Your safe space includes...
             </h2>
-            <p className="text-gray-600 text-lg font-light">
+            <p className="text-gray-600 text-lg font-body font-light">
               Comprehensive wellness tools designed for your mental health journey
             </p>
           </div>
@@ -278,13 +280,13 @@ export default function UnifiedHome() {
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Wind className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-3">Guided Breathing & Check-ins</h3>
-              <p className="text-gray-600 font-light leading-relaxed mb-4">
+              <h3 className="text-xl font-body font-medium text-gray-800 mb-3">Guided Breathing & Check-ins</h3>
+              <p className="text-gray-600 font-body font-light leading-relaxed mb-4">
                 Find calm with breathing exercises and regular emotional check-ins tailored to your needs.
               </p>
               <Button 
                 variant="ghost" 
-                className="text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors"
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-body font-medium transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowBreathingGuide(true);
@@ -302,10 +304,10 @@ export default function UnifiedHome() {
       <section className="py-20 bg-white/30 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <div className="space-y-8">
-            <blockquote className="text-2xl font-light text-gray-700 italic leading-relaxed">
+            <blockquote className="text-2xl font-body font-light text-gray-700 italic leading-relaxed">
               "I never thought an AI could understand me this well."
             </blockquote>
-            <blockquote className="text-2xl font-light text-gray-700 italic leading-relaxed">
+            <blockquote className="text-2xl font-body font-light text-gray-700 italic leading-relaxed">
               "Sarah remembered how I felt last week — that meant everything."
             </blockquote>
             <div className="flex justify-center space-x-2">
@@ -325,20 +327,20 @@ export default function UnifiedHome() {
             
             {/* About Section */}
             <div className="text-center lg:text-left space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">About SoulSense</h3>
-              <p className="text-gray-600 font-light leading-relaxed text-sm">
+              <h3 className="text-lg font-body font-medium text-gray-800 mb-4">About SoulSense</h3>
+              <p className="text-gray-600 font-body font-light leading-relaxed text-sm">
                 SoulSense is a calm and intelligent AI-powered wellness companion designed to support your emotional journey. Talk to empathetic personas who listen, reflect, and grow with you.
               </p>
             </div>
 
             {/* Navigation Section */}
             <div className="text-center lg:text-left space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Navigation</h3>
+              <h3 className="text-lg font-body font-medium text-gray-800 mb-4">Navigation</h3>
               <div className="flex flex-col space-y-2">
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="justify-center lg:justify-start font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
+                  className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
                   onClick={() => window.open('/privacy', '_blank')}
                 >
                   Privacy Policy
@@ -346,7 +348,7 @@ export default function UnifiedHome() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="justify-center lg:justify-start font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
+                  className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
                   onClick={() => window.open('/terms', '_blank')}
                 >
                   Terms of Use
@@ -354,7 +356,7 @@ export default function UnifiedHome() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="justify-center lg:justify-start font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
+                  className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
                   onClick={() => document.getElementById('personas')?.scrollIntoView({ behavior: 'smooth' })}
                 >
                   Meet the Personas
@@ -362,7 +364,7 @@ export default function UnifiedHome() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="justify-center lg:justify-start font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
+                  className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
                   onClick={() => setLocation("/diary")}
                 >
                   Journaling
@@ -372,14 +374,14 @@ export default function UnifiedHome() {
 
             {/* Contact Section */}
             <div className="text-center lg:text-left space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Contact</h3>
+              <h3 className="text-lg font-body font-medium text-gray-800 mb-4">Contact</h3>
               <div className="space-y-3">
-                <p className="text-gray-600 font-light text-sm">
+                <p className="text-gray-600 font-body font-light text-sm">
                   Developer: <span className="font-medium">Shreeraj Sangle</span>
                 </p>
                 <a 
                   href="mailto:shreerajsangle0@gmail.com"
-                  className="inline-block text-purple-600 hover:text-purple-700 font-light text-sm transition-all duration-300 hover:underline decoration-purple-300 underline-offset-4"
+                  className="inline-block text-purple-600 hover:text-purple-700 font-body font-light text-sm transition-all duration-300 hover:underline decoration-purple-300 underline-offset-4"
                 >
                   shreerajsangle0@gmail.com
                 </a>
@@ -388,7 +390,7 @@ export default function UnifiedHome() {
 
             {/* Connect Section */}
             <div className="text-center lg:text-left space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Connect</h3>
+              <h3 className="text-lg font-body font-medium text-gray-800 mb-4">Connect</h3>
               <div className="flex justify-center lg:justify-start space-x-4">
                 <a 
                   href="https://www.instagram.com/just.shree_/" 
@@ -436,10 +438,10 @@ export default function UnifiedHome() {
 
           {/* Bottom Section */}
           <div className="border-t border-purple-200/50 pt-8 text-center space-y-3">
-            <p className="text-gray-600 font-light text-sm">
+            <p className="text-gray-600 font-body font-light text-sm">
               SoulSense is a safe, AI-powered space to reflect, feel, and grow.
             </p>
-            <p className="text-gray-500 font-light text-xs">
+            <p className="text-gray-500 font-body font-light text-xs">
               © 2025 SoulSense by Shreeraj Sangle. All rights reserved.
             </p>
           </div>

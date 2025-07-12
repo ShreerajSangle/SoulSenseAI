@@ -1,0 +1,76 @@
+🎨 Best Font Stack for SoulSense
+🔹 1. Main Heading (Logo / Hero Title) → Rosalia
+Why: Elegant, expressive, slightly stylized — gives “Soul Sense” a brand voice without being flashy.
+
+Use: Only for major headings like “Soul Sense”, section titles, or brand logo.
+
+Pairing: Avoid using Rosalia in paragraphs or chat — keep it special.
+
+🔹 2. UI Text & Persona Dialogues → Inter
+Why: Clean, highly readable, soft curves, and excellent spacing.
+
+Where to Use:
+
+Persona messages
+
+Journals
+
+Forms, buttons, labels
+
+Quick reply bubbles
+
+Emotional Tone: Neutral and comforting without being clinical. Lighter weights feel airy, bold feels grounded.
+
+🔹 3. Optional Alternative for Personality → Nunito
+Why: Slightly more rounded and friendlier than Inter, with a handwritten warmth feel.
+
+Use If: You want Alex or Maya's UI to feel slightly more playful or poetic.
+
+Can be swapped in selectively — e.g., make Alex’s messages use Nunito while Marcus and Sarah use Inter.
+
+✅ Font Pairing Summary
+Use Case	Font	Weight / Style
+App Name (“Soul Sense”)	Rosalia	400 or 600, wide spacing
+Subheadlines	Inter	300–400, lowercase, soft
+Chat messages	Inter	400 (normal), 300 (gentle)
+Persona replies (optional)	Nunito	400–600 (more expressive)
+Buttons, UI labels	Inter	500–600 (clarity + warmth)
+Captions, footnotes	Inter	300 or 400, smaller size
+
+📦 How to Implement
+🪄 Load via Google Fonts:
+html
+Copy
+Edit
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rosalia&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+💅 Example in CSS:
+css
+Copy
+Edit
+:root {
+  --font-heading: 'Rosalia', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-alt: 'Nunito', sans-serif;
+}
+
+h1, .logo {
+  font-family: var(--font-heading);
+  letter-spacing: 1px;
+}
+
+body, p, label, input, button {
+  font-family: var(--font-body);
+}
+
+.persona-alex {
+  font-family: var(--font-alt);
+}
+✨ Final UX Vibe This Font Stack Creates:
+Rosalia = soul, brand warmth, personality
+
+Inter = calm, clarity, emotional safety
+
+Nunito = friendliness, softness for personas
+
+This system will help every part of SoulSense — from chat to goal-setting — feel cohesive, thoughtful, and comforting.
+
