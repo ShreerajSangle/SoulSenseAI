@@ -81,40 +81,70 @@ export default function UnifiedHome() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 via-pink-100/30 to-white/80"></div>
-        <div className="relative max-w-6xl mx-auto px-6 py-20 text-center">
-          <div className="mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 mb-6 shadow-lg animate-pulse">
-              <Sparkles className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-6xl font-light text-gray-800 mb-4 leading-tight">
-              Meet your digital
-              <span className="block text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text font-normal">
-                emotional companion
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Soft Background with Gradient and Blur Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-lavender-100/40 via-transparent to-pink-100/40"></div>
+        <div className="absolute top-20 left-20 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-pink-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center space-y-12 animate-fade-in">
+          {/* Main Headline */}
+          <div className="space-y-8">
+            <h1 className="text-7xl md:text-8xl font-light text-gray-800 tracking-wide leading-none">
+              <span className="block font-serif text-transparent bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 bg-clip-text">
+                Soul
+              </span>
+              <span className="block font-serif text-transparent bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 bg-clip-text -mt-4">
+                Sense
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
-              Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
-            </p>
+            
+            {/* Subheadlines */}
+            <div className="space-y-6 max-w-3xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-light text-gray-700/80 tracking-wide">
+                Meet your digital emotional companion
+              </h2>
+              <p className="text-lg md:text-xl text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
+                Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          {/* Call-to-Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
             <Button 
               onClick={handleStartChatting}
-              className="relative px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full text-lg font-medium shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+              className="relative group px-10 py-5 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-full text-lg font-medium shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-105 border-0"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-xl"></div>
-              <span className="relative">Start Chatting</span>
-              <ChevronRight className="ml-2 w-5 h-5 relative transition-transform group-hover:translate-x-1" />
+              {/* Soft Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500 blur-xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full opacity-20 animate-pulse"></div>
+              
+              <span className="relative flex items-center">
+                Start Chatting
+                <ChevronRight className="ml-3 w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </span>
             </Button>
+            
             <Button 
               variant="outline" 
               onClick={() => document.getElementById('personas')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-4 border-2 border-purple-200 text-purple-700 hover:bg-purple-50 rounded-full text-lg font-light transition-all duration-300 hover:border-purple-300"
+              className="group px-10 py-5 border-2 border-purple-300/50 text-purple-700 bg-white/50 backdrop-blur-sm hover:bg-purple-50 hover:border-purple-400 rounded-full text-lg font-light transition-all duration-500 hover:shadow-lg"
             >
-              Meet the Personas
+              <span className="flex items-center">
+                Meet the Personas
+                <Sparkles className="ml-3 w-5 h-5 transition-transform group-hover:rotate-12" />
+              </span>
             </Button>
+          </div>
+        </div>
+        
+        {/* Gentle Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-purple-300/50 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-purple-400 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>
