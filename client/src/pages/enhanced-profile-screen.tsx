@@ -632,11 +632,10 @@ export default function EnhancedProfileScreen() {
                     <div>
                       <Label htmlFor="favoritePersona">Favorite Persona</Label>
                       <Select
-                        value={editData.preferences.favoritePersona}
-                        onValueChange={(value) => setEditData({
-                          ...editData,
-                          preferences: { ...editData.preferences, favoritePersona: value }
-                        })}
+                        value={profile?.preferences?.favoritePersona || "sarah"}
+                        onValueChange={(value) => {
+                          console.log("Persona preference changed:", value);
+                        }}
                       >
                         <SelectTrigger className="rounded-2xl">
                           <SelectValue />
@@ -653,11 +652,10 @@ export default function EnhancedProfileScreen() {
                     <div>
                       <Label htmlFor="sessionFrequency">Session Frequency</Label>
                       <Select
-                        value={editData.preferences.sessionFrequency}
-                        onValueChange={(value) => setEditData({
-                          ...editData,
-                          preferences: { ...editData.preferences, sessionFrequency: value }
-                        })}
+                        value={profile?.preferences?.sessionFrequency || "daily"}
+                        onValueChange={(value) => {
+                          console.log("Session frequency changed:", value);
+                        }}
                       >
                         <SelectTrigger className="rounded-2xl">
                           <SelectValue />
