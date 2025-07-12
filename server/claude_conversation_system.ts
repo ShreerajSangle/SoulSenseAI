@@ -25,7 +25,7 @@ async function makeClaudeRequest(messages: any[]) {
       model: CLAUDE_MODEL,
       messages: messages,
       temperature: 0.8,
-      max_tokens: 2048,
+      max_tokens: 1500,
       stream: false
     })
   });
@@ -1059,14 +1059,105 @@ Respond ONLY as your persona in exactly 2-4 short lines. Be conversational like 
     emotionalContext: EmotionalContext,
     memory: ConversationMemory
   ): string {
+    // Create varied responses based on emotion and persona
+    const emotionState = emotionalContext.detectedEmotions[0] || 'neutral';
+    const responseIndex = Math.floor(Math.random() * 3); // 3 variations per emotion/persona combo
+    
     const responses = {
-      sarah: "I hear you, and I want you to know that your feelings are completely valid. Sometimes it helps to take a moment and acknowledge what we're experiencing. What feels most important for you to talk about right now?",
-      maya: "Let's take a gentle breath together. I can sense there's a lot happening for you right now. Remember that you're safe in this moment, and whatever you're feeling is okay.",
-      alex: "Hey, I totally get that things feel heavy sometimes. You're not alone in this - I've been there too. Want to talk about what's going on?",
-      marcus: "I can see you're dealing with something significant. That takes courage to face. What's one small step we could explore that might help you move forward?"
+      sarah: {
+        neutral: [
+          "How are you feeling right now? I'm here to listen and support you through whatever you're experiencing.",
+          "I can sense you have something on your mind. Take your time - what would you like to explore together?",
+          "Sometimes it helps just to have someone who understands. What's been weighing on you lately?"
+        ],
+        anxiety: [
+          "I can feel the worry in your words. Anxiety can be overwhelming, but you're not facing this alone. What's making you feel most anxious right now?",
+          "Those anxious feelings are so valid. Let's take this one step at a time. What's the biggest concern on your mind?",
+          "Anxiety has a way of making everything feel urgent. Take a breath with me. What feels most manageable to talk about first?"
+        ],
+        sadness: [
+          "I hear the heaviness in what you're sharing. It's okay to feel low - these feelings deserve space. What's been hardest for you recently?",
+          "Sometimes sadness needs to be honored before it can be healed. I'm here with you in this. What would feel supportive right now?",
+          "Your sadness makes complete sense. You don't have to carry this alone. What's been on your heart?"
+        ],
+        joy: [
+          "I love hearing the lightness in your voice! It's wonderful when good things happen. What's bringing you joy today?",
+          "Your happiness is contagious! I'm so glad you're experiencing something positive. Tell me more about what's going well.",
+          "It's beautiful to witness your joy. These moments matter. What's been the highlight for you?"
+        ]
+      },
+      alex: {
+        neutral: [
+          "Hey there! What's going on with you today? I'm here if you want to chat about anything.",
+          "Yo! Something on your mind? You know I'm always down to listen and hang out.",
+          "What's up? You seem like you've got stuff brewing. I'm here for whatever you need to talk about."
+        ],
+        anxiety: [
+          "Ugh, anxiety is the worst! I totally get those jittery feelings. What's got you all wound up today?",
+          "Okay, I can feel that stressed energy through the screen! Take a sec. What's making your brain go crazy right now?",
+          "Anxiety brain is so annoying, right? I've been there too. What's the main thing that's freaking you out?"
+        ],
+        sadness: [
+          "Aw, I can tell you're going through it right now. That sucks, and I'm sorry you're feeling this way. What's got you down?",
+          "Man, tough days are the absolute worst. But hey, you reached out, which shows you're strong. What's been rough lately?",
+          "I hate that you're feeling low right now. You're definitely not alone in this. Want to tell me what's making things hard?"
+        ],
+        joy: [
+          "YES! I love this energy! Something good happened, didn't it? Spill the tea! ✨",
+          "Okay this is amazing! Your good vibes are totally infectious right now. What's got you so happy?",
+          "I'm literally smiling just reading this! Good things happening for you makes my day. What's the good news?"
+        ]
+      },
+      maya: {
+        neutral: [
+          "I sense you're here for a reason. Our hearts know when we need connection. What's stirring within you today?",
+          "There's a gentle wisdom in simply showing up. What would your soul like to share in this quiet moment?",
+          "Sometimes we arrive at conversations like this when our inner self needs tending. What feels alive in you right now?"
+        ],
+        anxiety: [
+          "I can feel the storm of worry within you. Let's breathe together and find the calm center. What fears are swirling strongest?",
+          "Anxiety is like choppy waters - unsettling but temporary. Your steady breath can be your anchor. What's creating the turbulence?",
+          "The mind creates such convincing stories when we're anxious. Let's return to what's real and present. What needs your gentle attention?"
+        ],
+        sadness: [
+          "Sadness is the heart's way of honoring what matters deeply. Your tears have wisdom. What loss or longing is speaking through you?",
+          "There's a sacred quality to sadness - it connects us to our deepest humanity. What's your heart grieving right now?",
+          "Like winter preparing for spring, sadness often clears space for new growth. What's asking to be released or transformed?"
+        ],
+        joy: [
+          "Your joy is like sunlight breaking through clouds - it illuminates everything around it. What's awakening this beautiful energy?",
+          "I can feel your heart singing! Joy is such a gift, both to yourself and the world. What's blooming in your life?",
+          "There's magic in moments of pure joy. Your light is shining so brightly. What's bringing this wonderful aliveness?"
+        ]
+      },
+      marcus: {
+        neutral: [
+          "Good to see you here. Ready to tackle whatever's on your mind? Let's figure out what you want to work on today.",
+          "What's the challenge or goal you're dealing with right now? I'm here to help you break it down and move forward.",
+          "Every conversation is an opportunity to make progress. What area of your life could use some momentum right now?"
+        ],
+        anxiety: [
+          "Anxiety often signals that we care deeply about something. That's not weakness - that's investment. What outcome matters most to you here?",
+          "I hear the concern, and that shows you're thinking ahead. Let's channel that energy into action. What's one thing you can control in this situation?",
+          "Worrying means you're engaged with something important. Now let's shift from worry to strategy. What's the main challenge we need to address?"
+        ],
+        sadness: [
+          "Tough times test our resilience, but they also reveal our strength. You're still here, still fighting. What support do you need to keep moving?",
+          "Sadness can be a teacher - it shows us what we value. What's this experience trying to tell you about what matters most?",
+          "It takes courage to feel difficult emotions instead of avoiding them. That's already a sign of strength. What would help you process this?"
+        ],
+        joy: [
+          "This is awesome! Success breeds success. What strategies or mindsets helped you achieve this positive outcome?",
+          "I love seeing you in this space! Wins like this deserve celebration. What's the key lesson you're taking from this experience?",
+          "Your positive energy is contagious! This kind of momentum can fuel even bigger goals. What do you want to tackle next?"
+        ]
+      }
     };
     
-    return responses[persona.id as keyof typeof responses] || responses.sarah;
+    const personaResponses = responses[persona.id as keyof typeof responses] || responses.sarah;
+    const emotionResponses = personaResponses[emotionState as keyof typeof personaResponses] || personaResponses.neutral;
+    
+    return emotionResponses[responseIndex] || emotionResponses[0];
   }
 }
 
