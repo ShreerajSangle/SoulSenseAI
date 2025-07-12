@@ -38,6 +38,9 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 - ✓ **Three-Tab Navigation System**: Removed Guided Check-ins tab, keeping Journaling, Goal Setting, and Profile for streamlined navigation
 - ✓ **Dedicated Goals Page**: Created standalone goals page with create/view/track functionality separate from profile
 - ✓ **Goal Management Features**: Full CRUD operations for goals with categories, priorities, progress tracking, and completion status
+- ✓ **Privacy Policy and Terms of Use Modals**: Added comprehensive legal documentation with clickable footer links
+- ✓ **Legal Content Integration**: Complete Privacy Policy covering data collection, usage, control, and contact information
+- ✓ **Terms of Service**: Age requirements, respectful use guidelines, emergency disclaimers, and contact details
 - ✓ **Complete Font Stack Implementation**: Applied Rosalia for headings, Inter for UI/body text, and Nunito for Alex's playful personality
 - ✓ **Typography Hierarchy**: Clear font usage - Rosalia for brand/headings, Inter for clarity/warmth, consistent lowercase subheadlines
 - ✓ **Persona Font Differentiation**: Alex uses Nunito font for more expressive, friendly character while others use Inter

@@ -7,6 +7,8 @@ import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, Ba
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
 import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import PrivacyPolicyModal from "@/components/privacy-policy-modal";
+import TermsOfUseModal from "@/components/terms-of-use-modal";
 import { useLocation } from "wouter";
 
 interface Persona {
@@ -44,6 +46,8 @@ export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [showBreathingGuide, setShowBreathingGuide] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsOfUse, setShowTermsOfUse] = useState(false);
   const [, setLocation] = useLocation();
 
   const { data: personas = [], isLoading } = useQuery<Persona[]>({
@@ -344,7 +348,7 @@ export default function UnifiedHome() {
                   variant="ghost" 
                   size="sm" 
                   className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
-                  onClick={() => window.open('/privacy', '_blank')}
+                  onClick={() => setShowPrivacyPolicy(true)}
                 >
                   Privacy Policy
                 </Button>
@@ -352,7 +356,7 @@ export default function UnifiedHome() {
                   variant="ghost" 
                   size="sm" 
                   className="justify-center lg:justify-start font-body font-light text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-300 rounded-lg p-2"
-                  onClick={() => window.open('/terms', '_blank')}
+                  onClick={() => setShowTermsOfUse(true)}
                 >
                   Terms of Use
                 </Button>
@@ -468,6 +472,18 @@ export default function UnifiedHome() {
           trigger="stress"
         />
       )}
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal 
+        isOpen={showPrivacyPolicy} 
+        onClose={() => setShowPrivacyPolicy(false)} 
+      />
+
+      {/* Terms of Use Modal */}
+      <TermsOfUseModal 
+        isOpen={showTermsOfUse} 
+        onClose={() => setShowTermsOfUse(false)} 
+      />
     </div>
   );
 }
