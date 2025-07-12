@@ -440,6 +440,8 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                           if (textarea) textarea.focus();
                         }, 100);
                       }}
+                      lastAiMessage={messages.length > 0 ? messages[messages.length - 1]?.content || "" : ""}
+                      userEmotion={detectedEmotion || "neutral"}
                     />
                   </div>
                 )}
