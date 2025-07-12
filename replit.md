@@ -5,6 +5,18 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Recent Changes
 
+### Therapeutic Homepage Redesign (July 2025)
+- ✓ **Complete Homepage Overhaul**: Replaced technical interface with therapeutic, inviting design inspired by therapist waiting room
+- ✓ **Hero Section**: Soft lavender-to-pink gradient with "Meet your digital emotional companion" headline and animated sparkle icon
+- ✓ **Persona Showcase**: Beautiful cards introducing Sarah, Alex, Marcus, and Maya with personal therapeutic quotes and role descriptions
+- ✓ **Features Preview**: Interactive wellness tool cards (journaling, goal tracking, breathing exercises) with hover animations and working navigation
+- ✓ **Testimonials Section**: Gentle user feedback quotes with 5-star ratings for social proof
+- ✓ **Therapeutic Footer**: Calming branding with "A safe, AI-powered space to reflect, feel, and grow" tagline
+- ✓ **Full Interactivity**: All buttons now functional - "Start Chatting" opens chat, persona cards launch conversations, feature cards navigate to tools
+- ✓ **Breathing Exercise Integration**: "Try Breathing" button triggers guided breathing modal directly from homepage
+- ✓ **Smooth Navigation**: "Meet the Personas" button smoothly scrolls to showcase section
+- ✓ **Consistent Design Language**: Soft rounded corners, gentle animations, calming purple/pink gradients, light font weights
+
 ### UX Responsiveness & Interaction Enhancements (July 2025)
 - ✓ **Mobile-First Responsive Design**: All wellness features now fully responsive across desktop, tablet, and mobile devices
 - ✓ **Smooth Animation System**: Added smooth fade-in, zoom-in, and slide-in animations for all modals and components

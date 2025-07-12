@@ -6,6 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
+import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
 import { useLocation } from "wouter";
 
 interface Persona {
@@ -42,6 +43,7 @@ const personaDescriptions = {
 export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [, setLocation] = useLocation();
 
   const { data: personas = [], isLoading } = useQuery<Persona[]>({
@@ -196,34 +198,76 @@ export default function UnifiedHome() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+            <div 
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer"
+              onClick={() => setLocation("/diary")}
+            >
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <BookOpen className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-3">Journaling with Memory</h3>
-              <p className="text-gray-600 font-light leading-relaxed">
+              <p className="text-gray-600 font-light leading-relaxed mb-4">
                 Express your thoughts in a private space that remembers your journey and growth over time.
               </p>
+              <Button 
+                variant="ghost" 
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLocation("/diary");
+                }}
+              >
+                Try Journaling
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </div>
 
-            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+            <div 
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer"
+              onClick={() => setLocation("/profile")}
+            >
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Target className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-3">Goal Setting & Tracking</h3>
-              <p className="text-gray-600 font-light leading-relaxed">
+              <p className="text-gray-600 font-light leading-relaxed mb-4">
                 Set meaningful goals and track your progress with personalized insights and encouragement.
               </p>
+              <Button 
+                variant="ghost" 
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLocation("/profile");
+                }}
+              >
+                Set Goals
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </div>
 
-            <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2">
+            <div 
+              className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl hover:bg-white transition-all duration-500 hover:shadow-xl hover:-translate-y-2 cursor-pointer"
+              onClick={() => setShowBreathingGuide(true)}
+            >
               <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Wind className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-3">Guided Breathing & Check-ins</h3>
-              <p className="text-gray-600 font-light leading-relaxed">
+              <p className="text-gray-600 font-light leading-relaxed mb-4">
                 Find calm with breathing exercises and regular emotional check-ins tailored to your needs.
               </p>
+              <Button 
+                variant="ghost" 
+                className="text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowBreathingGuide(true);
+                }}
+              >
+                Try Breathing
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -265,16 +309,36 @@ export default function UnifiedHome() {
             </div>
             
             <div className="flex space-x-6 text-gray-600">
-              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="font-light hover:text-purple-600"
+                onClick={() => setLocation("/profile")}
+              >
                 About
               </Button>
-              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="font-light hover:text-purple-600"
+                onClick={() => window.open('/privacy', '_blank')}
+              >
                 Privacy
               </Button>
-              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="font-light hover:text-purple-600"
+                onClick={() => window.open('/terms', '_blank')}
+              >
                 Terms
               </Button>
-              <Button variant="ghost" size="sm" className="font-light hover:text-purple-600">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="font-light hover:text-purple-600"
+                onClick={() => setLocation("/profile")}
+              >
                 Contact
               </Button>
             </div>
@@ -285,8 +349,18 @@ export default function UnifiedHome() {
       {/* Chat Overlay */}
       {chatOpen && selectedPersona && (
         <SimpleChatOverlay
-          personaId={selectedPersona.id}
+          persona={selectedPersona}
+          isOpen={chatOpen}
           onClose={handleCloseChat}
+        />
+      )}
+
+      {/* Breathing Guide Modal */}
+      {showBreathingGuide && (
+        <GentleBreathingGuide
+          isOpen={showBreathingGuide}
+          onClose={() => setShowBreathingGuide(false)}
+          trigger="stress"
         />
       )}
     </div>
