@@ -312,7 +312,7 @@ export default function EnhancedProfileScreen() {
           </div>
           
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Welcome Back!
+            Welcome Back{profile?.name ? `, ${profile.name}` : ''}!
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
             {profile?.bio || "Your wellness journey continues here. Track your progress and achieve your goals."}

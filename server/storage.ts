@@ -422,75 +422,74 @@ export class DatabaseStorage implements IStorage {
 
   // User profiles
   async getUserProfile(userId: string): Promise<any> {
-    const [profile] = await db
-      .select()
-      .from(userProfiles)
-      .where(eq(userProfiles.userId, userId));
-    
-    if (!profile) {
-      // Create default profile if it doesn't exist
-      return await this.createUserProfile({
-        userId,
-        bio: "",
-        preferences: {
-          preferredPersona: "sarah",
-          voiceEnabled: false,
-          darkMode: false,
-          notifications: {
-            dailyCheckins: true,
-            sessionReminders: true,
-            progressUpdates: true
-          },
-          privacy: {
-            shareAnalytics: true,
-            dataRetention: "2-years"
-          }
-        },
-        goals: [],
-        interests: [],
-        mentalHealthFocus: [],
-        stats: {
-          totalSessions: 0,
-          totalMessages: 0,
-          streakDays: 0,
-          favoritePersona: "sarah",
-          averageMood: 5
-        }
-      });
-    }
-    
-    // Get user data from users table
+    // Get user data from users table - primary source of profile data
     const [user] = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        profileImageUrl: users.profileImageUrl,
-        bio: users.bio,
-        preferences: users.preferences,
-        goals: users.goals,
-        interests: users.interests,
-        mentalHealthFocus: users.mentalHealthFocus,
-        privacySettings: users.privacySettings,
-        createdAt: users.createdAt,
-        updatedAt: users.updatedAt
-      })
+      .select()
       .from(users)
       .where(eq(users.id, userId));
     
+    if (!user) {
+      // Create user if doesn't exist
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: userId,
+          name: "",
+          pronouns: "",
+          moodTagline: "",
+          bio: "",
+          preferences: {
+            preferredPersona: "sarah",
+            voiceEnabled: false,
+            darkMode: false,
+            notifications: {
+              dailyCheckins: true,
+              sessionReminders: true,
+              progressUpdates: true
+            },
+            privacy: {
+              shareAnalytics: true,
+              dataRetention: "1year"
+            }
+          }
+        })
+        .returning();
+      
+      return {
+        userId: newUser.id,
+        name: newUser.name || "",
+        pronouns: newUser.pronouns || "",
+        moodTagline: newUser.moodTagline || "",
+        bio: newUser.bio || "",
+        avatar: newUser.profileImageUrl,
+        preferences: newUser.preferences,
+        goals: newUser.goals || [],
+        stats: {
+          totalSessions: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          averageMood: 0,
+          favoriteEmotion: "calm"
+        }
+      };
+    }
+    
     return {
-      ...profile,
-      name: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.email || 'User',
-      email: user?.email || '',
-      bio: user?.bio || '',
-      preferences: user?.preferences || profile.preferences,
-      goals: user?.goals || [],
-      interests: user?.interests || [],
-      mentalHealthFocus: user?.mentalHealthFocus || [],
-      privacySettings: user?.privacySettings || { shareAnalytics: true, dataRetention: "1year", allowDataExport: true },
-      joinedDate: user?.createdAt || new Date(),
-      lastActive: user?.updatedAt || new Date(),
+      userId: user.id,
+      name: user.name || "",
+      pronouns: user.pronouns || "",
+      moodTagline: user.moodTagline || "",
+      bio: user.bio || "",
+      avatar: user.profileImageUrl,
+      preferences: user.preferences,
+      goals: user.goals || [],
+      stats: {
+        totalSessions: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        averageMood: 0,
+        favoriteEmotion: "calm"
+      }
     };
   }
 
@@ -513,9 +512,12 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserProfile(userId: string, updates: any): Promise<any> {
     // Update the users table with enhanced profile data
-    await db
+    const [updatedUser] = await db
       .update(users)
       .set({
+        name: updates.name,
+        pronouns: updates.pronouns,
+        moodTagline: updates.moodTagline,
         firstName: updates.name ? updates.name.split(' ')[0] : undefined,
         lastName: updates.name ? updates.name.split(' ').slice(1).join(' ') : undefined,
         email: updates.email,
@@ -527,39 +529,27 @@ export class DatabaseStorage implements IStorage {
         privacySettings: updates.privacySettings,
         updatedAt: new Date()
       })
-      .where(eq(users.id, userId));
+      .where(eq(users.id, userId))
+      .returning();
 
-    // Also update the userProfiles table for compatibility
-    try {
-      const [updatedProfile] = await db
-        .update(userProfiles)
-        .set({
-          bio: updates.bio,
-          preferences: updates.preferences,
-          goals: updates.goals,
-          interests: updates.interests,
-          mentalHealthFocus: updates.mentalHealthFocus,
-          updatedAt: new Date()
-        })
-        .where(eq(userProfiles.userId, userId))
-        .returning();
-      return updatedProfile;
-    } catch (error) {
-      // If userProfiles entry doesn't exist, create it
-      const [newProfile] = await db
-        .insert(userProfiles)
-        .values({
-          userId,
-          bio: updates.bio,
-          preferences: updates.preferences,
-          goals: updates.goals,
-          interests: updates.interests,
-          mentalHealthFocus: updates.mentalHealthFocus,
-          updatedAt: new Date()
-        })
-        .returning();
-      return newProfile;
-    }
+    // Return the updated user profile data
+    return {
+      userId: updatedUser[0].id,
+      name: updatedUser[0].name || "",
+      pronouns: updatedUser[0].pronouns || "",
+      moodTagline: updatedUser[0].moodTagline || "",
+      bio: updatedUser[0].bio || "",
+      avatar: updatedUser[0].profileImageUrl,
+      preferences: updatedUser[0].preferences,
+      goals: updatedUser[0].goals || [],
+      stats: {
+        totalSessions: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        averageMood: 0,
+        favoriteEmotion: "calm"
+      }
+    };
   }
 
   // GDPR Compliance Methods
