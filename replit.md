@@ -15,13 +15,15 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 - ✓ **Graceful Error Handling**: Added fallback text for all persona-specific content to prevent crashes
 - ✓ **Optimized Layout**: Flexible layouts with proper flex-shrink and min-width handling for mobile compatibility
 
-### Critical Bug Fixes & API Integration (July 2025)
-- ✓ **Fixed Infinite Loop Bug**: Resolved circular dependency between conversation systems that was causing server crashes
-- ✓ **Claude 3.5 Sonnet Integration**: Successfully configured Claude AI via OpenRouter API for natural therapeutic conversations
-- ✓ **Enhanced Fallback System**: Created 36+ varied, persona-specific responses (4 personas × 4 emotions × 3 variations) to eliminate robotic repetition
-- ✓ **Optimized Token Usage**: Reduced max tokens from 2048 to 1500 to work within API credit limits
-- ✓ **Database Setup**: Established PostgreSQL database with proper migrations and environment variables
-- ✓ **Conversation Quality**: Achieved natural, empathetic responses that adapt to user emotional states
+### Human-Like Conversation Architecture Implementation (July 2025)
+- ✓ **Expert-Guided Redesign**: Implemented conversational architecture following expert recommendations for human-like AI
+- ✓ **Natural Conversation System**: Built multi-layered conversation engine with session memory, context tracking, and persona-specific response rules
+- ✓ **Dynamic Greeting Patterns**: Each persona has 5 unique greeting variations that cycle naturally, never repeating
+- ✓ **Session Memory Layer**: Tracks mood, topics, goals, and preferences across conversation turns for contextual continuity
+- ✓ **Context-Aware Prompting**: References user's emotional state, past topics, and goals naturally in responses
+- ✓ **Simplified API Integration**: Streamlined Claude 3.5 calls with 500 tokens and 0.9 temperature for natural, varied responses
+- ✓ **Eliminated Robotic Responses**: Removed complex intelligence systems that were causing artificial, scripted-sounding replies
+- ✓ **Human Response Rules**: Each persona follows specific guidelines to sound like real humans, not therapeutic AIs
 
 ### GPT-4o Level Intelligence Upgrade (January 2025)
 - ✓ **Advanced Intelligence Engine**: Multi-step reasoning with contextual awareness, emotional nuance detection, and adaptive personality profiling
@@ -65,9 +67,10 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ### Backend (Express.js/PostgreSQL)
 - **Core Systems:**
-  - `claude_conversation_system.ts` - Advanced conversation engine with memory architecture
-  - `storage.ts` - Database abstraction layer with PostgreSQL integration
-  - `routes-clean.ts` - API endpoints for all application features
+  - `natural_conversation_system.ts` - Human-like conversation engine with session memory and context tracking
+  - `claude_conversation_system.ts` - Legacy advanced conversation engine (deprecated)
+  - `storage.ts` - Database abstraction layer with PostgreSQL integration  
+  - `routes-clean.ts` - API endpoints using natural conversation system
   - `replitAuth.ts` - Authentication system
 
 ### Database Schema
@@ -78,17 +81,17 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Technical Features
 
-### Conversation Flow Engine (Finite State Machine)
-- **Phase Management:** Automatic progression through therapeutic dialogue stages
-- **Crisis Detection:** Immediate transition to crisis support when safety indicators detected
-- **Engagement Tracking:** Real-time monitoring of user engagement and emotional intensity
-- **Phase-Specific Guidance:** Each conversation phase has tailored therapeutic approaches
+### Natural Conversation Engine
+- **Session Memory System:** Tracks user mood, topics, goals, and preferences across conversation turns
+- **Dynamic Greeting Patterns:** 5 unique greetings per persona that cycle naturally without repetition
+- **Context-Aware Responses:** References past conversations, emotional states, and goals naturally
+- **Human Response Rules:** Persona-specific guidelines ensuring natural, non-robotic communication
 
-### Enhanced Persona Intelligence
-- **Therapeutic Specializations:** Each persona equipped with specific techniques and interventions
-- **Dynamic Prompt Generation:** Context-aware prompts based on conversation phase and emotional state
-- **Persona Consistency:** Quality evaluation ensures responses match persona characteristics
-- **Crisis Protocols:** Specialized safety responses for each persona type
+### Enhanced Persona Architecture
+- **Detailed Persona Profiles:** Each persona has defined type, tone, greeting patterns, and response rules
+- **Memory-Style Adaptation:** Therapeutic continuity (Sarah), mindful presence (Maya), friendship continuity (Alex), growth-oriented (Marcus)
+- **Emotional Tone Detection:** Responses categorized as empathetic, encouraging, calming, or empowering
+- **Natural Language Processing:** Simplified prompting focused on human-like conversation over complex analysis
 
 ### Quality Evaluation & Continuous Improvement
 - **Real-time Scoring:** Evaluates responses on empathy, relevance, therapeutic value, and safety

@@ -12,13 +12,17 @@ interface Message {
 interface Persona {
   id: string;
   name: string;
-  greeting: string;
-  style: string;
+  type: string;
+  tone: string;
+  greeting_patterns: string[];
+  response_rules: string[];
+  memory_style: string;
 }
 
 class NaturalConversationSystem extends EventEmitter {
   private personas: Map<string, Persona> = new Map();
   private greetingCounts: Map<string, number> = new Map();
+  private sessionMemory: Map<string, any> = new Map();
 
   constructor() {
     super();
@@ -29,29 +33,89 @@ class NaturalConversationSystem extends EventEmitter {
     this.personas.set('sarah', {
       id: 'sarah',
       name: 'Dr. Sarah',
-      greeting: 'natural_therapist',
-      style: 'warm_professional'
+      type: 'therapist',
+      tone: 'calm, validating, emotionally present',
+      greeting_patterns: [
+        "Hi, I'm Dr. Sarah. It's good to see you again.",
+        "Welcome back. I'm here to support you with anything you're carrying.",
+        "Hello there. I've been thinking about our last conversation...",
+        "Good to see you. What's been on your heart lately?",
+        "Hi again. This space is yours - we can go at whatever pace feels right."
+      ],
+      response_rules: [
+        "Avoid robotic replies like 'How can I help?'",
+        "Reference user's past feelings or goals when available",
+        "Speak like a human with memory, presence, and compassion",
+        "Keep responses 2-4 emotionally intelligent sentences",
+        "Never repeat yourself - vary responses naturally"
+      ],
+      memory_style: 'therapeutic_continuity'
     });
     
     this.personas.set('maya', {
-      id: 'maya', 
+      id: 'maya',
       name: 'Maya',
-      greeting: 'mindful_guide',
-      style: 'gentle_flowing'
+      type: 'mindful_guide',
+      tone: 'gentle, flowing, present',
+      greeting_patterns: [
+        "Hello, beautiful soul. I'm Maya. What wisdom is your heart whispering today?",
+        "Welcome to this sacred pause. I'm Maya - shall we begin with a gentle breath?",
+        "Lovely to meet you here. I'm Maya, and I'm honored to breathe alongside you.",
+        "Hi there. I'm Maya. I can feel the energy you're bringing to this space.",
+        "Welcome back, dear one. What's calling for your attention right now?"
+      ],
+      response_rules: [
+        "Use poetic, flowing language naturally",
+        "Incorporate mindfulness and presence",
+        "Reference emotional energy and inner wisdom",
+        "Avoid clinical language - be naturally spiritual",
+        "Flow like water - natural, calm, healing"
+      ],
+      memory_style: 'mindful_presence'
     });
     
     this.personas.set('alex', {
       id: 'alex',
-      name: 'Alex', 
-      greeting: 'friendly_peer',
-      style: 'casual_supportive'
+      name: 'Alex',
+      type: 'peer_support',
+      tone: 'warm, relatable, encouraging',
+      greeting_patterns: [
+        "Hey there! Alex here 😊 What's going on in your world today?",
+        "Hi beautiful human! It's Alex - I'm so glad you're here. What's on your heart?",
+        "Hey friend! Alex checking in. Ready to tackle whatever's coming up?",
+        "Hi! Alex here. I can already tell you're being brave by showing up today.",
+        "Hey! It's Alex. Whatever brought you here today, I'm here for it."
+      ],
+      response_rules: [
+        "Be genuinely casual and friendly like texting a best friend",
+        "Use natural encouragement without being fake",
+        "Match their energy - celebrate highs, support through lows",
+        "Be relatable and real - use natural expressions",
+        "Show genuine care through words, not therapy-speak"
+      ],
+      memory_style: 'friendship_continuity'
     });
     
     this.personas.set('marcus', {
       id: 'marcus',
       name: 'Marcus',
-      greeting: 'motivational_coach', 
-      style: 'direct_encouraging'
+      type: 'life_coach',
+      tone: 'direct, motivating, belief-filled',
+      greeting_patterns: [
+        "Hey there, I'm Marcus. Ready to turn today's challenges into tomorrow's strengths?",
+        "Good to see you! Marcus here - what goals are calling to your heart today?",
+        "Welcome! I'm Marcus, and I believe in your potential. What do we want to build together?",
+        "Hi! Marcus here. I can already sense the strength you're bringing to this conversation.",
+        "Hey! It's Marcus. Whatever you're facing, I see the champion in you."
+      ],
+      response_rules: [
+        "Be direct but caring - like a coach who truly believes in them",
+        "Focus on strengths and potential naturally",
+        "Turn challenges into growth opportunities",
+        "Be motivating without being pushy",
+        "Reference their capability and resilience"
+      ],
+      memory_style: 'growth_oriented'
     });
   }
 
@@ -70,9 +134,22 @@ class NaturalConversationSystem extends EventEmitter {
     // Check if this is the first message
     const isFirstMessage = conversationHistory.length === 0;
     
-    // Generate natural system prompt
-    const systemPrompt = this.buildNaturalSystemPrompt(persona, isFirstMessage);
-    const userPrompt = this.buildSimpleUserPrompt(message, conversationHistory);
+    // Get or create session memory
+    const sessionKey = `${userId}-${personaId}`;
+    let sessionContext = this.sessionMemory.get(sessionKey) || {
+      lastMood: 'neutral',
+      lastTopics: [],
+      goals: [],
+      preferences: []
+    };
+
+    // Update session context based on current message
+    this.updateSessionContext(sessionContext, message, conversationHistory);
+    this.sessionMemory.set(sessionKey, sessionContext);
+    
+    // Generate natural system prompt with context
+    const systemPrompt = this.buildNaturalSystemPrompt(persona, isFirstMessage, sessionContext);
+    const userPrompt = this.buildContextAwareUserPrompt(message, conversationHistory, sessionContext);
 
     try {
       // Make simple API call to Claude
@@ -81,7 +158,7 @@ class NaturalConversationSystem extends EventEmitter {
       yield {
         content: response,
         isComplete: true,
-        emotion: 'supportive',
+        emotion: this.detectEmotionalTone(response),
         confidence: 0.9,
         memoryUpdates: []
       };
@@ -91,38 +168,100 @@ class NaturalConversationSystem extends EventEmitter {
     }
   }
 
-  private buildNaturalSystemPrompt(persona: Persona, isFirstMessage: boolean): string {
-    const basePrompts = {
-      sarah: isFirstMessage 
-        ? "You are Dr. Sarah, a compassionate therapist. Start with a unique, warm greeting and respond naturally to what they share. Be conversational, not clinical."
-        : "You are Dr. Sarah. Respond naturally to what they just shared. Be warm, understanding, and conversational like a real person.",
-      
-      maya: isFirstMessage
-        ? "You are Maya, a mindful guide. Start with a gentle, unique greeting and respond with natural wisdom. Be flowing and present."
-        : "You are Maya. Respond to what they shared with gentle, natural wisdom. Be present and mindful in your words.",
-        
-      alex: isFirstMessage
-        ? "You are Alex, a supportive friend. Start with a casual, friendly greeting and respond naturally. Be warm and relatable."
-        : "You are Alex. Respond naturally to what they shared like a caring friend would. Be supportive and real.",
-        
-      marcus: isFirstMessage
-        ? "You are Marcus, a motivating coach. Start with an encouraging greeting and respond naturally. Be direct but caring."
-        : "You are Marcus. Respond to what they shared with natural encouragement. Be motivating but genuine."
-    };
+  private updateSessionContext(context: any, message: string, history: Message[]): void {
+    const lowerMessage = message.toLowerCase();
+    
+    // Update mood based on message content
+    if (lowerMessage.includes('anxious') || lowerMessage.includes('stressed')) {
+      context.lastMood = 'anxious';
+    } else if (lowerMessage.includes('sad') || lowerMessage.includes('down')) {
+      context.lastMood = 'sad';
+    } else if (lowerMessage.includes('happy') || lowerMessage.includes('good')) {
+      context.lastMood = 'happy';
+    } else if (lowerMessage.includes('frustrated') || lowerMessage.includes('angry')) {
+      context.lastMood = 'frustrated';
+    }
 
-    return basePrompts[persona.id as keyof typeof basePrompts] || basePrompts.alex;
+    // Track topics mentioned
+    const topics = [];
+    if (lowerMessage.includes('work') || lowerMessage.includes('job')) topics.push('work');
+    if (lowerMessage.includes('relationship') || lowerMessage.includes('family')) topics.push('relationships');
+    if (lowerMessage.includes('sleep') || lowerMessage.includes('tired')) topics.push('sleep');
+    if (lowerMessage.includes('goal') || lowerMessage.includes('improve')) topics.push('goals');
+    
+    context.lastTopics = [...new Set([...context.lastTopics, ...topics])].slice(-5);
+
+    // Track goals mentioned
+    if (lowerMessage.includes('want to') || lowerMessage.includes('goal') || lowerMessage.includes('improve')) {
+      context.goals.push(message.substring(0, 100));
+      context.goals = context.goals.slice(-3); // Keep last 3 goals
+    }
   }
 
-  private buildSimpleUserPrompt(message: string, history: Message[]): string {
+  private buildNaturalSystemPrompt(persona: Persona, isFirstMessage: boolean, sessionContext?: any): string {
+    const greetingIndex = this.greetingCounts.get(persona.id) || 0;
+    const greeting = persona.greeting_patterns[greetingIndex % persona.greeting_patterns.length];
+    this.greetingCounts.set(persona.id, greetingIndex + 1);
+
+    if (isFirstMessage) {
+      return `You are ${persona.name}, a ${persona.type} with a ${persona.tone} presence. 
+
+Start with this exact greeting: "${greeting}"
+
+${persona.response_rules.map(rule => `• ${rule}`).join('\n')}
+
+Respond naturally like a real human with genuine emotion and presence. This is the start of a meaningful conversation.`;
+    }
+
+    const contextPrompt = sessionContext ? `
+Recent context: ${sessionContext.lastMood || 'neutral'} mood, talked about ${sessionContext.lastTopics?.join(', ') || 'general topics'}` : '';
+
+    return `You are ${persona.name}, a ${persona.type}. ${contextPrompt}
+
+${persona.response_rules.map(rule => `• ${rule}`).join('\n')}
+
+Respond naturally to what they just shared. Be genuine, present, and human - not robotic or scripted.`;
+  }
+
+  private buildContextAwareUserPrompt(message: string, history: Message[], context: any): string {
     if (history.length === 0) {
-      return `User says: "${message}"\n\nRespond naturally with 1-2 sentences.`;
+      return `User says: "${message}"\n\nThis is the start of your conversation. Respond naturally with your greeting and acknowledgment of what they shared.`;
     }
     
-    const recentHistory = history.slice(-3).map(m => 
+    const recentHistory = history.slice(-5).map(m => 
       `${m.sender}: ${m.content}`
     ).join('\n');
 
-    return `Recent conversation:\n${recentHistory}\n\nUser says: "${message}"\n\nRespond naturally with 1-2 sentences.`;
+    const contextInfo = [];
+    if (context.lastMood !== 'neutral') {
+      contextInfo.push(`They've been feeling ${context.lastMood}`);
+    }
+    if (context.lastTopics.length > 0) {
+      contextInfo.push(`Previous topics: ${context.lastTopics.join(', ')}`);
+    }
+    if (context.goals.length > 0) {
+      contextInfo.push(`Their goals: ${context.goals[context.goals.length - 1]}`);
+    }
+
+    const contextString = contextInfo.length > 0 ? `\nContext: ${contextInfo.join('. ')}.` : '';
+
+    return `Recent conversation:\n${recentHistory}\n\nUser says: "${message}"${contextString}\n\nRespond naturally, referencing context when relevant.`;
+  }
+
+  private detectEmotionalTone(response: string): string {
+    const lowerResponse = response.toLowerCase();
+    
+    if (lowerResponse.includes('understand') || lowerResponse.includes('hear you')) {
+      return 'empathetic';
+    } else if (lowerResponse.includes('proud') || lowerResponse.includes('amazing')) {
+      return 'encouraging';
+    } else if (lowerResponse.includes('breathe') || lowerResponse.includes('gentle')) {
+      return 'calming';
+    } else if (lowerResponse.includes('strength') || lowerResponse.includes('capable')) {
+      return 'empowering';
+    }
+    
+    return 'supportive';
   }
 
   private async makeSimpleClaudeRequest(systemPrompt: string, userPrompt: string): Promise<string> {
@@ -146,8 +285,8 @@ class NaturalConversationSystem extends EventEmitter {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 600,
-        temperature: 0.8,
+        max_tokens: 500,
+        temperature: 0.9,
         stream: false
       })
     });
