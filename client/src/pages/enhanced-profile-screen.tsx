@@ -198,6 +198,11 @@ export default function EnhancedProfileScreen() {
     createGoalMutation.mutate(newGoal);
   };
 
+  // Handle form inputs
+  const handleEditFormChange = (field: string, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
   const startEditing = () => {
     setIsEditing(true);
   };
