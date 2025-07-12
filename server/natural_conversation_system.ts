@@ -321,10 +321,13 @@ class NaturalConversationSystem extends EventEmitter {
     const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
     
     if (!OPENROUTER_API_KEY) {
+      console.error('OPENROUTER_API_KEY environment variable not found');
       throw new Error('OpenRouter API key not found');
     }
 
     console.log('Making Mixtral API request via OpenRouter...');
+    console.log('API Key length:', OPENROUTER_API_KEY.length);
+    console.log('API Key starts with:', OPENROUTER_API_KEY.substring(0, 10) + '...');
     
     try {
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {

@@ -562,6 +562,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug API key endpoint
+  app.get("/api/debug/api-key", async (req, res) => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    res.json({
+      hasApiKey: !!apiKey,
+      keyLength: apiKey?.length || 0,
+      keyPrefix: apiKey?.substring(0, 10) || 'none'
+    });
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
