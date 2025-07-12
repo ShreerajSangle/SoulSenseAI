@@ -318,50 +318,94 @@ Respond naturally to what they just shared. Be genuine, present, and human - not
       throw new Error('OpenRouter API key not found');
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://soulsense.replit.app',
-        'X-Title': 'SoulSense AI'
-      },
-      body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 500,
-        temperature: 0.9,
-        stream: false
-      })
-    });
+    console.log('Making OpenRouter API request...');
+    
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.REPLIT_DOMAINS?.split(',')[0] || 'https://soulsense.replit.app',
+          'X-Title': 'SoulSense AI'
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-3-haiku',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: 500,
+          temperature: 0.9,
+          stream: false
+        })
+      });
 
-    if (!response.ok) {
-      throw new Error(`Claude API error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`OpenRouter API error: ${response.status} - ${errorText}`);
+        console.error('Response headers:', response.headers);
+        throw new Error(`Claude API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
+      
+      if (!content) {
+        console.error('No content in OpenRouter response:', data);
+        throw new Error('No content received from Claude');
+      }
+      
+      return content;
+    } catch (error) {
+      console.error('Claude API request failed:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || "I'm here to listen and support you.";
   }
 
   private async *generateFallbackResponse(personaId: string, message: string): AsyncGenerator<any, void, unknown> {
-    const fallbacks = {
-      sarah: "I hear you, and I'm here to support you through this.",
-      maya: "I feel the weight of what you're sharing. Let's breathe through this together.",
-      alex: "That sounds really tough. I'm here for you.",
-      marcus: "I can see you're facing something challenging. Let's work through this."
+    // Create varied fallback responses to avoid repetition
+    const fallbackSets = {
+      sarah: [
+        "I hear you, and I'm here to support you through this.",
+        "Thank you for sharing that with me. How are you feeling right now?",
+        "I can sense this is important to you. Tell me more about what's on your mind.",
+        "Your feelings are completely valid. What would help you most right now?",
+        "I'm listening carefully to what you're telling me."
+      ],
+      maya: [
+        "I feel the weight of what you're sharing. Let's breathe through this together.",
+        "Your words carry so much meaning. Take a moment to just be present with me.",
+        "I can feel the energy in what you're sharing. How does your body feel right now?",
+        "Let's pause together in this moment and honor what you're experiencing.",
+        "There's wisdom in what you're feeling. Let it flow through you gently."
+      ],
+      alex: [
+        "That sounds really tough. I'm here for you.",
+        "Wow, that's a lot to handle. You're stronger than you know.",
+        "I totally get why that would affect you. Want to talk about it more?",
+        "That's actually really relatable. You're definitely not alone in feeling this way.",
+        "Thanks for being real with me. That takes courage."
+      ],
+      marcus: [
+        "I can see you're facing something challenging. Let's work through this.",
+        "You're showing real strength by talking about this. What's your next step?",
+        "This sounds like an opportunity for growth. How do you want to approach it?",
+        "I believe in your ability to handle this. What resources do you have?",
+        "You've overcome challenges before. What helped you then?"
+      ]
     };
 
-    const response = fallbacks[personaId as keyof typeof fallbacks] || fallbacks.alex;
+    const responses = fallbackSets[personaId as keyof typeof fallbackSets] || fallbackSets.alex;
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
     
     yield {
-      content: response,
+      content: randomResponse,
       isComplete: true,
       emotion: 'supportive',
       confidence: 0.7,
-      memoryUpdates: []
+      memoryUpdates: [],
+      fallbackUsed: true
     };
   }
 }
