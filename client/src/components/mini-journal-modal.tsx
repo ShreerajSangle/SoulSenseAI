@@ -69,7 +69,7 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50">
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50 animate-in zoom-in-95 duration-200">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-purple-800">
             <BookOpen className="h-5 w-5" />
@@ -86,20 +86,21 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
             placeholder="Write a few lines about how you're feeling..."
             value={entryText}
             onChange={(e) => setEntryText(e.target.value)}
-            className="min-h-[100px] border-purple-200/50 focus:ring-purple-400/30 bg-white/80"
+            className="min-h-[100px] sm:min-h-[120px] border-purple-200/50 focus:ring-purple-400/30 bg-white/80 transition-all duration-200 focus:border-purple-400"
+            autoFocus
           />
 
           <div>
             <p className="text-sm font-medium text-purple-700 mb-2">How are you feeling?</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {moodOptions.map((mood) => (
                 <Badge
                   key={mood.value}
                   variant={selectedMood === mood.value ? "default" : "outline"}
-                  className={`cursor-pointer p-2 flex flex-col items-center gap-1 h-auto transition-all ${
+                  className={`cursor-pointer p-2 flex flex-col items-center gap-1 h-auto transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30 ${
                     selectedMood === mood.value
-                      ? 'bg-purple-500 text-white border-purple-500'
-                      : 'border-purple-200 hover:border-purple-400 text-purple-600'
+                      ? 'bg-purple-500 text-white border-purple-500 shadow-md'
+                      : 'border-purple-200 hover:border-purple-400 hover:bg-purple-50 text-purple-600'
                   }`}
                   onClick={() => setSelectedMood(mood.value)}
                 >

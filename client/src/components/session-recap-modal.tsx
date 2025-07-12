@@ -72,7 +72,7 @@ export function SessionRecapModal({ isOpen, onClose, persona, sessionData }: Ses
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50">
+      <DialogContent className="sm:max-w-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/50 animate-in zoom-in-95 duration-200">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-purple-800">
             <Star className="h-5 w-5" />

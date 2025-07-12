@@ -410,11 +410,15 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
                 {/* Active Goals Display */}
                 {currentGoals.length > 0 && (
-                  <div className="mb-4 p-3 bg-white/60 rounded-lg border border-purple-200/50">
+                  <div className="mb-4 p-3 bg-white/60 rounded-lg border border-purple-200/50 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
                     <p className="text-xs font-medium text-purple-700 mb-2">Today's Goals:</p>
                     <div className="space-y-1">
-                      {currentGoals.slice(-2).map((goal) => (
-                        <div key={goal.id} className="text-sm text-purple-600 flex items-center gap-2">
+                      {currentGoals.slice(-2).map((goal, index) => (
+                        <div 
+                          key={goal.id} 
+                          className="text-sm text-purple-600 flex items-center gap-2 animate-in fade-in-0 slide-in-from-left-2 duration-200"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
                           <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
                           {goal.text}
                         </div>
@@ -428,17 +432,24 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                   <div className="mb-4">
                     <QuickReplyBubbles 
                       persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
-                      onReplySelect={(reply) => setInputMessage(reply)}
+                      onReplySelect={(reply) => {
+                        setInputMessage(reply);
+                        // Auto-focus textarea after selection
+                        setTimeout(() => {
+                          const textarea = document.querySelector('textarea');
+                          if (textarea) textarea.focus();
+                        }, 100);
+                      }}
                     />
                   </div>
                 )}
 
                 {/* Message Input */}
-                <div className="flex items-end gap-2">
+                <div className="flex items-end gap-2 sm:gap-3">
                   {/* Emoji Selector */}
                   <EnhancedEmojiSelector 
                     onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
-                    className="mb-1"
+                    className="mb-1 flex-shrink-0"
                   />
                   
                   {/* Journal Entry Icon */}
@@ -446,43 +457,49 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                     variant="ghost"
                     size="sm"
                     onClick={() => setJournalModalOpen(true)}
-                    className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600 mb-1"
+                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 mb-1 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30 flex-shrink-0"
                     title="Mini journal entry"
                   >
-                    <BookOpen className="h-3 w-3" />
+                    <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   
                   {/* Message Input */}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <Textarea
                       placeholder={`Message ${persona.name}...`}
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       disabled={isTyping}
-                      className="resize-none min-h-[50px] max-h-[120px] border border-purple-200/50 rounded-2xl focus:ring-2 focus:ring-purple-400/30 focus:border-purple-300 bg-white/90 transition-all"
+                      className="resize-none min-h-[50px] sm:min-h-[52px] max-h-[120px] border border-purple-200/50 rounded-2xl focus:ring-2 focus:ring-purple-400/30 focus:border-purple-300 bg-white/90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
 
                   {/* Quick Action Buttons */}
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setGoalModalOpen(true)}
-                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
                       title="Set a goal"
                     >
-                      <Target className="h-3 w-3" />
+                      <Target className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setShowBreathingGuide(true)}
-                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      onClick={() => {
+                        setShowBreathingGuide(true);
+                        setSessionData(prev => ({
+                          ...prev,
+                          breathingExercises: prev.breathingExercises + 1
+                        }));
+                      }}
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
                       title="Breathing exercise"
                     >
-                      <Wind className="h-3 w-3" />
+                      <Wind className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -496,10 +513,10 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                         }));
                         setSessionRecapOpen(true);
                       }}
-                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
                       title="Session recap"
                     >
-                      <MessageCircle className="h-3 w-3" />
+                      <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                   
@@ -507,9 +524,9 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50 flex-shrink-0"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Button>
                 </div>
               </div>

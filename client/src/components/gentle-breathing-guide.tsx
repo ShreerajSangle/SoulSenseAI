@@ -53,7 +53,7 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
   const [round, setRound] = useState(1);
   const [pattern] = useState(BREATHING_PATTERNS.basic);
   
-  const guidance = PERSONA_GUIDANCE[persona];
+  const guidance = PERSONA_GUIDANCE[persona] || PERSONA_GUIDANCE.dr_sarah;
 
   useEffect(() => {
     if (!isActive) return;
@@ -105,7 +105,7 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
   };
 
   return (
-    <Card className={`bg-gradient-to-br from-purple-50/80 to-pink-50/80 border-purple-200/50 ${className}`}>
+    <Card className={`bg-gradient-to-br from-purple-50/80 to-pink-50/80 border-purple-200/50 animate-in fade-in-0 slide-in-from-bottom-3 duration-300 ${className}`}>
       <CardContent className="p-4 space-y-4">
         <div className="text-center space-y-2">
           <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
@@ -114,12 +114,12 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
           <p className="text-sm text-gray-700 leading-relaxed">
             {isActive ? (
               <span className="font-medium">
-                {phase === "inhale" && guidance.inhale}
-                {phase === "hold" && guidance.hold}
-                {phase === "exhale" && guidance.exhale}
+                {phase === "inhale" && (guidance?.inhale || "Breathe in slowly...")}
+                {phase === "hold" && (guidance?.hold || "Hold your breath...")}
+                {phase === "exhale" && (guidance?.exhale || "Breathe out gently...")}
               </span>
             ) : (
-              guidance.intro
+              guidance?.intro || "Let's take a moment to breathe together."
             )}
           </p>
         </div>
@@ -148,7 +148,7 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
           {!isActive ? (
             <Button
               onClick={handleStart}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white px-6 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
             >
               <Wind className="h-4 w-4 mr-2" />
               Start Breathing

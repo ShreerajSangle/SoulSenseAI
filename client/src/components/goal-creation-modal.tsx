@@ -54,8 +54,8 @@ export function GoalCreationModal({ isOpen, onClose, onGoalCreated, persona }: G
   const [customGoal, setCustomGoal] = useState("");
   const [selectedSuggestion, setSelectedSuggestion] = useState("");
 
-  const suggestions = GOAL_SUGGESTIONS[persona];
-  const encouragement = PERSONA_ENCOURAGEMENT[persona];
+  const suggestions = GOAL_SUGGESTIONS[persona] || GOAL_SUGGESTIONS.sarah;
+  const encouragement = PERSONA_ENCOURAGEMENT[persona] || PERSONA_ENCOURAGEMENT.sarah;
 
   const handleCreateGoal = () => {
     const goalText = customGoal.trim() || selectedSuggestion;
@@ -78,8 +78,8 @@ export function GoalCreationModal({ isOpen, onClose, onGoalCreated, persona }: G
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border border-purple-200/50 shadow-xl">
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in-0 duration-200">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border border-purple-200/50 shadow-xl animate-in zoom-in-95 duration-200">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
