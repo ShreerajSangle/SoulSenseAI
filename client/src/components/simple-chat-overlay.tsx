@@ -8,6 +8,9 @@ import { X, Send, Wind, Target, BookOpen, MessageCircle, Smile } from "lucide-re
 import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
 import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
 import { GoalCreationModal } from "@/components/goal-creation-modal";
+import { MiniJournalModal } from "@/components/mini-journal-modal";
+import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
+import { SessionRecapModal } from "@/components/session-recap-modal";
 
 interface Message {
   id: number;
@@ -47,6 +50,17 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
   const [currentGoals, setCurrentGoals] = useState<any[]>([]);
+  const [journalModalOpen, setJournalModalOpen] = useState(false);
+  const [journalEntries, setJournalEntries] = useState<any[]>([]);
+  const [sessionRecapOpen, setSessionRecapOpen] = useState(false);
+  const [sessionData, setSessionData] = useState({
+    emotionalThemes: [] as string[],
+    keyInsights: [] as string[],
+    goalsSet: [] as string[],
+    breathingExercises: 0,
+    duration: "0 minutes",
+    startTime: new Date()
+  });
   const [conversationData, setConversationData] = useState<{
     id: number;
     messages: Message[];
@@ -382,8 +396,14 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 {showBreathingGuide && (
                   <div className="mb-4">
                     <GentleBreathingGuide 
-                      persona={persona.id as any}
-                      onComplete={() => setShowBreathingGuide(false)}
+                      persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+                      onComplete={() => {
+                        setShowBreathingGuide(false);
+                        setSessionData(prev => ({
+                          ...prev,
+                          breathingExercises: prev.breathingExercises + 1
+                        }));
+                      }}
                     />
                   </div>
                 )}
@@ -403,6 +423,16 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                   </div>
                 )}
 
+                {/* Quick Reply Bubbles (show under AI messages) */}
+                {messages.length > 0 && messages[messages.length - 1]?.sender === 'ai' && !isTyping && (
+                  <div className="mb-4">
+                    <QuickReplyBubbles 
+                      persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+                      onReplySelect={(reply) => setInputMessage(reply)}
+                    />
+                  </div>
+                )}
+
                 {/* Message Input */}
                 <div className="flex items-end gap-2">
                   {/* Emoji Selector */}
@@ -410,6 +440,17 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                     onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
                     className="mb-1"
                   />
+                  
+                  {/* Journal Entry Icon */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setJournalModalOpen(true)}
+                    className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600 mb-1"
+                    title="Mini journal entry"
+                  >
+                    <BookOpen className="h-3 w-3" />
+                  </Button>
                   
                   {/* Message Input */}
                   <div className="flex-1">
@@ -443,6 +484,23 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                     >
                       <Wind className="h-3 w-3" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const duration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / 60000);
+                        setSessionData(prev => ({
+                          ...prev,
+                          duration: `${duration} minutes`,
+                          emotionalThemes: Array.from(new Set([...prev.emotionalThemes, currentEmotion]))
+                        }));
+                        setSessionRecapOpen(true);
+                      }}
+                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      title="Session recap"
+                    >
+                      <MessageCircle className="h-3 w-3" />
+                    </Button>
                   </div>
                   
                   {/* Send Button */}
@@ -466,9 +524,37 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         onClose={() => setGoalModalOpen(false)}
         onGoalCreated={(goal) => {
           setCurrentGoals(prev => [...prev, goal]);
+          setSessionData(prev => ({
+            ...prev,
+            goalsSet: [...prev.goalsSet, goal.text]
+          }));
           setGoalModalOpen(false);
         }}
-        persona={persona.id as any}
+        persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+      />
+
+      <MiniJournalModal
+        isOpen={journalModalOpen}
+        onClose={() => setJournalModalOpen(false)}
+        onEntryCreated={(entry) => {
+          setJournalEntries(prev => [...prev, entry]);
+          setSessionData(prev => ({
+            ...prev,
+            keyInsights: [...prev.keyInsights, `Journal: ${entry.text.slice(0, 50)}...`]
+          }));
+          setJournalModalOpen(false);
+        }}
+        persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+      />
+
+      <SessionRecapModal
+        isOpen={sessionRecapOpen}
+        onClose={() => setSessionRecapOpen(false)}
+        persona={{
+          name: persona.name,
+          emoji: persona.emoji
+        }}
+        sessionData={sessionData}
       />
     </div>
   );
