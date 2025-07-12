@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { claudeConversationSystem } from "./claude_conversation_system";
+import { naturalConversationSystem } from "./natural_conversation_system";
 import { supabaseSync } from "./supabase-sync";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import { z } from "zod";
@@ -95,11 +96,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversationHistory = await storage.getConversationMessages(currentConversationId);
       
       try {
-        const responseGenerator = await claudeConversationSystem.generateStreamingResponse(
+        const responseGenerator = await naturalConversationSystem.generateNaturalResponse(
           message,
           personaId,
-          userId,
-          conversationHistory
+          conversationHistory,
+          userId
         );
 
         const { value: firstChunk } = await responseGenerator.next();
