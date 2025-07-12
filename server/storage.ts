@@ -511,7 +511,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserProfile(userId: string, updates: any): Promise<any> {
-    // Update the users table with enhanced profile data
+    // First check if user exists, if not create them
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!existingUser) {
+      // Create user if doesn't exist
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          id: userId,
+          name: updates.name || "",
+          pronouns: updates.pronouns || "",
+          moodTagline: updates.moodTagline || "",
+          bio: updates.bio || "",
+          preferences: updates.preferences || {
+            preferredPersona: "sarah",
+            voiceEnabled: false,
+            darkMode: false
+          }
+        })
+        .returning();
+      
+      return {
+        userId: newUser.id,
+        name: newUser.name || "",
+        pronouns: newUser.pronouns || "",
+        moodTagline: newUser.moodTagline || "",
+        bio: newUser.bio || "",
+        avatar: newUser.profileImageUrl,
+        preferences: newUser.preferences,
+        goals: newUser.goals || [],
+        stats: {
+          totalSessions: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          averageMood: 0,
+          favoriteEmotion: "calm"
+        }
+      };
+    }
+
+    // Update existing user
     const [updatedUser] = await db
       .update(users)
       .set({
@@ -532,16 +575,21 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
 
+    // Check if update was successful
+    if (!updatedUser) {
+      throw new Error("Failed to update user profile");
+    }
+
     // Return the updated user profile data
     return {
-      userId: updatedUser[0].id,
-      name: updatedUser[0].name || "",
-      pronouns: updatedUser[0].pronouns || "",
-      moodTagline: updatedUser[0].moodTagline || "",
-      bio: updatedUser[0].bio || "",
-      avatar: updatedUser[0].profileImageUrl,
-      preferences: updatedUser[0].preferences,
-      goals: updatedUser[0].goals || [],
+      userId: updatedUser.id,
+      name: updatedUser.name || "",
+      pronouns: updatedUser.pronouns || "",
+      moodTagline: updatedUser.moodTagline || "",
+      bio: updatedUser.bio || "",
+      avatar: updatedUser.profileImageUrl,
+      preferences: updatedUser.preferences,
+      goals: updatedUser.goals || [],
       stats: {
         totalSessions: 0,
         currentStreak: 0,
