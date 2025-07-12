@@ -616,10 +616,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateGoal(id: number, updates: Partial<Goal>): Promise<Goal> {
+    // Convert string dates to Date objects for timestamp fields
+    const processedUpdates = { ...updates };
+    if (processedUpdates.targetDate && typeof processedUpdates.targetDate === 'string') {
+      processedUpdates.targetDate = new Date(processedUpdates.targetDate);
+    }
+    if (processedUpdates.completedDate && typeof processedUpdates.completedDate === 'string') {
+      processedUpdates.completedDate = new Date(processedUpdates.completedDate);
+    }
+    if (processedUpdates.createdAt && typeof processedUpdates.createdAt === 'string') {
+      processedUpdates.createdAt = new Date(processedUpdates.createdAt);
+    }
+
     const [updatedGoal] = await db
       .update(goals)
       .set({
-        ...updates,
+        ...processedUpdates,
         updatedAt: new Date(),
       })
       .where(eq(goals.id, id))
