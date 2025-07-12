@@ -5,18 +5,18 @@ import { qualityEvaluator, QualityEvaluation } from './conversation_quality_eval
 import { advancedIntelligenceEngine } from './advanced_intelligence_engine';
 import { gpt4oLevelProcessor } from './gpt4o_level_processor';
 
-// Claude 3 Haiku via OpenRouter configuration
-const CLAUDE_MODEL = "anthropic/claude-3-haiku";
+// Claude 3 Haiku via OpenRouter configuration for enhanced therapeutic conversations
+const CLAUDE_MODEL = "anthropic/claude-3.5-sonnet";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// OpenRouter API client setup
+// OpenRouter API client setup - using OPENAI_API_KEY since that's what the user provided
 async function makeClaudeRequest(messages: any[]) {
-  console.log('Making Claude request with messages:', JSON.stringify(messages, null, 2));
+  console.log('Making Claude request via OpenRouter with messages:', JSON.stringify(messages, null, 2));
   
   const response = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://soulsense.ai',
       'X-Title': 'SoulSense AI Therapeutic Assistant'
