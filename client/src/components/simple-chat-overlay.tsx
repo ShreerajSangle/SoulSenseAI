@@ -4,16 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Send, Wind, Target, BookOpen, MessageCircle } from "lucide-react";
-import BreathingExercise from "@/components/breathing-exercise";
-import GoalCreationModal from "@/components/goal-creation-modal";
-import EmojiSelector from "@/components/emoji-selector";
-import MiniJournalModal from "@/components/mini-journal-modal";
-import QuickReplyBubbles from "@/components/quick-reply-bubbles";
-import SessionRecapModal from "@/components/session-recap-modal";
-import EmotionIndicator from "@/components/emotion-indicator";
-import MessageTimestamp from "@/components/message-timestamp";
-import ConversationNavigator from "@/components/conversation-navigator";
+import { X, Send, Wind, Target, BookOpen, MessageCircle, Smile } from "lucide-react";
+import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
+import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import { GoalCreationModal } from "@/components/goal-creation-modal";
 
 interface Message {
   id: number;
@@ -50,10 +44,9 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [checkInResponse, setCheckInResponse] = useState("");
   const [currentEmotion, setCurrentEmotion] = useState("Neutral");
   const [emotionIntensity, setEmotionIntensity] = useState(50);
-  const [breathingModalOpen, setBreathingModalOpen] = useState(false);
+  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
   const [goalModalOpen, setGoalModalOpen] = useState(false);
-  const [journalModalOpen, setJournalModalOpen] = useState(false);
-  const [sessionRecapOpen, setSessionRecapOpen] = useState(false);
+  const [currentGoals, setCurrentGoals] = useState<any[]>([]);
   const [conversationData, setConversationData] = useState<{
     id: number;
     messages: Message[];
@@ -88,13 +81,22 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
       };
       setMessages(prev => [...prev, userMessage]);
       
-      // Check for wellness feature triggers
+      // Check for wellness feature triggers with enhanced detection
       const lowerMessage = message.toLowerCase();
-      if (lowerMessage.includes('stress') || lowerMessage.includes('anxious') || lowerMessage.includes('overwhelm') || lowerMessage.includes('panic')) {
-        setBreathingModalOpen(true);
+      const stressIndicators = ['stress', 'anxious', 'overwhelm', 'panic', 'worried', 'nervous', 'tense', 'breathless'];
+      const goalIndicators = ['goal', 'improve', 'want to', 'need to', 'should', 'better', 'change', 'plan'];
+      
+      const hasStress = stressIndicators.some(indicator => lowerMessage.includes(indicator));
+      const needsGoals = goalIndicators.some(indicator => lowerMessage.includes(indicator));
+      
+      // Auto-trigger breathing exercise for stress/anxiety
+      if (hasStress && !showBreathingGuide) {
+        setTimeout(() => setShowBreathingGuide(true), 2000);
       }
-      if (lowerMessage.includes('goal') || lowerMessage.includes('improve') || lowerMessage.includes('want to') || lowerMessage.includes('stay on track')) {
-        setGoalModalOpen(true);
+      
+      // Suggest goal setting for improvement desires
+      if (needsGoals && currentGoals.length === 0) {
+        setTimeout(() => setGoalModalOpen(true), 4000);
       }
       
       // Helper functions for conversation tracking
@@ -374,9 +376,42 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Minimalist Input Area */}
-              <div className="border-t border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-900">
-                <div className="flex items-end gap-3">
+              {/* Enhanced Input Area with Wellness Features */}
+              <div className="border-t border-purple-200/30 p-6 bg-gradient-to-r from-purple-50/30 to-pink-50/30">
+                {/* Breathing Guide (when triggered) */}
+                {showBreathingGuide && (
+                  <div className="mb-4">
+                    <GentleBreathingGuide 
+                      persona={persona.id as any}
+                      onComplete={() => setShowBreathingGuide(false)}
+                    />
+                  </div>
+                )}
+
+                {/* Active Goals Display */}
+                {currentGoals.length > 0 && (
+                  <div className="mb-4 p-3 bg-white/60 rounded-lg border border-purple-200/50">
+                    <p className="text-xs font-medium text-purple-700 mb-2">Today's Goals:</p>
+                    <div className="space-y-1">
+                      {currentGoals.slice(-2).map((goal) => (
+                        <div key={goal.id} className="text-sm text-purple-600 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+                          {goal.text}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Message Input */}
+                <div className="flex items-end gap-2">
+                  {/* Emoji Selector */}
+                  <EnhancedEmojiSelector 
+                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
+                    className="mb-1"
+                  />
+                  
+                  {/* Message Input */}
                   <div className="flex-1">
                     <Textarea
                       placeholder={`Message ${persona.name}...`}
@@ -384,13 +419,37 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyPress}
                       disabled={isTyping}
-                      className="resize-none min-h-[50px] max-h-[120px] border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 transition-all"
+                      className="resize-none min-h-[50px] max-h-[120px] border border-purple-200/50 rounded-2xl focus:ring-2 focus:ring-purple-400/30 focus:border-purple-300 bg-white/90 transition-all"
                     />
                   </div>
+
+                  {/* Quick Action Buttons */}
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setGoalModalOpen(true)}
+                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      title="Set a goal"
+                    >
+                      <Target className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowBreathingGuide(true)}
+                      className="h-8 w-8 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+                      title="Breathing exercise"
+                    >
+                      <Wind className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  {/* Send Button */}
                   <Button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
@@ -401,39 +460,15 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         </div>
       </div>
 
-      {/* Wellness Modals */}
-      <BreathingExercise
-        isOpen={breathingModalOpen}
-        onClose={() => setBreathingModalOpen(false)}
-        persona={persona}
-      />
-      
+      {/* Enhanced Wellness Components */}
       <GoalCreationModal
         isOpen={goalModalOpen}
         onClose={() => setGoalModalOpen(false)}
         onGoalCreated={(goal) => {
-          console.log('Goal created:', goal);
+          setCurrentGoals(prev => [...prev, goal]);
           setGoalModalOpen(false);
-          setConversationData(prev => ({
-            ...prev,
-            toolsUsed: [...prev.toolsUsed, 'goals']
-          }));
         }}
-        persona={persona}
-      />
-      
-      <MiniJournalModal
-        isOpen={journalModalOpen}
-        onClose={() => setJournalModalOpen(false)}
-        persona={persona}
-        conversationId={conversationData.id}
-      />
-      
-      <SessionRecapModal
-        isOpen={sessionRecapOpen}
-        onClose={() => setSessionRecapOpen(false)}
-        persona={persona}
-        conversationData={conversationData}
+        persona={persona.id as any}
       />
     </div>
   );
