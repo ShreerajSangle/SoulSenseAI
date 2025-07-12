@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight, CheckCircle } from "lucide-react";
+import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
 import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
@@ -79,7 +79,7 @@ export default function UnifiedHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Soft Background with Gradient and Blur Effects */}
@@ -447,65 +447,6 @@ export default function UnifiedHome() {
           </div>
         </div>
       </footer>
-
-      {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-purple-100 z-40">
-        <div className="max-w-md mx-auto px-4 py-3">
-          <div className="flex justify-around items-center">
-            {/* Journaling Tab */}
-            <button
-              onClick={() => setLocation("/diary")}
-              className="flex flex-col items-center space-y-1 p-2 rounded-xl hover:bg-purple-50 transition-all duration-300 group"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-body font-medium text-gray-600 group-hover:text-purple-600 transition-colors">
-                Journaling
-              </span>
-            </button>
-
-            {/* Goal Setting Tab */}
-            <button
-              onClick={() => setLocation("/goals")}
-              className="flex flex-col items-center space-y-1 p-2 rounded-xl hover:bg-purple-50 transition-all duration-300 group"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Target className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-body font-medium text-gray-600 group-hover:text-blue-600 transition-colors">
-                Goals
-              </span>
-            </button>
-
-            {/* Guided Check-ins Tab */}
-            <button
-              onClick={() => setShowBreathingGuide(true)}
-              className="flex flex-col items-center space-y-1 p-2 rounded-xl hover:bg-purple-50 transition-all duration-300 group"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-body font-medium text-gray-600 group-hover:text-green-600 transition-colors">
-                Check-ins
-              </span>
-            </button>
-
-            {/* Profile Tab */}
-            <button
-              onClick={() => setLocation("/profile")}
-              className="flex flex-col items-center space-y-1 p-2 rounded-xl hover:bg-purple-50 transition-all duration-300 group"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-body font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">
-                Profile
-              </span>
-            </button>
-          </div>
-        </div>
-      </nav>
 
       {/* Chat Overlay */}
       {chatOpen && selectedPersona && (
