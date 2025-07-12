@@ -73,6 +73,18 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        lavender: {
+          50: '#f8f7ff',
+          100: '#f0edff',
+          200: '#e4dcff',
+          300: '#d1c1ff',
+          400: '#b49bff',
+          500: '#9570ff',
+          600: '#7c3aed',
+          700: '#6d28d9',
+          800: '#5b21b6',
+          900: '#4c1d95',
+        },
       },
       keyframes: {
         "accordion-down": {
@@ -99,6 +111,7 @@ export default {
         "gentle-glow": "gentle-glow 3s ease-in-out infinite",
       },
       fontFamily: {
+        'rosalia': ['Rosalia', 'serif'],
         'serif': ['Playfair Display', 'Georgia', 'serif'],
         'sans': ['Inter', 'Poppins', 'system-ui', 'sans-serif'],
       },

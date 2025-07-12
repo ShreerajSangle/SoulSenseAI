@@ -91,38 +91,33 @@ export default function UnifiedHome() {
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20 text-center space-y-12 animate-fade-in">
           {/* Main Headline */}
-          <div className="space-y-8">
-            <h1 className="text-7xl md:text-8xl font-light text-gray-800 tracking-wide leading-none">
-              <span className="block font-serif text-transparent bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 bg-clip-text">
-                Soul
-              </span>
-              <span className="block font-serif text-transparent bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 bg-clip-text -mt-4">
-                Sense
-              </span>
+          <div className="space-y-10">
+            <h1 className="text-8xl md:text-9xl font-rosalia font-normal text-transparent bg-gradient-to-r from-purple-600 via-lavender-500 to-pink-500 bg-clip-text tracking-wider leading-tight">
+              Soul Sense
             </h1>
             
             {/* Subheadlines */}
             <div className="space-y-6 max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-light text-gray-700/80 tracking-wide">
+              <h2 className="text-2xl md:text-3xl font-sans font-light text-gray-700/90 tracking-wide">
                 Meet your digital emotional companion
               </h2>
-              <p className="text-lg md:text-xl text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg md:text-xl font-sans text-gray-600 font-light leading-relaxed max-w-2xl mx-auto">
                 Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.
               </p>
             </div>
           </div>
 
           {/* Call-to-Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-12">
             <Button 
               onClick={handleStartChatting}
-              className="relative group px-10 py-5 bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-500 hover:to-pink-500 text-white rounded-full text-lg font-medium shadow-xl transition-all duration-500 hover:shadow-2xl hover:scale-105 border-0"
+              className="relative group px-12 py-6 bg-gradient-to-r from-purple-400 to-lavender-400 hover:from-purple-500 hover:to-lavender-500 text-white rounded-full text-lg font-medium shadow-2xl transition-all duration-500 hover:shadow-purple-300/50 hover:scale-105 border-0"
             >
-              {/* Soft Glow Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-500 blur-xl"></div>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full opacity-20 animate-pulse"></div>
+              {/* Enhanced Glow Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-lavender-400 rounded-full opacity-0 group-hover:opacity-60 transition-opacity duration-500 blur-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-300 to-lavender-300 rounded-full opacity-30 animate-pulse"></div>
               
-              <span className="relative flex items-center">
+              <span className="relative flex items-center font-sans">
                 Start Chatting
                 <ChevronRight className="ml-3 w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
@@ -131,9 +126,9 @@ export default function UnifiedHome() {
             <Button 
               variant="outline" 
               onClick={() => document.getElementById('personas')?.scrollIntoView({ behavior: 'smooth' })}
-              className="group px-10 py-5 border-2 border-purple-300/50 text-purple-700 bg-white/50 backdrop-blur-sm hover:bg-purple-50 hover:border-purple-400 rounded-full text-lg font-light transition-all duration-500 hover:shadow-lg"
+              className="group px-12 py-6 border-2 border-lavender-300/60 text-purple-700 bg-white/40 backdrop-blur-md hover:bg-lavender-50/70 hover:border-lavender-400 rounded-full text-lg font-light transition-all duration-500 hover:shadow-lg shadow-lavender-200/30"
             >
-              <span className="flex items-center">
+              <span className="flex items-center font-sans">
                 Meet the Personas
                 <Sparkles className="ml-3 w-5 h-5 transition-transform group-hover:rotate-12" />
               </span>
