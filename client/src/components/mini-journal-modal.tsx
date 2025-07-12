@@ -78,7 +78,7 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
         </DialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm text-purple-600 italic">
+          <p className="text-therapeutic-caption italic text-therapeutic-accent">
             {getPersonaPrompt()}
           </p>
 
@@ -91,7 +91,7 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
           />
 
           <div>
-            <p className="text-sm font-medium text-purple-700 mb-2">How are you feeling?</p>
+            <p className="text-therapeutic-caption font-medium text-therapeutic-accent mb-2">How are you feeling?</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {moodOptions.map((mood) => (
                 <Badge

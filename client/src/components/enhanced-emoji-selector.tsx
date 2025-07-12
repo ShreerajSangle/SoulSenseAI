@@ -30,13 +30,11 @@ export function EnhancedEmojiSelector({ onEmojiSelect, className = "" }: EmojiSe
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-10 w-10 rounded-full bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 active:from-purple-200 active:to-pink-200 border border-purple-200/50 text-purple-600 hover:text-purple-700 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30 ${className}`}
+        <button
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 bg-purple-100/80 text-purple-600 hover:bg-purple-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30 ${className}`}
         >
           <Smile className="h-4 w-4" />
-        </Button>
+        </button>
       </PopoverTrigger>
       <PopoverContent 
         className="w-72 sm:w-80 p-3 sm:p-4 bg-white/95 backdrop-blur-sm border border-purple-200/50 shadow-xl rounded-2xl animate-in fade-in-0 zoom-in-95 duration-200"

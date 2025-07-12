@@ -337,8 +337,8 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
           ) : (
             /* Chat Interface */
             <>
-              {/* Clean Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50 dark:bg-gray-800">
+              {/* Therapeutic Messages Area */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-br from-purple-50/20 via-pink-50/10 to-purple-50/20">
                 {messages.map((message) => (
                   <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                     <div className={`flex items-start gap-3 max-w-[70%] ${message.sender === "user" ? "flex-row-reverse" : ""}`}>
@@ -350,12 +350,12 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                         </div>
                       )}
                       
-                      <div className={`px-4 py-3 rounded-2xl ${
+                      <div className={`px-4 py-3 transition-all animate-therapeutic-fade ${
                         message.sender === "user" 
-                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white" 
-                          : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600"
+                          ? "bubble-user" 
+                          : "bubble-ai"
                       }`}>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-therapeutic-body leading-relaxed whitespace-pre-wrap">{message.content}</p>
                         
                         {/* Clean timestamp */}
                         <div className={`text-xs mt-2 ${
@@ -391,7 +391,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
               </div>
 
               {/* Enhanced Input Area with Wellness Features */}
-              <div className="border-t border-purple-200/30 p-6 bg-gradient-to-r from-purple-50/30 to-pink-50/30">
+              <div className="glass-therapeutic border-t-0">
                 {/* Breathing Guide (when triggered) */}
                 {showBreathingGuide && (
                   <div className="mb-4">
@@ -444,90 +444,81 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                   </div>
                 )}
 
-                {/* Message Input */}
-                <div className="flex items-end gap-2 sm:gap-3">
+                {/* Unified Message Input Container */}
+                <div className="input-container-unified">
                   {/* Emoji Selector */}
                   <EnhancedEmojiSelector 
                     onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
-                    className="mb-1 flex-shrink-0"
+                    className="action-button"
                   />
                   
                   {/* Journal Entry Icon */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
                     onClick={() => setJournalModalOpen(true)}
-                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 mb-1 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30 flex-shrink-0"
-                    title="Mini journal entry"
+                    className="action-button"
+                    title="Quick journal entry"
                   >
-                    <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
+                    <BookOpen className="h-4 w-4" />
+                  </button>
                   
-                  {/* Message Input */}
-                  <div className="flex-1 min-w-0">
-                    <Textarea
-                      placeholder={`Message ${persona.name}...`}
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyDown={handleKeyPress}
-                      disabled={isTyping}
-                      className="resize-none min-h-[50px] sm:min-h-[52px] max-h-[120px] border border-purple-200/50 rounded-2xl focus:ring-2 focus:ring-purple-400/30 focus:border-purple-300 bg-white/90 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    />
-                  </div>
+                  {/* Message Input Field */}
+                  <Textarea
+                    placeholder={`Share with ${persona.name}...`}
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    disabled={isTyping}
+                    className="input-field text-therapeutic-body placeholder:text-slate-400 placeholder:font-light"
+                  />
 
-                  {/* Quick Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setGoalModalOpen(true)}
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-                      title="Set a goal"
-                    >
-                      <Target className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        setShowBreathingGuide(true);
-                        setSessionData(prev => ({
-                          ...prev,
-                          breathingExercises: prev.breathingExercises + 1
-                        }));
-                      }}
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-                      title="Breathing exercise"
-                    >
-                      <Wind className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const duration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / 60000);
-                        setSessionData(prev => ({
-                          ...prev,
-                          duration: `${duration} minutes`,
-                          emotionalThemes: Array.from(new Set([...prev.emotionalThemes, currentEmotion]))
-                        }));
-                        setSessionRecapOpen(true);
-                      }}
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 text-purple-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-                      title="Session recap"
-                    >
-                      <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
+                  {/* Quick Wellness Actions */}
+                  <button
+                    onClick={() => setGoalModalOpen(true)}
+                    className="action-button"
+                    title="Set a wellness goal"
+                  >
+                    <Target className="h-4 w-4" />
+                  </button>
                   
-                  {/* Send Button */}
-                  <Button
+                  <button
+                    onClick={() => {
+                      setShowBreathingGuide(true);
+                      setSessionData(prev => ({
+                        ...prev,
+                        breathingExercises: prev.breathingExercises + 1
+                      }));
+                    }}
+                    className="action-button"
+                    title="Breathing exercise"
+                  >
+                    <Wind className="h-4 w-4" />
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const duration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / 60000);
+                      setSessionData(prev => ({
+                        ...prev,
+                        duration: `${duration} minutes`,
+                        emotionalThemes: Array.from(new Set([...prev.emotionalThemes, currentEmotion]))
+                      }));
+                      setSessionRecapOpen(true);
+                    }}
+                    className="action-button"
+                    title="Session summary"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </button>
+                  
+                  {/* Send Message Button */}
+                  <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isTyping}
-                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50 flex-shrink-0"
+                    className="send-button"
+                    title="Send message"
                   >
-                    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </Button>
+                    <Send className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             </>
