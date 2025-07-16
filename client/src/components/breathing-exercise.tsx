@@ -144,13 +144,13 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
               Breathing Exercise
             </h3>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="h-9 w-9 p-0 border-gray-300 hover:bg-red-50 hover:border-red-300 text-gray-500 hover:text-red-600 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 dark:hover:border-red-600"
               title="Close breathing exercise"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </Button>
           </div>
 
