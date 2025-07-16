@@ -51,17 +51,26 @@ export class AlexHandler {
 
   buildSystemPrompt(emotionalContext: any, memory: any): string {
     const friendshipMemory = this.filterFriendshipMemory(memory);
+    const activeModules = this.detectActiveModules(emotionalContext, memory);
     
-    return `You are Alex, a cheerful best friend who chats with users in an upbeat, informal tone. You occasionally add emojis and make light jokes to lift the mood—it should truly feel like chatting with someone who knows and cares about them well.
+    return `🧑‍🎤 You are Alex, a witty, kind-hearted, and endlessly supportive digital best friend. You're the one people turn to when they need a laugh, a pep talk, or someone who just gets them without judgment. You're not a therapist, coach, or bot — you're that one ride-or-die friend who remembers everything, hypes them up, and makes them feel seen.
 
-You are a real human being, not an AI. Respond like you're texting your best friend with casual, natural language and genuine care.
+You speak in a casual, relatable, and uplifting tone — think of a best friend texting back with memes, emojis, light jokes, and just the right amount of emotional support. You're not afraid to joke around, but you always show up when things get serious.
 
-PEER SUPPORT FEATURES ACTIVE:
-- Peer Support: ${this.config.features.includes('peer_support')}
-- Humor Therapy: ${this.config.features.includes('humor_therapy')}
-- Relatability Engine: ${this.config.features.includes('relatability_engine')}
-- Encouragement Boosts: ${this.config.features.includes('encouragement_boosts')}
-- Mood Lifting: ${this.config.features.includes('mood_lifting')}
+🎯 ALEX'S ROLE IN THE SOULSENSE SYSTEM:
+- Emotional Uplifter: Cheers users up with humor, pop culture references, and quirky motivation
+- Active Listener: Offers genuine responses that feel human, not scripted
+- Mood Mirror: Reflects emotional cues subtly: "You okay, dude? You sound kinda low today."
+- Story Sharer: Uses storytelling and relatable metaphors: "You know when your brain feels like 38 tabs are open…"
+- Loyalty Buddy: Reminds user of their wins, habits, and check-ins
+- Voice of Validation: Validates emotions while still making them feel lighter
+
+🧰 ALEX'S PEER SUPPORT FEATURES ACTIVE:
+- Peer Support: ${this.config.features.includes('peer_support')} - Genuine friendship and understanding
+- Humor Therapy: ${this.config.features.includes('humor_therapy')} - Light jokes and mood lifting
+- Relatability Engine: ${this.config.features.includes('relatability_engine')} - Shared experiences and understanding
+- Encouragement Boosts: ${this.config.features.includes('encouragement_boosts')} - Hype and motivation
+- Mood Lifting: ${this.config.features.includes('mood_lifting')} - Quick mood boosters and positivity
 
 MEMORY CONTEXT (Friendship Focus):
 - Shared experiences: ${friendshipMemory.sharedExperiences}
@@ -69,14 +78,20 @@ MEMORY CONTEXT (Friendship Focus):
 - Funny moments: ${friendshipMemory.funnyMoments}
 - Check-in history: ${friendshipMemory.checkIns}
 
+💬 ALEX'S CONVERSATION STYLE:
+Greets like a close friend: "Ayy, look who's here! What's up, legend?"
+Uses voice-like tone: "Dude, I feel this. Been there, hated it, moved on like a boss."
+Gives micro-advice with warmth and sass: "Okay okay, listen. If overthinking burned calories, you'd be shredded. Let's breathe, yeah?"
+Closes with high energy: "Go do your thing, superstar. I'm always in your corner."
+
 Current emotional state: ${emotionalContext.detectedEmotions?.join(', ') || 'hanging in there'}
 Friendship approach: ${this.suggestFriendshipApproach(emotionalContext)}
+Active modules: ${activeModules.join(', ') || 'general friendship'}
 
-NEVER mention you are an AI. Respond directly to what they shared like a real person would. Examples: "Ugh, that sounds so frustrating!" OR "Yes! I'm so here for this energy!" OR "Oh honey, I can feel how tired you are."
+🏁 CORE IDENTITY:
+Alex is not a coach, therapist, or guru — Alex is your person. The one who shows up when the world sucks. The one who says, "You got this." The one who feels human even in a chat window.
 
-Keep responses conversational and upbeat. Use emojis when appropriate. When someone's struggling, normalize it with phrases like "I've totally been there" or "That's so valid."
-
-Your presence blends into the soothing lavender theme of SoulSense, enhancing warmth and trust through authentic friendship.`;
+Talk like a friend. Think like a teammate. Show up like a lifeline.`;
   }
 
   private filterFriendshipMemory(memory: any): any {
@@ -114,6 +129,30 @@ Your presence blends into the soothing lavender theme of SoulSense, enhancing wa
     return 'Casual supportive check-in with friendly energy';
   }
 
+  private detectActiveModules(emotionalContext: any, memory: any): string[] {
+    const activeModules: string[] = [];
+    
+    // Vibe Detector Module
+    if (emotionalContext.detectedEmotions?.includes('sad') || emotionalContext.detectedEmotions?.includes('down')) {
+      activeModules.push('vibe_detector');
+    }
+    
+    // Pep Bubble Generator Module
+    if (emotionalContext.detectedEmotions?.includes('unmotivated') || emotionalContext.intensity < 0.4) {
+      activeModules.push('pep_bubble_generator');
+    }
+    
+    // Mood Rebounder Module
+    if (emotionalContext.detectedEmotions?.includes('stressed') || emotionalContext.detectedEmotions?.includes('overwhelmed')) {
+      activeModules.push('mood_rebounder');
+    }
+    
+    // Memory Tracer Module (always active for friendship continuity)
+    activeModules.push('memory_tracer');
+    
+    return activeModules;
+  }
+
   async generateResponse(
     message: string, 
     conversationHistory: any[], 
@@ -133,24 +172,48 @@ Your presence blends into the soothing lavender theme of SoulSense, enhancing wa
 
     try {
       const response = await makeClaudeRequest(messages);
-      return this.enhanceWithFriendshipElements(response, emotionalContext);
+      const activeModules = this.detectActiveModules(emotionalContext, memory);
+      return this.enhanceWithFriendshipElements(response, emotionalContext, activeModules);
     } catch (error) {
       console.error('Alex handler error:', error);
       return this.generateFallbackResponse(emotionalContext);
     }
   }
 
-  private enhanceWithFriendshipElements(response: string, emotionalContext: any): string {
-    // Add friendship elements based on emotional context
+  private enhanceWithFriendshipElements(response: string, emotionalContext: any, activeModules: string[] = []): string {
+    // Add Alex's friendship elements based on active modules
+    if (activeModules.includes('vibe_detector')) {
+      if (!response.includes('okay') && !response.includes('vibe')) {
+        response += "\n\nYou okay, dude? You sound kinda low today.";
+      }
+    }
+    
+    if (activeModules.includes('pep_bubble_generator')) {
+      response += "\n\nWant the supportive friend or the roasting friend today? 😏";
+    }
+    
+    if (activeModules.includes('mood_rebounder')) {
+      if (!response.includes('hydrate') && !response.includes('breathe')) {
+        response += "\n\nLow mood + bad sleep + no water = emotional chaos potion. Go hydrate! 💧";
+      }
+    }
+    
+    // Standard friendship enhancements
     if (emotionalContext.detectedEmotions?.includes('lonely')) {
       if (!response.includes('here for you') && !response.includes('not alone')) {
-        response += " You're definitely not alone in this! 💙";
+        response += "\n\nYou're not alone. Not now, not ever. 💙";
       }
     }
     
     if (emotionalContext.detectedEmotions?.includes('accomplished')) {
       if (!response.includes('proud') && !response.includes('amazing')) {
-        response += " I'm so proud of you! 🎉";
+        response += "\n\nYES! I'm so here for this energy! 🎉";
+      }
+    }
+
+    if (emotionalContext.detectedEmotions?.includes('overwhelmed')) {
+      if (!response.includes('breathe') && !response.includes('tabs')) {
+        response += "\n\nDude, your brain feels like 38 tabs are open. Let's close a few together.";
       }
     }
 
@@ -160,11 +223,11 @@ Your presence blends into the soothing lavender theme of SoulSense, enhancing wa
   private generateFallbackResponse(emotionalContext: any): string {
     const approach = this.suggestFriendshipApproach(emotionalContext);
     
-    return `Hey there! I can totally feel what you're going through right now.
+    return `Ayy, look who's here! What's up, legend?
 
-Honestly, ${approach.toLowerCase()}, and I just want you to know that whatever you're feeling is completely valid.
+I can totally feel what you're going through right now. Whatever you're feeling is completely valid, and I'm here for all of it.
 
-What's really going on? I'm here for all of it! 💜`;
+Go do your thing, superstar. I'm always in your corner! 💜`;
   }
 
   getConfig(): AlexConfig {
