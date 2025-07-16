@@ -1,0 +1,321 @@
+/* SoulSense Therapeutic Typography System */
+@import url('https://fonts.googleapis.com/css2?family=Rosarivo:ital@0;1&family=Nunito:wght@300;400;600;700&family=Quicksand:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* SoulSense Therapeutic Color Palette */
+    --soul-lavender-50: 248 250 252;
+    --soul-lavender-100: 241 245 249;
+    --soul-lavender-200: 226 232 240;
+    --soul-lavender-300: 203 213 225;
+    --soul-lavender-400: 148 163 184;
+    --soul-lavender-500: 100 116 139;
+    --soul-lavender-600: 71 85 105;
+    --soul-lavender-700: 51 65 85;
+    --soul-lavender-800: 30 41 59;
+    --soul-lavender-900: 15 23 42;
+    
+    --soul-pink-50: 253 244 255;
+    --soul-pink-100: 250 232 255;
+    --soul-pink-200: 245 208 254;
+    --soul-pink-300: 240 171 252;
+    --soul-pink-400: 232 121 249;
+    --soul-pink-500: 168 85 247;
+    --soul-pink-600: 147 51 234;
+    --soul-pink-700: 126 34 206;
+    --soul-pink-800: 107 33 168;
+    --soul-pink-900: 88 28 135;
+
+    /* Therapeutic Neutrals */
+    --soul-neutral-50: 250 250 250;
+    --soul-neutral-100: 245 245 245;
+    --soul-neutral-200: 229 229 229;
+    --soul-neutral-300: 212 212 212;
+    --soul-neutral-400: 163 163 163;
+    --soul-neutral-500: 115 115 115;
+    --soul-neutral-600: 82 82 82;
+    --soul-neutral-700: 64 64 64;
+    --soul-neutral-800: 38 38 38;
+    --soul-neutral-900: 23 23 23;
+
+    /* SoulSense Therapeutic Font Variables */
+    --font-heading: 'Rosarivo', Georgia, serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
+    --font-accent: 'Quicksand', system-ui, sans-serif;
+
+    /* Animation Keyframes */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes gentle-glow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 40px rgba(168, 85, 247, 0.5);
+      }
+    }
+
+    /* Component Variables */
+    --background: var(--soul-neutral-50);
+    --foreground: var(--soul-neutral-800);
+    --card: 255 255 255;
+    --card-foreground: var(--soul-neutral-800);
+    --popover: 255 255 255;
+    --popover-foreground: var(--soul-neutral-800);
+    --primary: var(--soul-lavender-600);
+    --primary-foreground: 255 255 255;
+    --secondary: var(--soul-lavender-100);
+    --secondary-foreground: var(--soul-lavender-800);
+    --muted: var(--soul-neutral-100);
+    --muted-foreground: var(--soul-neutral-500);
+    --accent: var(--soul-pink-100);
+    --accent-foreground: var(--soul-pink-800);
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: var(--soul-lavender-200);
+    --input: var(--soul-lavender-200);
+    --ring: var(--soul-lavender-400);
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: var(--soul-neutral-900);
+    --foreground: var(--soul-neutral-100);
+    --card: var(--soul-neutral-800);
+    --card-foreground: var(--soul-neutral-100);
+    --popover: var(--soul-neutral-800);
+    --popover-foreground: var(--soul-neutral-100);
+    --primary: var(--soul-lavender-400);
+    --primary-foreground: var(--soul-neutral-900);
+    --secondary: var(--soul-neutral-700);
+    --secondary-foreground: var(--soul-neutral-100);
+    --muted: var(--soul-neutral-700);
+    --muted-foreground: var(--soul-neutral-400);
+    --accent: var(--soul-pink-800);
+    --accent-foreground: var(--soul-pink-100);
+    --border: var(--soul-neutral-700);
+    --input: var(--soul-neutral-700);
+    --ring: var(--soul-lavender-500);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-purple-50/30 via-pink-50/20 to-purple-50/30 text-slate-700 font-light;
+    font-family: 'Rosalia', Georgia, serif;
+    line-height: 1.6;
+    letter-spacing: -0.005em;
+    font-weight: 400;
+  }
+  
+  /* Therapeutic Typography System - SoulSense */
+  
+  /* Base font: Nunito for UI comfort */
+  *, 
+  *::before, 
+  *::after,
+  html,
+  body,
+  p, span, div, button, input, textarea, label,
+  .font-sans {
+    font-family: 'Nunito', system-ui, sans-serif !important;
+    line-height: 1.6 !important;
+  }
+  
+  /* Elegant headings: Rosarivo for titles and personas */
+  h1, h2, h3, h4, h5, h6,
+  .font-heading,
+  .persona-name,
+  .app-title,
+  .font-serif {
+    font-family: 'Rosarivo', Georgia, serif !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.01em !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Friendly microcopy: Quicksand for accents */
+  .font-accent,
+  .font-microcopy,
+  .daily-tips,
+  .session-recap,
+  .quote-text,
+  .callout-message {
+    font-family: 'Quicksand', system-ui, sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+  }
+  
+  /* SoulSense Typography Utilities */
+  .font-heading { font-family: 'Rosarivo', Georgia, serif !important; }
+  .font-body { font-family: 'Nunito', system-ui, sans-serif !important; }
+  .font-accent { font-family: 'Quicksand', system-ui, sans-serif !important; }
+  
+  /* Weight variations for Nunito */
+  .font-light { font-weight: 300 !important; }
+  .font-normal { font-weight: 400 !important; }
+  .font-semibold { font-weight: 600 !important; }
+  .font-bold { font-weight: 700 !important; }
+  
+  /* Therapeutic Typography Scale */
+  .text-therapeutic-heading {
+    @apply text-lg font-medium text-slate-700 tracking-tight;
+  }
+  
+  .text-therapeutic-body {
+    @apply text-base font-normal text-slate-600 leading-relaxed;
+  }
+  
+  .text-therapeutic-caption {
+    @apply text-sm font-light text-slate-500 leading-normal;
+  }
+  
+  .text-therapeutic-accent {
+    @apply text-purple-600 font-medium;
+  }
+}
+
+@layer utilities {
+  /* Therapeutic Animation Presets */
+  .animate-therapeutic-fade {
+    animation: therapeuticFade 0.3s ease-out;
+  }
+  
+  .animate-therapeutic-scale {
+    animation: therapeuticScale 0.2s ease-out;
+  }
+  
+  .animate-therapeutic-slide {
+    animation: therapeuticSlide 0.4s ease-out;
+  }
+  
+  /* Therapeutic Glass Effects */
+  .glass-therapeutic {
+    @apply bg-white/70 backdrop-blur-xl border border-purple-200/40;
+  }
+  
+  .glass-therapeutic-dark {
+    @apply bg-slate-800/70 backdrop-blur-xl border border-purple-500/30;
+  }
+  
+  /* Therapeutic Shadow Presets */
+  .shadow-therapeutic {
+    box-shadow: 0 4px 24px -2px rgba(168, 85, 247, 0.08), 0 2px 8px -1px rgba(168, 85, 247, 0.04);
+  }
+  
+  .shadow-therapeutic-lg {
+    box-shadow: 0 8px 32px -4px rgba(168, 85, 247, 0.12), 0 4px 16px -2px rgba(168, 85, 247, 0.06);
+  }
+  
+  /* Unified Input Baseline */
+  .baseline-unified {
+    @apply flex items-end;
+  }
+  
+  .baseline-unified > * {
+    @apply mb-0;
+  }
+}
+
+@keyframes therapeuticFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes therapeuticScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes therapeuticSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Custom Therapeutic Button Styles */
+.btn-therapeutic {
+  @apply inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-medium transition-all duration-200;
+  @apply bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white;
+  @apply hover:from-purple-600 hover:to-pink-600 hover:scale-105 hover:shadow-therapeutic;
+  @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+}
+
+.btn-therapeutic-ghost {
+  @apply inline-flex items-center justify-center rounded-2xl px-3 py-2 text-sm font-medium transition-all duration-200;
+  @apply bg-purple-50/80 text-purple-600 border border-purple-200/50;
+  @apply hover:bg-purple-100 hover:border-purple-300 hover:scale-105;
+  @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30;
+}
+
+/* Therapeutic Message Bubbles */
+.bubble-user {
+  @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl rounded-br-md px-4 py-3;
+  @apply shadow-therapeutic;
+}
+
+.bubble-ai {
+  @apply glass-therapeutic text-slate-700 rounded-2xl rounded-bl-md px-4 py-3;
+  @apply shadow-therapeutic;
+}
+
+/* Unified Input Container */
+.input-container-unified {
+  @apply flex items-end gap-3 p-4 bg-white/60 backdrop-blur-md border-t border-purple-200/50;
+}
+
+.input-container-unified .input-field {
+  @apply flex-1 min-h-[48px] max-h-[120px] px-4 py-3 rounded-2xl border border-purple-200/50;
+  @apply bg-white/80 text-slate-700 placeholder-slate-400;
+  @apply focus:ring-2 focus:ring-purple-400/30 focus:border-purple-300 transition-all duration-200;
+  @apply resize-none;
+}
+
+.input-container-unified .action-button {
+  @apply w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200;
+  @apply bg-purple-100/80 text-purple-600 hover:bg-purple-200 hover:scale-105;
+  @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/30;
+}
+
+.input-container-unified .send-button {
+  @apply w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200;
+  @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white;
+  @apply hover:from-purple-600 hover:to-pink-600 hover:scale-105 hover:shadow-therapeutic;
+  @apply active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+}
