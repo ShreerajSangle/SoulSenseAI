@@ -1,225 +1,128 @@
-import {
-  users,
-  personas,
-  conversations,
-  messages,
-  sessions,
-  userMemories,
-  moodEntries,
-  microToolUsage,
-  messageFeedback,
-  sessionFeedback,
-  diaryEntries,
-  userProfiles,
-  goals,
-  sessionAnalytics,
-  userStreaks,
-  personaUsageStats,
-  type User,
-  type UpsertUser,
-  type Persona,
-  type InsertPersona,
-  type Conversation,
-  type InsertConversation,
-  type Message,
-  type InsertMessage,
-  type Session,
-  type InsertSession,
-  type Goal,
+import { 
+  users, 
+  conversations, 
+  messages, 
+  memories, 
+  emotionLogs, 
+  therapeuticOutcomes, 
+  sessionAnalytics, 
+  goals, 
+  journalEntries, 
+  userBehaviorPatterns, 
+  trainingDatasets,
+  type User, 
+  type InsertUser, 
+  type Conversation, 
+  type InsertConversation, 
+  type Message, 
+  type InsertMessage, 
+  type Memory, 
+  type InsertMemory, 
+  type EmotionLog, 
+  type InsertEmotionLog,
+  type TherapeuticOutcome, 
+  type InsertTherapeuticOutcome,
+  type SessionAnalytics, 
+  type InsertSessionAnalytics,
+  type Goal, 
   type InsertGoal,
-  type SessionAnalytic,
-  type InsertSessionAnalytic,
-  type UserStreak,
-  type InsertUserStreak,
-  type PersonaUsageStat,
-  type InsertPersonaUsageStat,
+  type JournalEntry, 
+  type InsertJournalEntry,
+  type UserBehaviorPattern, 
+  type InsertUserBehaviorPattern,
+  type TrainingDataset, 
+  type InsertTrainingDataset
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte } from "drizzle-orm";
-import { SupabaseStorage } from "./supabase-storage";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (required for authentication)
-  getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  // User management
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(insertUser: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
   
-  // Personas
-  getPersonas(): Promise<Persona[]>;
-  getPersona(id: string): Promise<Persona | undefined>;
-  
-  // Conversations
-  createConversation(conversation: InsertConversation): Promise<Conversation>;
+  // Conversation management
+  createConversation(insertConversation: InsertConversation): Promise<Conversation>;
   getConversation(id: number): Promise<Conversation | undefined>;
-  getUserConversations(userId: string): Promise<Conversation[]>;
-  updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined>;
-  getConversationByUserAndPersona(userId: string, personaId: string): Promise<Conversation | undefined>;
-  endConversation(id: number): Promise<Conversation | undefined>;
+  getConversationsByUser(userId: number): Promise<Conversation[]>;
+  updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation>;
   
-  // Messages
-  createMessage(message: InsertMessage): Promise<Message>;
-  getConversationMessages(conversationId: number): Promise<Message[]>;
+  // Message management
+  createMessage(insertMessage: InsertMessage): Promise<Message>;
+  getMessagesByConversation(conversationId: number): Promise<Message[]>;
+  getRecentMessages(userId: number, limit?: number): Promise<Message[]>;
   
-  // Sessions
-  createSession(session: InsertSession): Promise<Session>;
-  getConversationSession(conversationId: number): Promise<Session | undefined>;
+  // Memory management
+  createMemory(insertMemory: InsertMemory): Promise<Memory>;
+  getMemoriesByUser(userId: number, personaId?: string): Promise<Memory[]>;
+  getMemoryByImportance(userId: number, personaId: string, minImportance: number): Promise<Memory[]>;
+  updateMemory(id: number, updates: Partial<Memory>): Promise<Memory>;
   
-  // Memory & Context
-  getUserMemories(userId: string): Promise<any[]>;
-  saveUserMemory(userId: string, memory: any): Promise<void>;
+  // Emotion tracking
+  createEmotionLog(insertEmotionLog: InsertEmotionLog): Promise<EmotionLog>;
+  getEmotionLogsByUser(userId: number): Promise<EmotionLog[]>;
+  getEmotionTrends(userId: number, days: number): Promise<any[]>;
   
-  // Mood tracking
-  createMoodEntry(entry: any): Promise<any>;
-  getUserMoodEntries(userId: string, range?: string): Promise<any[]>;
+  // Therapeutic outcomes
+  createTherapeuticOutcome(insertOutcome: InsertTherapeuticOutcome): Promise<TherapeuticOutcome>;
+  getTherapeuticOutcomes(userId: number): Promise<TherapeuticOutcome[]>;
   
-  // Micro-tools tracking
-  createMicroToolUsage(usage: any): Promise<any>;
+  // Session analytics
+  createSessionAnalytics(insertAnalytics: InsertSessionAnalytics): Promise<SessionAnalytics>;
+  getSessionAnalytics(userId: number): Promise<SessionAnalytics[]>;
   
-  // Message feedback
-  createMessageFeedback(feedback: any): Promise<any>;
-  
-  // Session feedback
-  createSessionFeedback(feedback: any): Promise<any>;
-  
-  // Diary entries
-  createDiaryEntry(entry: any): Promise<any>;
-  getDiaryEntries(userId: string): Promise<any[]>;
-  updateDiaryEntry(id: number, updates: any): Promise<any>;
-  deleteDiaryEntry(id: number): Promise<void>;
-  
-  // User profiles
-  getUserProfile(userId: string): Promise<any>;
-  createUserProfile(profile: any): Promise<any>;
-  updateUserProfile(userId: string, updates: any): Promise<any>;
-  
-  // Goals
-  createGoal(goal: InsertGoal): Promise<Goal>;
-  getUserGoals(userId: string): Promise<Goal[]>;
-  getGoal(id: number): Promise<Goal | undefined>;
+  // Goal management
+  createGoal(insertGoal: InsertGoal): Promise<Goal>;
+  getGoalsByUser(userId: number): Promise<Goal[]>;
   updateGoal(id: number, updates: Partial<Goal>): Promise<Goal>;
-  deleteGoal(id: number): Promise<void>;
-  updateGoalStatus(id: number, status: string, completedDate?: Date): Promise<Goal>;
-
-  // Session Analytics
-  createSessionAnalytic(analytic: InsertSessionAnalytic): Promise<SessionAnalytic>;
-  getUserSessionAnalytics(userId: string, dateRange?: { start: Date; end: Date }): Promise<SessionAnalytic[]>;
-  updateSessionAnalytic(id: number, updates: Partial<SessionAnalytic>): Promise<SessionAnalytic | undefined>;
-
-  // User Streaks
-  getUserStreaks(userId: string): Promise<UserStreak[]>;
-  updateUserStreak(userId: string, streakType: string, activityDate: Date): Promise<UserStreak>;
-
-  // Persona Usage Statistics
-  getPersonaUsageStats(userId: string): Promise<PersonaUsageStat[]>;
-  updatePersonaUsageStats(userId: string, personaId: string, sessionData: any): Promise<PersonaUsageStat>;
-
-  // Dashboard Analytics
-  getUserDashboardData(userId: string): Promise<{
-    totalSessions: number;
-    currentStreak: number;
-    averageMood: number;
-    favoritePersona: string;
-    sessionHistory: any[];
-    moodTrends: any[];
-    goals: {
-      total: number;
-      completed: number;
-      inProgress: number;
-    };
-  }>;
+  
+  // Journal entries
+  createJournalEntry(insertEntry: InsertJournalEntry): Promise<JournalEntry>;
+  getJournalEntriesByUser(userId: number): Promise<JournalEntry[]>;
+  
+  // Behavioral patterns
+  createUserBehaviorPattern(insertPattern: InsertUserBehaviorPattern): Promise<UserBehaviorPattern>;
+  getUserBehaviorPatterns(userId: number): Promise<UserBehaviorPattern[]>;
+  
+  // Training datasets
+  createTrainingDataset(insertDataset: InsertTrainingDataset): Promise<TrainingDataset>;
+  getTrainingDatasets(type?: string): Promise<TrainingDataset[]>;
+  
+  // Comprehensive data collection methods
+  collectConversationData(conversationId: number): Promise<any>;
+  collectUserPatterns(userId: number): Promise<any>;
+  generateTrainingData(userId: number): Promise<any>;
 }
 
+// Enhanced database storage with comprehensive data collection
 export class DatabaseStorage implements IStorage {
-  constructor() {
-    this.initializePersonas();
-  }
-
-  private async initializePersonas() {
-    // Check if personas already exist
-    const existingPersonas = await db.select().from(personas);
-    if (existingPersonas.length > 0) {
-      return;
-    }
-
-    // Insert default personas
-    const defaultPersonas: InsertPersona[] = [
-      {
-        id: "sarah",
-        name: "Dr. Sarah",
-        role: "Clinical Therapist",
-        specialty: "Cognitive Behavioral Therapy",
-        description: "A compassionate therapist specializing in anxiety, depression, and trauma recovery.",
-        avatarUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&h=400&fit=crop&crop=face",
-        color: "bg-blue-500"
-      },
-      {
-        id: "alex",
-        name: "Alex",
-        role: "Peer Counselor",
-        specialty: "Lived Experience Support",
-        description: "A peer counselor who understands your journey and offers genuine support.",
-        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face",
-        color: "bg-green-500"
-      },
-      {
-        id: "marcus",
-        name: "Marcus",
-        role: "Life Coach",
-        specialty: "Goal Setting & Motivation",
-        description: "An energetic coach focused on helping you achieve your personal and professional goals.",
-        avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-        color: "bg-orange-500"
-      },
-      {
-        id: "maya",
-        name: "Maya",
-        role: "Mindfulness Expert",
-        specialty: "Meditation & Stress Relief",
-        description: "A mindfulness practitioner guiding you through meditation and stress management.",
-        avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-        color: "bg-purple-500"
-      }
-    ];
-
-    await db.insert(personas).values(defaultPersonas);
-  }
-
-  // User operations (required for authentication)
-  async getUser(id: string): Promise<User | undefined> {
+  
+  // User management
+  async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
-  // Personas
-  async getPersonas(): Promise<Persona[]> {
-    return await db.select().from(personas);
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return user;
   }
 
-  async getPersona(id: string): Promise<Persona | undefined> {
-    const [persona] = await db.select().from(personas).where(eq(personas.id, id));
-    return persona || undefined;
-  }
-
-  // Conversations
+  // Conversation management with enhanced tracking
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
-    const [conversation] = await db
-      .insert(conversations)
-      .values(insertConversation)
-      .returning();
+    const [conversation] = await db.insert(conversations).values(insertConversation).returning();
     return conversation;
   }
 
@@ -228,867 +131,419 @@ export class DatabaseStorage implements IStorage {
     return conversation || undefined;
   }
 
-  async getUserConversations(userId: string): Promise<Conversation[]> {
-    return await db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.userId, userId))
-      .orderBy(desc(conversations.updatedAt));
+  async getConversationsByUser(userId: number): Promise<Conversation[]> {
+    return await db.select().from(conversations).where(eq(conversations.userId, userId)).orderBy(desc(conversations.createdAt));
   }
 
-  async updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation | undefined> {
-    const [conversation] = await db
-      .update(conversations)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(conversations.id, id))
-      .returning();
-    return conversation || undefined;
-  }
-
-  // Messages
-  async createMessage(insertMessage: InsertMessage): Promise<Message> {
-    const [message] = await db
-      .insert(messages)
-      .values(insertMessage)
-      .returning();
-    return message;
-  }
-
-  async getConversationMessages(conversationId: number): Promise<Message[]> {
-    return await db
-      .select()
-      .from(messages)
-      .where(eq(messages.conversationId, conversationId))
-      .orderBy(messages.timestamp);
-  }
-
-  // Sessions
-  async createSession(insertSession: InsertSession): Promise<Session> {
-    try {
-      const [session] = await db
-        .insert(sessions)
-        .values({
-          conversationId: insertSession.conversationId,
-          summary: insertSession.summary,
-          keyTopics: insertSession.keyTopics,
-          techniquesUsed: insertSession.techniquesUsed,
-          homework: insertSession.homework,
-          moodBefore: insertSession.moodBefore,
-          moodAfter: insertSession.moodAfter,
-        } as any)
-        .returning();
-      return session;
-    } catch (error) {
-      console.error("Error creating session:", error);
-      throw error;
-    }
-  }
-
-  async getConversationSession(conversationId: number): Promise<Session | undefined> {
-    const [session] = await db
-      .select()
-      .from(sessions)
-      .where(eq(sessions.conversationId, conversationId));
-    return session || undefined;
-  }
-
-  // Memory & Context
-  async getUserMemories(userId: string): Promise<any[]> {
-    const memories = await db
-      .select()
-      .from(userMemories)
-      .where(eq(userMemories.userId, userId))
-      .orderBy(desc(userMemories.createdAt));
-    
-    return memories.map(memory => ({
-      type: memory.type,
-      content: memory.content,
-      metadata: memory.metadata,
-      personaId: memory.personaId,
-      conversationId: memory.conversationId,
-      createdAt: memory.createdAt
-    }));
-  }
-
-  async saveUserMemory(userId: string, memory: any): Promise<void> {
-    await db.insert(userMemories).values({
-      userId,
-      type: memory.type || 'general',
-      content: memory.content,
-      metadata: memory.metadata || {},
-      personaId: memory.personaId,
-      conversationId: memory.conversationId
-    });
-  }
-
-  // Mood tracking methods
-  async createMoodEntry(entry: any): Promise<any> {
-    const [moodEntry] = await db
-      .insert(moodEntries)
-      .values({
-        userId: entry.userId,
-        sessionId: entry.sessionId,
-        moodRating: entry.moodRating,
-        emotions: entry.emotions || null,
-        notes: entry.notes,
-        triggers: entry.triggers || null,
-        type: entry.type,
-      })
-      .returning();
-    return moodEntry;
-  }
-
-  async getUserMoodEntries(userId: string, range: string): Promise<any[]> {
-    const now = new Date();
-    let startDate = new Date();
-    
-    switch (range) {
-      case 'week':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case 'month':
-        startDate.setMonth(now.getMonth() - 1);
-        break;
-      case 'quarter':
-        startDate.setMonth(now.getMonth() - 3);
-        break;
-      default:
-        startDate.setDate(now.getDate() - 7);
-    }
-
-    return await db
-      .select()
-      .from(moodEntries)
-      .where(eq(moodEntries.userId, userId))
-      .orderBy(desc(moodEntries.createdAt));
-  }
-
-  // Micro-tools tracking
-  async createMicroToolUsage(usage: any): Promise<any> {
-    const [toolUsage] = await db
-      .insert(microToolUsage)
-      .values({
-        userId: usage.userId,
-        sessionId: usage.sessionId,
-        toolType: usage.toolType,
-        toolName: usage.toolName,
-        duration: usage.duration,
-        completed: usage.completed,
-        effectiveness: usage.effectiveness,
-      })
-      .returning();
-    return toolUsage;
-  }
-
-  // Message feedback
-  async createMessageFeedback(feedback: any): Promise<any> {
-    const [feedbackEntry] = await db
-      .insert(messageFeedback)
-      .values({
-        messageId: feedback.messageId,
-        userId: feedback.userId,
-        rating: feedback.rating,
-        feedback: feedback.feedback,
-      })
-      .returning();
-    return feedbackEntry;
-  }
-
-  // Session feedback
-  async createSessionFeedback(feedback: any): Promise<any> {
-    const [feedbackEntry] = await db
-      .insert(sessionFeedback)
-      .values({
-        conversationId: feedback.conversationId,
-        personaId: feedback.personaId,
-        rating: feedback.rating,
-        feedback: feedback.feedback,
-        helpfulness: feedback.helpfulness,
-        wouldRecommend: feedback.wouldRecommend,
-        sessionDuration: feedback.sessionDuration,
-      })
-      .returning();
-    return feedbackEntry;
-  }
-
-  // Diary entries
-  async createDiaryEntry(entry: any): Promise<any> {
-    const [diaryEntry] = await db
-      .insert(diaryEntries)
-      .values({
-        userId: entry.userId,
-        title: entry.title,
-        content: entry.content,
-        moodRating: entry.moodRating,
-        emotions: entry.emotions,
-        gratitude: entry.gratitude,
-        goals: entry.goals,
-        reflections: entry.reflections,
-        tags: entry.tags,
-      })
-      .returning();
-    return diaryEntry;
-  }
-
-  async getDiaryEntries(userId: string): Promise<any[]> {
-    const entries = await db
-      .select()
-      .from(diaryEntries)
-      .where(eq(diaryEntries.userId, userId))
-      .orderBy(desc(diaryEntries.createdAt));
-    return entries;
-  }
-
-  async updateDiaryEntry(id: number, updates: any): Promise<any> {
-    const [updatedEntry] = await db
-      .update(diaryEntries)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(diaryEntries.id, id))
-      .returning();
-    return updatedEntry;
-  }
-
-  async deleteDiaryEntry(id: number): Promise<void> {
-    await db
-      .delete(diaryEntries)
-      .where(eq(diaryEntries.id, id));
-  }
-
-  // User profiles
-  async getUserProfile(userId: string): Promise<any> {
-    // Get user data from users table - primary source of profile data
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId));
-    
-    if (!user) {
-      // Create user if doesn't exist
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          id: userId,
-          name: "",
-          pronouns: "",
-          moodTagline: "",
-          bio: "",
-          preferences: {
-            preferredPersona: "sarah",
-            voiceEnabled: false,
-            darkMode: false,
-            notifications: {
-              dailyCheckins: true,
-              sessionReminders: true,
-              progressUpdates: true
-            },
-            privacy: {
-              shareAnalytics: true,
-              dataRetention: "1year"
-            }
-          }
-        })
-        .returning();
-      
-      return {
-        userId: newUser.id,
-        name: newUser.name || "",
-        pronouns: newUser.pronouns || "",
-        moodTagline: newUser.moodTagline || "",
-        bio: newUser.bio || "",
-        avatar: newUser.profileImageUrl,
-        preferences: newUser.preferences,
-        goals: newUser.goals || [],
-        stats: {
-          totalSessions: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          averageMood: 0,
-          favoriteEmotion: "calm"
-        }
-      };
-    }
-    
-    return {
-      userId: user.id,
-      name: user.name || "",
-      pronouns: user.pronouns || "",
-      moodTagline: user.moodTagline || "",
-      bio: user.bio || "",
-      avatar: user.profileImageUrl,
-      preferences: user.preferences,
-      goals: user.goals || [],
-      stats: {
-        totalSessions: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        averageMood: 0,
-        favoriteEmotion: "calm"
-      }
-    };
-  }
-
-  async createUserProfile(profile: any): Promise<any> {
-    const [newProfile] = await db
-      .insert(userProfiles)
-      .values({
-        userId: profile.userId,
-        bio: profile.bio,
-        avatar: profile.avatar,
-        preferences: profile.preferences,
-        goals: profile.goals,
-        interests: profile.interests,
-        mentalHealthFocus: profile.mentalHealthFocus,
-        stats: profile.stats,
-      })
-      .returning();
-    return newProfile;
-  }
-
-  async updateUserProfile(userId: string, updates: any): Promise<any> {
-    // First check if user exists, if not create them
-    const [existingUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId));
-
-    if (!existingUser) {
-      // Create user if doesn't exist
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          id: userId,
-          name: updates.name || "",
-          pronouns: updates.pronouns || "",
-          moodTagline: updates.moodTagline || "",
-          bio: updates.bio || "",
-          preferences: updates.preferences || {
-            preferredPersona: "sarah",
-            voiceEnabled: false,
-            darkMode: false
-          }
-        })
-        .returning();
-      
-      return {
-        userId: newUser.id,
-        name: newUser.name || "",
-        pronouns: newUser.pronouns || "",
-        moodTagline: newUser.moodTagline || "",
-        bio: newUser.bio || "",
-        avatar: newUser.profileImageUrl,
-        preferences: newUser.preferences,
-        goals: newUser.goals || [],
-        stats: {
-          totalSessions: 0,
-          currentStreak: 0,
-          longestStreak: 0,
-          averageMood: 0,
-          favoriteEmotion: "calm"
-        }
-      };
-    }
-
-    // Update existing user
-    const [updatedUser] = await db
-      .update(users)
-      .set({
-        name: updates.name,
-        pronouns: updates.pronouns,
-        moodTagline: updates.moodTagline,
-        firstName: updates.name ? updates.name.split(' ')[0] : undefined,
-        lastName: updates.name ? updates.name.split(' ').slice(1).join(' ') : undefined,
-        email: updates.email,
-        bio: updates.bio,
-        preferences: updates.preferences,
-        goals: updates.goals,
-        interests: updates.interests,
-        mentalHealthFocus: updates.mentalHealthFocus,
-        privacySettings: updates.privacySettings,
-        updatedAt: new Date()
-      })
-      .where(eq(users.id, userId))
-      .returning();
-
-    // Check if update was successful
-    if (!updatedUser) {
-      throw new Error("Failed to update user profile");
-    }
-
-    // Return the updated user profile data
-    return {
-      userId: updatedUser.id,
-      name: updatedUser.name || "",
-      pronouns: updatedUser.pronouns || "",
-      moodTagline: updatedUser.moodTagline || "",
-      bio: updatedUser.bio || "",
-      avatar: updatedUser.profileImageUrl,
-      preferences: updatedUser.preferences,
-      goals: updatedUser.goals || [],
-      stats: {
-        totalSessions: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        averageMood: 0,
-        favoriteEmotion: "calm"
-      }
-    };
-  }
-
-  // GDPR Compliance Methods
-  async deleteAllUserData(userId: string): Promise<void> {
-    // Delete all user-related data in the correct order
-    await db.delete(messageFeedback).where(eq(messageFeedback.userId, userId));
-    await db.delete(microToolUsage).where(eq(microToolUsage.userId, userId));
-    await db.delete(moodEntries).where(eq(moodEntries.userId, userId));
-    await db.delete(userMemories).where(eq(userMemories.userId, userId));
-    await db.delete(goals).where(eq(goals.userId, userId));
-    
-    // Delete conversations and related data
-    const userConversations = await db.select().from(conversations).where(eq(conversations.userId, userId));
-    for (const conversation of userConversations) {
-      await db.delete(sessionFeedback).where(eq(sessionFeedback.conversationId, conversation.id));
-      await db.delete(sessions).where(eq(sessions.conversationId, conversation.id));
-      await db.delete(messages).where(eq(messages.conversationId, conversation.id));
-    }
-    await db.delete(conversations).where(eq(conversations.userId, userId));
-    
-    // Delete profile data
-    await db.delete(userProfiles).where(eq(userProfiles.userId, userId));
-    await db.delete(users).where(eq(users.id, userId));
-  }
-
-  // Goals
-  async createGoal(goal: InsertGoal): Promise<Goal> {
-    const [newGoal] = await db
-      .insert(goals)
-      .values({
-        ...goal,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .returning();
-    return newGoal;
-  }
-
-  async getUserGoals(userId: string): Promise<Goal[]> {
-    const userGoals = await db
-      .select()
-      .from(goals)
-      .where(eq(goals.userId, userId))
-      .orderBy(desc(goals.createdAt));
-    return userGoals;
-  }
-
-  async getGoal(id: number): Promise<Goal | undefined> {
-    const [goal] = await db
-      .select()
-      .from(goals)
-      .where(eq(goals.id, id));
-    return goal;
-  }
-
-  async updateGoal(id: number, updates: Partial<Goal>): Promise<Goal> {
-    // Convert string dates to Date objects for timestamp fields
-    const processedUpdates = { ...updates };
-    if (processedUpdates.targetDate && typeof processedUpdates.targetDate === 'string') {
-      processedUpdates.targetDate = new Date(processedUpdates.targetDate);
-    }
-    if (processedUpdates.completedDate && typeof processedUpdates.completedDate === 'string') {
-      processedUpdates.completedDate = new Date(processedUpdates.completedDate);
-    }
-    if (processedUpdates.createdAt && typeof processedUpdates.createdAt === 'string') {
-      processedUpdates.createdAt = new Date(processedUpdates.createdAt);
-    }
-
-    const [updatedGoal] = await db
-      .update(goals)
-      .set({
-        ...processedUpdates,
-        updatedAt: new Date(),
-      })
-      .where(eq(goals.id, id))
-      .returning();
-    return updatedGoal;
-  }
-
-  async deleteGoal(id: number): Promise<void> {
-    await db
-      .delete(goals)
-      .where(eq(goals.id, id));
-  }
-
-  async updateGoalStatus(id: number, status: string, completedDate?: Date): Promise<Goal> {
-    const updateData: any = {
-      status,
-      updatedAt: new Date(),
-    };
-    
-    if (status === 'completed' && completedDate) {
-      updateData.completedDate = completedDate;
-      updateData.progress = 100;
-    }
-    
-    const [updatedGoal] = await db
-      .update(goals)
-      .set(updateData)
-      .where(eq(goals.id, id))
-      .returning();
-    return updatedGoal;
-  }
-
-  // Session History Management
-  async getConversationByUserAndPersona(userId: string, personaId: string): Promise<Conversation | undefined> {
-    const [conversation] = await db
-      .select()
-      .from(conversations)
-      .where(eq(conversations.userId, userId) && eq(conversations.personaId, personaId))
-      .orderBy(desc(conversations.updatedAt));
+  async updateConversation(id: number, updates: Partial<Conversation>): Promise<Conversation> {
+    const [conversation] = await db.update(conversations).set(updates).where(eq(conversations.id, id)).returning();
     return conversation;
   }
 
-  async endConversation(id: number): Promise<Conversation | undefined> {
-    const messages = await this.getConversationMessages(id);
-    const persona = await this.getPersona((await this.getConversation(id))?.personaId || '');
-    
-    // Generate creative session name
-    const creativeName = this.generateCreativeSessionName(persona, messages);
-    
-    const [updatedConversation] = await db
-      .update(conversations)
-      .set({
-        title: creativeName,
-        updatedAt: new Date(),
-      })
-      .where(eq(conversations.id, id))
-      .returning();
-    return updatedConversation;
+  // Message management with comprehensive tracking
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db.insert(messages).values(insertMessage).returning();
+    return message;
   }
 
-  private generateCreativeSessionName(persona: Persona | undefined, messages: Message[]): string {
-    if (!persona || messages.length < 2) {
-      return `Session - ${new Date().toLocaleDateString()}`;
-    }
-
-    // Analyze session content for creative naming
-    const userMessages = messages.filter(m => m.sender === 'user');
-    const lastUserMessage = userMessages[userMessages.length - 1]?.content.toLowerCase() || '';
-    
-    // Session type detection
-    const sessionTypes = {
-      vent: ['frustrated', 'angry', 'upset', 'annoyed', 'stressed', 'overwhelmed', 'vent', 'rant'],
-      motivation: ['goal', 'achieve', 'motivation', 'inspire', 'success', 'progress', 'accomplish'],
-      anxiety: ['anxious', 'worry', 'nervous', 'panic', 'scared', 'afraid', 'anxiety'],
-      support: ['help', 'support', 'lonely', 'sad', 'depressed', 'down', 'difficult'],
-      mindfulness: ['calm', 'peace', 'meditate', 'breathe', 'mindful', 'relax', 'center']
-    };
-
-    let sessionType = 'chat';
-    for (const [type, keywords] of Object.entries(sessionTypes)) {
-      if (keywords.some(keyword => lastUserMessage.includes(keyword))) {
-        sessionType = type;
-        break;
-      }
-    }
-
-    // Generate creative names based on persona and session type
-    const nameTemplates = {
-      sarah: {
-        vent: ['Therapeutic Vent', 'Processing Session', 'Emotional Release'],
-        motivation: ['Growth Session', 'Therapeutic Progress', 'Healing Journey'],
-        anxiety: ['Anxiety Support', 'Calming Session', 'Coping Strategies'],
-        support: ['Supportive Chat', 'Clinical Check-in', 'Therapeutic Support'],
-        mindfulness: ['Mindful Moment', 'Grounding Session', 'Peaceful Chat'],
-        chat: ['Therapy Session', 'Clinical Chat', 'Supportive Talk']
-      },
-      alex: {
-        vent: ['Vent with Alex', 'Real Talk', 'Honest Chat'],
-        motivation: ['Motivation Session', 'Peer Support', 'Encouragement Chat'],
-        anxiety: ['Anxiety Check-in', 'Peer Counseling', 'Support Session'],
-        support: ['Heart-to-Heart', 'Supportive Chat', 'Understanding Session'],
-        mindfulness: ['Mindful Chat', 'Peaceful Moment', 'Calming Talk'],
-        chat: ['Peer Session', 'Friend Chat', 'Support Talk']
-      },
-      marcus: {
-        vent: ['Energy Release', 'Power Session', 'Breakthrough Chat'],
-        motivation: ['Goal Session', 'Achievement Talk', 'Success Planning'],
-        anxiety: ['Confidence Building', 'Strength Session', 'Empowerment Chat'],
-        support: ['Coaching Session', 'Life Chat', 'Growth Talk'],
-        mindfulness: ['Focus Session', 'Centered Chat', 'Mindful Coaching'],
-        chat: ['Coaching Session', 'Growth Chat', 'Success Talk']
-      },
-      maya: {
-        vent: ['Mindful Venting', 'Emotional Flow', 'Release Session'],
-        motivation: ['Mindful Goals', 'Intentional Growth', 'Peaceful Progress'],
-        anxiety: ['Calming Practice', 'Peaceful Session', 'Anxiety Relief'],
-        support: ['Gentle Support', 'Mindful Care', 'Compassionate Chat'],
-        mindfulness: ['Meditation Chat', 'Mindful Moment', 'Zen Session'],
-        chat: ['Mindful Session', 'Peaceful Chat', 'Zen Talk']
-      }
-    };
-
-    const personaTemplates = nameTemplates[persona.id as keyof typeof nameTemplates] || nameTemplates.sarah;
-    const templates = personaTemplates[sessionType as keyof typeof personaTemplates] || personaTemplates.chat;
-    const baseName = templates[Math.floor(Math.random() * templates.length)];
-    
-    // Add date for uniqueness
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    return `${baseName} - ${dateStr}`;
+  async getMessagesByConversation(conversationId: number): Promise<Message[]> {
+    return await db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt);
   }
 
-  // Session Analytics Implementation
-  async createSessionAnalytic(analytic: InsertSessionAnalytic): Promise<SessionAnalytic> {
-    const [newAnalytic] = await db
-      .insert(sessionAnalytics)
-      .values(analytic)
-      .returning();
-    return newAnalytic;
-  }
-
-  async getUserSessionAnalytics(userId: string, dateRange?: { start: Date; end: Date }): Promise<SessionAnalytic[]> {
-    let query = db
+  async getRecentMessages(userId: number, limit = 50): Promise<Message[]> {
+    return await db
       .select()
-      .from(sessionAnalytics)
-      .where(eq(sessionAnalytics.userId, userId));
+      .from(messages)
+      .innerJoin(conversations, eq(messages.conversationId, conversations.id))
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(messages.createdAt))
+      .limit(limit);
+  }
 
-    if (dateRange) {
-      query = query.where(
+  // Advanced memory management
+  async createMemory(insertMemory: InsertMemory): Promise<Memory> {
+    const [memory] = await db.insert(memories).values(insertMemory).returning();
+    return memory;
+  }
+
+  async getMemoriesByUser(userId: number, personaId?: string): Promise<Memory[]> {
+    let query = db.select().from(memories).where(eq(memories.userId, userId));
+    
+    if (personaId) {
+      query = query.where(eq(memories.personaId, personaId as any));
+    }
+    
+    return await query.orderBy(desc(memories.importance), desc(memories.lastAccessed));
+  }
+
+  async getMemoryByImportance(userId: number, personaId: string, minImportance: number): Promise<Memory[]> {
+    return await db
+      .select()
+      .from(memories)
+      .where(
         and(
-          gte(sessionAnalytics.createdAt, dateRange.start),
-          lte(sessionAnalytics.createdAt, dateRange.end)
+          eq(memories.userId, userId),
+          eq(memories.personaId, personaId as any),
+          sql`${memories.importance} >= ${minImportance}`
         )
-      );
-    }
-
-    return await query.orderBy(desc(sessionAnalytics.createdAt));
+      )
+      .orderBy(desc(memories.importance));
   }
 
-  async updateSessionAnalytic(id: number, updates: Partial<SessionAnalytic>): Promise<SessionAnalytic | undefined> {
-    const [updatedAnalytic] = await db
-      .update(sessionAnalytics)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(sessionAnalytics.id, id))
-      .returning();
-    return updatedAnalytic;
+  async updateMemory(id: number, updates: Partial<Memory>): Promise<Memory> {
+    const [memory] = await db.update(memories).set(updates).where(eq(memories.id, id)).returning();
+    return memory;
   }
 
-  // User Streaks Implementation
-  async getUserStreaks(userId: string): Promise<UserStreak[]> {
-    return await db
-      .select()
-      .from(userStreaks)
-      .where(eq(userStreaks.userId, userId))
-      .orderBy(desc(userStreaks.currentStreak));
+  // Emotion tracking with comprehensive logging
+  async createEmotionLog(insertEmotionLog: InsertEmotionLog): Promise<EmotionLog> {
+    const [emotionLog] = await db.insert(emotionLogs).values(insertEmotionLog).returning();
+    return emotionLog;
   }
 
-  async updateUserStreak(userId: string, streakType: string, activityDate: Date): Promise<UserStreak> {
-    const existing = await db
-      .select()
-      .from(userStreaks)
-      .where(and(
-        eq(userStreaks.userId, userId),
-        eq(userStreaks.streakType, streakType)
-      ))
-      .limit(1);
-
-    const now = new Date();
-
-    if (existing.length === 0) {
-      // Create new streak
-      const [newStreak] = await db
-        .insert(userStreaks)
-        .values({
-          userId,
-          streakType,
-          currentStreak: 1,
-          longestStreak: 1,
-          lastActivity: activityDate,
-          streakStartDate: activityDate,
-          isActive: true,
-        })
-        .returning();
-      return newStreak;
-    }
-
-    const streak = existing[0];
-    const lastActivity = new Date(streak.lastActivity);
-    const daysSinceLastActivity = Math.floor((activityDate.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
-
-    let newCurrentStreak = streak.currentStreak;
-    let newLongestStreak = streak.longestStreak;
-    let newStartDate = streak.streakStartDate;
-
-    if (daysSinceLastActivity === 1) {
-      // Continue streak
-      newCurrentStreak += 1;
-      newLongestStreak = Math.max(newLongestStreak, newCurrentStreak);
-    } else if (daysSinceLastActivity > 1) {
-      // Reset streak
-      newCurrentStreak = 1;
-      newStartDate = activityDate;
-    }
-
-    const [updatedStreak] = await db
-      .update(userStreaks)
-      .set({
-        currentStreak: newCurrentStreak,
-        longestStreak: newLongestStreak,
-        lastActivity: activityDate,
-        streakStartDate: newStartDate,
-        updatedAt: now,
-      })
-      .where(eq(userStreaks.id, streak.id))
-      .returning();
-
-    return updatedStreak;
+  async getEmotionLogsByUser(userId: number): Promise<EmotionLog[]> {
+    return await db.select().from(emotionLogs).where(eq(emotionLogs.userId, userId)).orderBy(desc(emotionLogs.createdAt));
   }
 
-  // Persona Usage Statistics Implementation
-  async getPersonaUsageStats(userId: string): Promise<PersonaUsageStat[]> {
-    return await db
-      .select()
-      .from(personaUsageStats)
-      .where(eq(personaUsageStats.userId, userId))
-      .orderBy(desc(personaUsageStats.totalSessions));
-  }
-
-  async updatePersonaUsageStats(userId: string, personaId: string, sessionData: any): Promise<PersonaUsageStat> {
-    const existing = await db
-      .select()
-      .from(personaUsageStats)
-      .where(and(
-        eq(personaUsageStats.userId, userId),
-        eq(personaUsageStats.personaId, personaId)
-      ))
-      .limit(1);
-
-    const now = new Date();
-
-    if (existing.length === 0) {
-      // Create new persona usage record
-      const [newStats] = await db
-        .insert(personaUsageStats)
-        .values({
-          userId,
-          personaId,
-          totalSessions: 1,
-          totalDuration: sessionData.duration || 0,
-          averageSessionLength: sessionData.duration || 0,
-          totalMessages: sessionData.messageCount || 0,
-          lastInteraction: now,
-          preferenceScore: 10, // Initial score
-        })
-        .returning();
-      return newStats;
-    }
-
-    const stats = existing[0];
-    const newTotalSessions = stats.totalSessions + 1;
-    const newTotalDuration = stats.totalDuration + (sessionData.duration || 0);
-    const newAverageSessionLength = Math.round(newTotalDuration / newTotalSessions);
-    const newTotalMessages = stats.totalMessages + (sessionData.messageCount || 0);
-
-    const [updatedStats] = await db
-      .update(personaUsageStats)
-      .set({
-        totalSessions: newTotalSessions,
-        totalDuration: newTotalDuration,
-        averageSessionLength: newAverageSessionLength,
-        totalMessages: newTotalMessages,
-        lastInteraction: now,
-        preferenceScore: Math.min(100, stats.preferenceScore + 2), // Increase preference
-        updatedAt: now,
-      })
-      .where(eq(personaUsageStats.id, stats.id))
-      .returning();
-
-    return updatedStats;
-  }
-
-  // Dashboard Analytics Implementation
-  async getUserDashboardData(userId: string): Promise<{
-    totalSessions: number;
-    currentStreak: number;
-    averageMood: number;
-    favoritePersona: string;
-    sessionHistory: any[];
-    moodTrends: any[];
-    goals: {
-      total: number;
-      completed: number;
-      inProgress: number;
-    };
-  }> {
-    // Get session analytics
-    const sessionAnalyticsList = await this.getUserSessionAnalytics(userId);
+  async getEmotionTrends(userId: number, days: number): Promise<any[]> {
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
     
-    // Get streaks
-    const streaks = await this.getUserStreaks(userId);
-    const chatStreak = streaks.find(s => s.streakType === 'daily_chat')?.currentStreak || 0;
+    return await db
+      .select({
+        date: sql`DATE(${emotionLogs.createdAt})`,
+        primary_emotion: emotionLogs.primaryEmotion,
+        avg_intensity: sql`AVG(${emotionLogs.intensity})`,
+        avg_valence: sql`AVG(${emotionLogs.valence})`,
+        count: sql`COUNT(*)`
+      })
+      .from(emotionLogs)
+      .where(
+        and(
+          eq(emotionLogs.userId, userId),
+          sql`${emotionLogs.createdAt} >= ${daysAgo}`
+        )
+      )
+      .groupBy(sql`DATE(${emotionLogs.createdAt})`, emotionLogs.primaryEmotion)
+      .orderBy(sql`DATE(${emotionLogs.createdAt})`);
+  }
 
-    // Get persona usage stats
-    const personaStats = await this.getPersonaUsageStats(userId);
-    const favoritePersona = personaStats.length > 0 
-      ? personaStats[0].personaId 
-      : 'sarah';
+  // Therapeutic outcomes tracking
+  async createTherapeuticOutcome(insertOutcome: InsertTherapeuticOutcome): Promise<TherapeuticOutcome> {
+    const [outcome] = await db.insert(therapeuticOutcomes).values(insertOutcome).returning();
+    return outcome;
+  }
 
-    // Get mood entries for average
-    const moodEntries = await this.getUserMoodEntries(userId, 'month');
-    const averageMood = moodEntries.length > 0
-      ? Math.round(moodEntries.reduce((sum, entry) => sum + entry.moodRating, 0) / moodEntries.length)
-      : 0;
+  async getTherapeuticOutcomes(userId: number): Promise<TherapeuticOutcome[]> {
+    return await db.select().from(therapeuticOutcomes).where(eq(therapeuticOutcomes.userId, userId));
+  }
 
-    // Get goals
-    const userGoals = await this.getUserGoals(userId);
-    const completedGoals = userGoals.filter(g => g.status === 'completed').length;
-    const inProgressGoals = userGoals.filter(g => g.status === 'in_progress').length;
+  // Session analytics
+  async createSessionAnalytics(insertAnalytics: InsertSessionAnalytics): Promise<SessionAnalytics> {
+    const [analytics] = await db.insert(sessionAnalytics).values(insertAnalytics).returning();
+    return analytics;
+  }
 
-    // Session history (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentSessions = await this.getUserSessionAnalytics(userId, {
-      start: thirtyDaysAgo,
-      end: new Date()
-    });
+  async getSessionAnalytics(userId: number): Promise<SessionAnalytics[]> {
+    return await db.select().from(sessionAnalytics).where(eq(sessionAnalytics.userId, userId));
+  }
 
-    // Mood trends (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentMoodEntries = moodEntries.filter(entry => 
-      new Date(entry.createdAt) >= sevenDaysAgo
-    );
+  // Goal management
+  async createGoal(insertGoal: InsertGoal): Promise<Goal> {
+    const [goal] = await db.insert(goals).values(insertGoal).returning();
+    return goal;
+  }
+
+  async getGoalsByUser(userId: number): Promise<Goal[]> {
+    return await db.select().from(goals).where(eq(goals.userId, userId)).orderBy(desc(goals.createdAt));
+  }
+
+  async updateGoal(id: number, updates: Partial<Goal>): Promise<Goal> {
+    const [goal] = await db.update(goals).set(updates).where(eq(goals.id, id)).returning();
+    return goal;
+  }
+
+  // Journal entries
+  async createJournalEntry(insertEntry: InsertJournalEntry): Promise<JournalEntry> {
+    const [entry] = await db.insert(journalEntries).values(insertEntry).returning();
+    return entry;
+  }
+
+  async getJournalEntriesByUser(userId: number): Promise<JournalEntry[]> {
+    return await db.select().from(journalEntries).where(eq(journalEntries.userId, userId)).orderBy(desc(journalEntries.createdAt));
+  }
+
+  // Behavioral patterns
+  async createUserBehaviorPattern(insertPattern: InsertUserBehaviorPattern): Promise<UserBehaviorPattern> {
+    const [pattern] = await db.insert(userBehaviorPatterns).values(insertPattern).returning();
+    return pattern;
+  }
+
+  async getUserBehaviorPatterns(userId: number): Promise<UserBehaviorPattern[]> {
+    return await db.select().from(userBehaviorPatterns).where(eq(userBehaviorPatterns.userId, userId));
+  }
+
+  // Training datasets
+  async createTrainingDataset(insertDataset: InsertTrainingDataset): Promise<TrainingDataset> {
+    const [dataset] = await db.insert(trainingDatasets).values(insertDataset).returning();
+    return dataset;
+  }
+
+  async getTrainingDatasets(type?: string): Promise<TrainingDataset[]> {
+    let query = db.select().from(trainingDatasets);
+    
+    if (type) {
+      query = query.where(eq(trainingDatasets.datasetType, type));
+    }
+    
+    return await query.orderBy(desc(trainingDatasets.createdAt));
+  }
+
+  // Comprehensive data collection methods
+  async collectConversationData(conversationId: number): Promise<any> {
+    const conversation = await this.getConversation(conversationId);
+    if (!conversation) return null;
+
+    const messages = await this.getMessagesByConversation(conversationId);
+    const emotionLogs = await db.select().from(emotionLogs).where(eq(emotionLogs.conversationId, conversationId));
+    const outcomes = await db.select().from(therapeuticOutcomes).where(eq(therapeuticOutcomes.conversationId, conversationId));
+    const analytics = await db.select().from(sessionAnalytics).where(eq(sessionAnalytics.conversationId, conversationId));
 
     return {
-      totalSessions: sessionAnalyticsList.length,
-      currentStreak: chatStreak,
-      averageMood,
-      favoritePersona,
-      sessionHistory: recentSessions.map(session => ({
-        date: session.createdAt,
-        personaId: session.personaId,
-        duration: session.duration,
-        mood: session.moodAfter || session.moodBefore,
-        sessionType: session.sessionType,
-      })),
-      moodTrends: recentMoodEntries.map(entry => ({
-        date: entry.createdAt,
-        mood: entry.moodRating,
-        emotions: entry.emotions,
-      })),
-      goals: {
-        total: userGoals.length,
-        completed: completedGoals,
-        inProgress: inProgressGoals,
-      },
+      conversation,
+      messages,
+      emotionLogs,
+      outcomes,
+      analytics,
+      trainingValue: this.calculateTrainingValue(conversation, messages, emotionLogs, outcomes)
     };
   }
+
+  async collectUserPatterns(userId: number): Promise<any> {
+    const user = await this.getUser(userId);
+    if (!user) return null;
+
+    const conversations = await this.getConversationsByUser(userId);
+    const emotions = await this.getEmotionLogsByUser(userId);
+    const patterns = await this.getUserBehaviorPatterns(userId);
+    const goals = await this.getGoalsByUser(userId);
+    const journalEntries = await this.getJournalEntriesByUser(userId);
+
+    return {
+      user,
+      conversations,
+      emotions,
+      patterns,
+      goals,
+      journalEntries,
+      insights: this.generateUserInsights(user, conversations, emotions, patterns)
+    };
+  }
+
+  async generateTrainingData(userId: number): Promise<any> {
+    const userData = await this.collectUserPatterns(userId);
+    if (!userData) return null;
+
+    // Generate training-ready data format
+    const trainingData = {
+      userId,
+      conversationSamples: userData.conversations.map((conv: any) => ({
+        personaId: conv.personaId,
+        emotionalJourney: conv.emotionalJourney,
+        therapeuticTechniques: conv.therapeuticTechniques,
+        outcomes: conv.outcomes,
+        effectiveness: conv.userSatisfaction
+      })),
+      emotionalPatterns: this.analyzeEmotionalPatterns(userData.emotions),
+      therapeuticResponses: this.analyzeTherapeuticResponses(userData.conversations),
+      personalityProfile: this.generatePersonalityProfile(userData),
+      privacyConsent: userData.user.consentLevel,
+      qualityScore: this.calculateDataQuality(userData)
+    };
+
+    // Store in training datasets table
+    await this.createTrainingDataset({
+      datasetType: 'user_comprehensive',
+      dataPoints: trainingData,
+      qualityScore: trainingData.qualityScore,
+      diversity: this.calculateDiversity(trainingData),
+      balance: this.calculateBalance(trainingData),
+      consent: { level: userData.user.consentLevel, timestamp: new Date() },
+      processingNotes: `Generated from user ${userId} complete data`,
+      version: '1.0'
+    });
+
+    return trainingData;
+  }
+
+  // Helper methods for training data generation
+  private calculateTrainingValue(conversation: any, messages: any[], emotionLogs: any[], outcomes: any[]): number {
+    let value = 0;
+    
+    // More messages = more training value
+    value += Math.min(messages.length * 0.1, 5);
+    
+    // Emotional diversity adds value
+    const uniqueEmotions = new Set(emotionLogs.map(log => log.primaryEmotion));
+    value += uniqueEmotions.size * 0.2;
+    
+    // Therapeutic outcomes add significant value
+    value += outcomes.length * 0.5;
+    
+    // Session duration adds value
+    if (conversation.sessionDuration) {
+      value += Math.min(conversation.sessionDuration / 3600, 2); // Max 2 points for 1 hour
+    }
+    
+    return Math.min(value, 10) / 10; // Normalize to 0-1
+  }
+
+  private generateUserInsights(user: any, conversations: any[], emotions: any[], patterns: any[]): any {
+    return {
+      totalInteractions: conversations.length,
+      avgSessionDuration: conversations.reduce((sum, c) => sum + (c.sessionDuration || 0), 0) / conversations.length,
+      emotionalTrends: this.analyzeEmotionalTrends(emotions),
+      preferredPersonas: this.analyzePersonaPreferences(conversations),
+      therapeuticProgress: this.analyzeTherapeuticProgress(conversations, emotions),
+      riskFactors: this.identifyRiskFactors(emotions, patterns),
+      growthAreas: this.identifyGrowthAreas(conversations, patterns)
+    };
+  }
+
+  private analyzeEmotionalPatterns(emotions: any[]): any {
+    const patterns = {
+      dominant_emotions: {},
+      intensity_trends: [],
+      valence_patterns: [],
+      temporal_patterns: {}
+    };
+
+    emotions.forEach(emotion => {
+      // Track dominant emotions
+      if (!patterns.dominant_emotions[emotion.primaryEmotion]) {
+        patterns.dominant_emotions[emotion.primaryEmotion] = 0;
+      }
+      patterns.dominant_emotions[emotion.primaryEmotion]++;
+
+      // Track intensity and valence trends
+      patterns.intensity_trends.push({
+        timestamp: emotion.createdAt,
+        intensity: emotion.intensity,
+        emotion: emotion.primaryEmotion
+      });
+
+      patterns.valence_patterns.push({
+        timestamp: emotion.createdAt,
+        valence: emotion.valence,
+        emotion: emotion.primaryEmotion
+      });
+    });
+
+    return patterns;
+  }
+
+  private analyzeTherapeuticResponses(conversations: any[]): any {
+    const responses = {
+      techniques_used: {},
+      effectiveness_scores: [],
+      persona_performance: {},
+      intervention_success: []
+    };
+
+    conversations.forEach(conv => {
+      if (conv.therapeuticTechniques) {
+        Object.keys(conv.therapeuticTechniques).forEach(technique => {
+          if (!responses.techniques_used[technique]) {
+            responses.techniques_used[technique] = 0;
+          }
+          responses.techniques_used[technique]++;
+        });
+      }
+
+      if (conv.userSatisfaction) {
+        responses.effectiveness_scores.push(conv.userSatisfaction);
+      }
+
+      if (!responses.persona_performance[conv.personaId]) {
+        responses.persona_performance[conv.personaId] = {
+          sessions: 0,
+          avg_satisfaction: 0,
+          total_satisfaction: 0
+        };
+      }
+      responses.persona_performance[conv.personaId].sessions++;
+      if (conv.userSatisfaction) {
+        responses.persona_performance[conv.personaId].total_satisfaction += conv.userSatisfaction;
+        responses.persona_performance[conv.personaId].avg_satisfaction = 
+          responses.persona_performance[conv.personaId].total_satisfaction / 
+          responses.persona_performance[conv.personaId].sessions;
+      }
+    });
+
+    return responses;
+  }
+
+  private generatePersonalityProfile(userData: any): any {
+    return {
+      communication_style: this.analyzeCommunicationStyle(userData.conversations),
+      emotional_intelligence: this.analyzeEmotionalIntelligence(userData.emotions),
+      growth_mindset: this.analyzeGrowthMindset(userData.goals, userData.journalEntries),
+      resilience_factors: this.analyzeResilienceFactors(userData.emotions, userData.patterns),
+      therapeutic_needs: this.analyzeTherapeuticNeeds(userData.conversations, userData.emotions)
+    };
+  }
+
+  private calculateDataQuality(userData: any): number {
+    let quality = 0;
+    
+    // Completeness score
+    const completeness = (userData.conversations.length > 0 ? 0.2 : 0) +
+                        (userData.emotions.length > 0 ? 0.2 : 0) +
+                        (userData.patterns.length > 0 ? 0.2 : 0) +
+                        (userData.goals.length > 0 ? 0.2 : 0) +
+                        (userData.journalEntries.length > 0 ? 0.2 : 0);
+    
+    quality += completeness;
+    
+    // Diversity score (different emotions, personas, etc.)
+    const emotionDiversity = new Set(userData.emotions.map(e => e.primaryEmotion)).size / 10; // Max 10 emotions
+    const personaDiversity = new Set(userData.conversations.map(c => c.personaId)).size / 4; // Max 4 personas
+    
+    quality += Math.min(emotionDiversity + personaDiversity, 0.3);
+    
+    // Consistency score (regular usage)
+    const timespan = userData.conversations.length > 1 ? 
+      (new Date(userData.conversations[0].createdAt).getTime() - 
+       new Date(userData.conversations[userData.conversations.length - 1].createdAt).getTime()) / 
+      (1000 * 60 * 60 * 24) : 0; // Days
+    
+    const consistencyScore = Math.min(timespan / 30, 0.2); // Max 0.2 for 30+ days
+    quality += consistencyScore;
+    
+    return Math.min(quality, 1);
+  }
+
+  private calculateDiversity(trainingData: any): number {
+    // Calculate demographic and linguistic diversity
+    return 0.7; // Placeholder - would implement actual diversity calculation
+  }
+
+  private calculateBalance(trainingData: any): number {
+    // Calculate class balance for ML training
+    return 0.8; // Placeholder - would implement actual balance calculation
+  }
+
+  // Additional helper methods would be implemented here
+  private analyzeEmotionalTrends(emotions: any[]): any { return {}; }
+  private analyzePersonaPreferences(conversations: any[]): any { return {}; }
+  private analyzeTherapeuticProgress(conversations: any[], emotions: any[]): any { return {}; }
+  private identifyRiskFactors(emotions: any[], patterns: any[]): any { return {}; }
+  private identifyGrowthAreas(conversations: any[], patterns: any[]): any { return {}; }
+  private analyzeCommunicationStyle(conversations: any[]): any { return {}; }
+  private analyzeEmotionalIntelligence(emotions: any[]): any { return {}; }
+  private analyzeGrowthMindset(goals: any[], journalEntries: any[]): any { return {}; }
+  private analyzeResilienceFactors(emotions: any[], patterns: any[]): any { return {}; }
+  private analyzeTherapeuticNeeds(conversations: any[], emotions: any[]): any { return {}; }
 }
 
 export const storage = new DatabaseStorage();

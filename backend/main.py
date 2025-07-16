@@ -166,7 +166,7 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
         
         return ChatResponse(
             content=response.content,
-            persona_id=persona_id,
+            persona_id=PersonaType(persona_id),
             emotion=emotional_context.primary_emotion,
             confidence=emotional_context.confidence,
             features_activated=handler.get_active_features(),
