@@ -250,10 +250,10 @@ export default function EnhancedProfileScreen() {
                   <User className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <h1 className="font-heading text-2xl font-normal bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     Your Profile
                   </h1>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Manage your wellness journey and goals</p>
+                  <p className="font-body text-xs text-gray-600 dark:text-gray-400 font-light">Manage your wellness journey and goals</p>
                 </div>
               </div>
             </div>
@@ -313,10 +313,10 @@ export default function EnhancedProfileScreen() {
             </div>
           </div>
           
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h2 className="font-heading text-3xl font-normal text-gray-900 dark:text-gray-100 mb-2">
             Welcome Back{profile?.name ? `, ${profile.name}` : ''}!
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+          <p className="font-body text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto font-light">
             {profile?.bio || "Your wellness journey continues here. Track your progress and achieve your goals."}
           </p>
         </div>
@@ -346,8 +346,8 @@ export default function EnhancedProfileScreen() {
                   <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.totalSessions || 0}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Sessions</p>
+                  <h3 className="font-body text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.totalSessions || 0}</h3>
+                  <p className="font-body text-sm text-gray-600 dark:text-gray-400 font-medium">Total Sessions</p>
                 </CardContent>
               </Card>
 

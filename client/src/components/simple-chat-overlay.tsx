@@ -268,10 +268,10 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 </span>
               </div>
               <div>
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                <h2 className="font-heading text-lg font-normal text-gray-900 dark:text-white">
                   {persona.name}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="font-body text-xs text-gray-500 dark:text-gray-400 font-light">
                   {persona.role}
                 </p>
               </div>
@@ -311,10 +311,10 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                       {persona.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <h3 className="text-2xl font-light text-gray-900 dark:text-white">
+                  <h3 className="font-heading text-2xl font-normal text-gray-900 dark:text-white">
                     {persona.name}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  <p className="font-body text-gray-600 dark:text-gray-400 text-sm font-light">
                     How are you feeling today?
                   </p>
                 </div>
@@ -330,7 +330,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                   <Button
                     onClick={handleStartSession}
                     disabled={!checkInResponse.trim()}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-body font-medium py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Start Conversation
                   </Button>
@@ -358,7 +358,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                           ? "bubble-user" 
                           : "bubble-ai"
                       }`}>
-                        <p className="text-therapeutic-body leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                         
                         {/* Clean timestamp */}
                         <div className={`text-xs mt-2 ${

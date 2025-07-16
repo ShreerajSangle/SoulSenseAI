@@ -195,7 +195,7 @@ export default function UnifiedHome() {
                         {role}
                       </p>
                       <blockquote className={`text-gray-600 italic text-sm leading-relaxed ${
-                        persona.id === 'alex' ? 'font-alt' : 'font-body'
+                        persona.id === 'alex' ? 'font-accent' : 'font-accent'
                       }`}>
                         "{quote}"
                       </blockquote>

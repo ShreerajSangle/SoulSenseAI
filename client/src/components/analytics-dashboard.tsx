@@ -92,16 +92,16 @@ export function AnalyticsDashboard({ userId }: AnalyticsDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-lavender-50 to-lavender-100 dark:from-lavender-900 dark:to-lavender-800 border-lavender-200 dark:border-lavender-700">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-lavender-600 dark:text-lavender-300 flex items-center gap-2">
+            <CardTitle className="font-body text-sm font-medium text-lavender-600 dark:text-lavender-300 flex items-center gap-2">
               <MessageCircle className="h-4 w-4" />
               Total Sessions
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-lavender-900 dark:text-lavender-100">
+            <div className="font-body text-2xl font-bold text-lavender-900 dark:text-lavender-100">
               {dashboardData.totalSessions}
             </div>
-            <p className="text-xs text-lavender-600 dark:text-lavender-400">
+            <p className="font-accent text-xs text-lavender-600 dark:text-lavender-400">
               Conversations completed
             </p>
           </CardContent>
