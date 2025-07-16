@@ -33,15 +33,15 @@ const getAdaptiveReplies = (persona: string, lastAiMessage: string, userEmotion:
     },
     maya: {
       supportive: conversationLength > 6
-        ? ["This feels like a breakthrough", "I'm grateful for this space", "Something's shifting", "This is sacred"]
-        : ["Let's breathe together", "I feel centered", "That's beautiful", "I'm present"],
+        ? ["This feels sacred", "I'm grateful for this space", "Something is shifting in me", "This is beautiful medicine"]
+        : ["Let's breathe together", "That resonates deeply", "I feel your presence", "Share your wisdom"],
       anxious: hasSharedPersonal
-        ? ["My heart is racing", "I can't sit still", "Everything feels too much", "I need your calm"]
-        : ["Help me ground", "I need stillness", "Can we slow down?", "Breathe with me"],
-      sad: recentMessages.some(msg => msg.content?.includes('breath'))
-        ? ["The breathing helped a little", "I'm still heavy", "Can we try something else?", "I feel a tiny shift"]
-        : ["Hold space for me", "I need gentleness", "That's tender", "Comfort me"],
-      neutral: ["I hear you", "Share your wisdom", "What's alive in me?", "Guide me deeper", "I'm listening"]
+        ? ["My nervous system feels activated", "Help me find my ground", "I need your calming energy", "Can we create sacred space?"]
+        : ["Guide me to stillness", "I need grounding", "Help me breathe", "My heart is racing"],
+      sad: recentMessages.some(msg => msg.content?.includes('breath') || msg.content?.includes('chakra'))
+        ? ["That practice helped", "I feel a gentle shift", "Something is opening", "My heart feels lighter"]
+        : ["Hold space for this sadness", "I need tenderness", "My soul feels heavy", "Comfort my heart"],
+      neutral: ["What does my breath tell me?", "Share your wisdom", "I'm listening deeply", "Guide me home to myself", "What's alive in me now?"]
     },
     alex: {
       supportive: hasAskedQuestions
@@ -123,7 +123,7 @@ const getAdaptiveReplies = (persona: string, lastAiMessage: string, userEmotion:
 // Fallback for legacy persona names
 const replyOptions = {
   dr_sarah: ["Tell me more", "How does that feel?", "I'm listening", "That helps", "Thank you"],
-  maya: ["I hear you", "That resonates", "Help me breathe", "I'm present", "Guide me"],
+  maya: ["How is my breath?", "Guide me deeper", "I feel your presence", "Help me ground", "What's alive in me?"],
   alex: ["I totally get that!", "That's so valid", "You get me", "I'm here for it", "Real talk"],
   marcus: ["What's next?", "Let's do this", "Break it down", "I'm ready", "Challenge me"]
 };

@@ -161,9 +161,10 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## User Preferences
 - **Communication Style:** Deeply human, emotionally aware therapeutic conversations that never feel AI-generated
-- **Persona Interactions:** Dr. Sarah's calm 2-3 line reflections, Alex's upbeat informal tone with emojis, Maya's grounding wisdom, Marcus's motivational guidance
+- **Persona Interactions:** Dr. Sarah's calm 2-3 line reflections, Alex's upbeat informal tone with emojis, Maya's sacred yogic wisdom with spiritual grounding, Marcus's motivational guidance
 - **UI Aesthetic:** Soothing lavender theme with Rosarivo, Nunito, and Quicksand therapeutic typography system
 - **Conversation Flow:** Natural human exchanges with context-aware quick replies and seamless journal suggestions
+- **Maya Enhancement:** Deeply grounded spiritual guide embodying yogini essence with pranayama, chakra healing, mantras, and Ayurvedic wisdom
 - **Technical Preference:** Claude 3.5 Sonnet via OpenRouter for genuinely empathetic, human-like dialogue
 
 ## API Integration
