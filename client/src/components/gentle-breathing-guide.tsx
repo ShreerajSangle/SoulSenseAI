@@ -162,21 +162,13 @@ export function GentleBreathingGuide({ persona, onComplete, onClose, className =
 
         <div className="flex justify-center gap-2">
           {!isActive ? (
-            <div className="flex gap-2">
-              <Button
-                onClick={handleStart}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white px-6 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
-              >
-                <Wind className="h-4 w-4 mr-2" />
-                Start Breathing
-              </Button>
-              {onClose && (
-                <Button variant="outline" onClick={onClose}>
-                  <X className="h-4 w-4 mr-1" />
-                  Cancel
-                </Button>
-              )}
-            </div>
+            <Button
+              onClick={handleStart}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white px-6 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+            >
+              <Wind className="h-4 w-4 mr-2" />
+              Start Breathing
+            </Button>
           ) : (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleStop}>
@@ -187,12 +179,6 @@ export function GentleBreathingGuide({ persona, onComplete, onClose, className =
                 <RotateCcw className="h-4 w-4 mr-1" />
                 Restart
               </Button>
-              {onClose && (
-                <Button variant="outline" size="sm" onClick={onClose}>
-                  <X className="h-4 w-4 mr-1" />
-                  Done
-                </Button>
-              )}
             </div>
           )}
         </div>
