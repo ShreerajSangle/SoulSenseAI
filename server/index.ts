@@ -72,15 +72,18 @@ app.get('*', (req, res) => {
 
           const handleStartJourney = async () => {
             try {
+              console.log('Starting journey - fetching personas...');
               const response = await fetch('/api/personas');
               if (!response.ok) {
                 throw new Error('Failed to fetch personas');
               }
               const data = await response.json();
               console.log('Personas fetched:', data);
-              if (Array.isArray(data)) {
+              console.log('Array check:', Array.isArray(data), 'Length:', data.length);
+              if (Array.isArray(data) && data.length > 0) {
                 setPersonas(data);
                 setShowPersonas(true);
+                console.log('Personas set, showing persona page');
               } else {
                 console.error('Expected array but got:', data);
                 setPersonas([]);
