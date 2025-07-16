@@ -157,10 +157,42 @@ export class ClaudeConversationSystem extends EventEmitter {
   private conversationMemories: Map<string, ConversationMemory> = new Map();
   private emotionDetectionCache: Map<string, EmotionalContext> = new Map();
   private debugLogs: PromptDebugLog[] = [];
+  private personaModules: Map<string, any> = new Map();
 
   constructor() {
     super();
     this.initializePersonaConfigs();
+    this.initializePersonaModules();
+  }
+
+  // Modular persona system - each persona operates as isolated intelligent entity
+  private initializePersonaModules() {
+    const personaModules = {
+      maya: {
+        features: ['yoga_flow_generator', 'pranayama_guide', 'chakra_scanner', 'mantra_deck', 'meditation_engine'],
+        memoryRules: ['spiritual_practices', 'emotional_patterns', 'chakra_work', 'breathing_sessions'],
+        uiStyle: { bubbleColor: '#e8d5f0', emoji: '🪷', responseLength: 'flowing_paragraphs' }
+      },
+      sarah: {
+        features: ['cbt_techniques', 'therapy_summaries', 'journal_guidance', 'emotional_processing'],
+        memoryRules: ['therapeutic_progress', 'emotional_insights', 'coping_strategies', 'breakthrough_moments'],
+        uiStyle: { bubbleColor: '#f0e8f5', emoji: '👩‍⚕️', responseLength: 'reflective_short' }
+      },
+      alex: {
+        features: ['peer_support', 'humor_therapy', 'relatability_engine', 'encouragement_boosts'],
+        memoryRules: ['shared_experiences', 'friendship_moments', 'mood_lifts', 'casual_check_ins'],
+        uiStyle: { bubbleColor: '#fff0e8', emoji: '🤗', responseLength: 'casual_friendly' }
+      },
+      marcus: {
+        features: ['goal_setting', 'action_planning', 'motivation_engine', 'progress_tracking'],
+        memoryRules: ['achievement_goals', 'action_steps', 'progress_milestones', 'growth_challenges'],
+        uiStyle: { bubbleColor: '#e8f5f0', emoji: '💪', responseLength: 'structured_guidance' }
+      }
+    };
+
+    Object.entries(personaModules).forEach(([id, module]) => {
+      this.personaModules.set(id, module);
+    });
   }
 
   private initializePersonaConfigs() {
@@ -380,19 +412,22 @@ Your presence enhances the soothing lavender theme of SoulSense through confiden
     userId: string,
     conversationHistory: any[] = []
   ): Promise<AsyncGenerator<StreamingResponse, void, unknown>> {
+    // Modular persona loading - each persona operates as isolated entity
     const persona = this.personaConfigs.get(personaId);
-    if (!persona) {
-      throw new Error(`Persona ${personaId} not found`);
+    const personaModule = this.personaModules.get(personaId);
+    
+    if (!persona || !personaModule) {
+      throw new Error(`Persona ${personaId} not found or module not initialized`);
     }
 
-    // Get or create conversation memory
+    // Persona-specific memory isolation
     const memory = this.getConversationMemory(userId, personaId);
     
-    // Detect emotions in the message
+    // Emotion detection with persona-specific processing
     const emotionalContext = await this.detectEmotions(message);
     
-    // Update memory with current interaction
-    await this.updateConversationMemory(memory, message, emotionalContext);
+    // Update memory using persona-specific rules
+    await this.updateConversationMemory(memory, message, emotionalContext, personaModule.memoryRules);
     
     // GPT-4o Level Intelligence Processing (if available)
     let gpt4oResponse = null;
@@ -408,35 +443,52 @@ Your presence enhances the soothing lavender theme of SoulSense through confiden
       console.warn('GPT-4o processor unavailable, using standard processing');
     }
 
-    // Create mock advanced response to avoid circular dependency
+    // Persona-specific feature processing
+    const features = personaModule.features;
+    const memoryContext = this.buildPersonaMemoryContext(memory, personaModule.memoryRules);
+    
+    // Create enhanced response with persona module context
     const advancedResponse = {
       content: '',
       reasoningSteps: [],
       emotionalIntelligence: { adaptiveStrategy: 'empathetic' },
       personalityAlignment: { therapeuticApproach: 'supportive' },
-      memoryIntegration: { emotionalPatterns: [] }
+      memoryIntegration: { emotionalPatterns: [] },
+      personaFeatures: features,
+      uiStyle: personaModule.uiStyle
     };
 
-    // Build enhanced context-aware prompt with advanced intelligence
-    const systemPrompt = this.buildAdvancedSystemPrompt(persona, memory, emotionalContext, gpt4oResponse, advancedResponse);
+    // Build modular system prompt with persona-specific enhancements
+    const systemPrompt = this.buildModularSystemPrompt(persona, memory, emotionalContext, personaModule, gpt4oResponse, advancedResponse);
     const conversationPrompt = this.buildEnhancedConversationPrompt(message, conversationHistory, memory, emotionalContext, gpt4oResponse);
 
     return this.streamAdvancedClaudeResponse(systemPrompt, conversationPrompt, persona, memory, emotionalContext, gpt4oResponse);
   }
 
-  private buildAdvancedSystemPrompt(
+  // Modular system prompt builder for persona isolation
+  private buildModularSystemPrompt(
     persona: PersonaConfig, 
     memory: ConversationMemory, 
     emotionalContext: EmotionalContext,
+    personaModule: any,
     gpt4oResponse: any,
     advancedResponse: any
   ): string {
     const basePrompt = this.buildPersonalizedSystemPrompt(persona, memory, emotionalContext);
     
-    const advancedInstructions = `
+    const moduleFeatures = personaModule.features.join(', ');
+    const memoryFocus = personaModule.memoryRules.join(', ');
+    
+    const modularInstructions = `
+
+PERSONA MODULE SYSTEM (${persona.name}):
+- Active Features: ${moduleFeatures}
+- Memory Focus: ${memoryFocus}
+- UI Style: ${JSON.stringify(personaModule.uiStyle)}
+- Response Style: ${personaModule.uiStyle.responseLength}
 
 ADVANCED INTELLIGENCE ENHANCEMENT:
-- Emotional Nuances Detected: ${gpt4oResponse.emotionalValidation?.join('; ') || 'none'}
+- Emotional Nuances Detected: ${gpt4oResponse?.emotionalValidation?.join('; ') || 'none'}
 - Therapeutic Opportunities: ${gpt4oResponse.therapeuticTechniques?.join(', ') || 'general support'}
 - Adaptive Strategy: ${gpt4oResponse.adaptivePersonality?.therapeuticModality || 'integrative'}
 - Recommended Metaphors: ${gpt4oResponse.metaphors?.join('; ') || 'none'}
@@ -448,7 +500,28 @@ CONTEXTUAL INTELLIGENCE:
 
 Apply this enhanced intelligence to craft a response that feels naturally therapeutic, emotionally attuned, and distinctly aligned with your persona.`;
 
-    return basePrompt + advancedInstructions;
+    return basePrompt + modularInstructions;
+  }
+
+  // Build persona-specific memory context
+  private buildPersonaMemoryContext(memory: ConversationMemory, memoryRules: string[]): any {
+    const filteredMemory = {
+      shortTerm: memory.shortTermMemory.filter(item => 
+        memoryRules.some(rule => item.context.includes(rule) || item.content.toLowerCase().includes(rule))
+      ),
+      longTerm: memory.longTermMemory.filter(item => 
+        memoryRules.some(rule => item.type === rule || item.content.toLowerCase().includes(rule))
+      ),
+      emotionalProfile: memory.emotionalProfile,
+      therapeuticProgress: memory.therapeuticProgress
+    };
+    
+    return filteredMemory;
+  }
+
+  // Get persona module information
+  getPersonaModule(personaId: string): any {
+    return this.personaModules.get(personaId);
   }
 
   private buildEnhancedConversationPrompt(
@@ -845,7 +918,8 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
   private async updateConversationMemory(
     memory: ConversationMemory,
     message: string,
-    emotionalContext: EmotionalContext
+    emotionalContext: EmotionalContext,
+    memoryRules: string[] = []
   ): Promise<void> {
     // Add to short-term memory
     memory.shortTermMemory.push({
