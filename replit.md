@@ -5,6 +5,13 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Recent Changes
 
+### UX Improvements & Bug Fixes (July 2025)
+- ✓ **Fixed React Rendering Error**: Resolved critical "Objects are not valid as a React child" error by properly extracting message content from Mixtral API responses
+- ✓ **Enhanced Breathing Exercise**: Added close/cancel button to breathing guide component for better user control
+- ✓ **Mixtral 8x7B Integration**: Updated AI model from Claude 3.5 Sonnet to Mixtral 8x7B for genuinely human-like therapeutic conversations
+- ✓ **Modular Persona System**: Implemented dedicated API endpoints for each persona (/api/chat/maya, /api/chat/sarah, /api/chat/alex, /api/chat/marcus)
+- ✓ **System Cleanup**: Removed unnecessary files and focused on core therapeutic functionality
+
 ### Therapeutic Homepage Redesign (July 2025)
 - ✓ **Complete Homepage Overhaul**: Replaced technical interface with therapeutic, inviting design inspired by therapist waiting room
 - ✓ **Hero Section**: Soft lavender-to-pink gradient with "Meet your digital emotional companion" headline and animated sparkle icon

@@ -466,11 +466,16 @@ export default function UnifiedHome() {
 
       {/* Breathing Guide Modal */}
       {showBreathingGuide && (
-        <GentleBreathingGuide
-          isOpen={showBreathingGuide}
-          onClose={() => setShowBreathingGuide(false)}
-          trigger="stress"
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="max-w-md w-full">
+            <GentleBreathingGuide
+              persona="maya"
+              onComplete={() => setShowBreathingGuide(false)}
+              onCancel={() => setShowBreathingGuide(false)}
+              className="shadow-2xl"
+            />
+          </div>
+        </div>
       )}
 
       {/* Privacy Policy Modal */}

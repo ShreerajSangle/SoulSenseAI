@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wind, Pause, RotateCcw } from "lucide-react";
+import { Wind, Pause, RotateCcw, X } from "lucide-react";
 
 interface BreathingGuideProps {
   persona: "sarah" | "alex" | "maya" | "marcus";
   onComplete?: () => void;
+  onCancel?: () => void;
   className?: string;
 }
 
@@ -46,7 +47,7 @@ const PERSONA_GUIDANCE = {
   }
 };
 
-export function GentleBreathingGuide({ persona, onComplete, className = "" }: BreathingGuideProps) {
+export function GentleBreathingGuide({ persona, onComplete, onCancel, className = "" }: BreathingGuideProps) {
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [count, setCount] = useState(4);
@@ -104,9 +105,30 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
     setRound(1);
   };
 
+  const handleCancel = () => {
+    setIsActive(false);
+    setPhase("inhale");
+    setCount(pattern.inhale);
+    setRound(1);
+    onCancel?.();
+  };
+
   return (
     <Card className={`bg-gradient-to-br from-purple-50/80 to-pink-50/80 border-purple-200/50 animate-in fade-in-0 slide-in-from-bottom-3 duration-300 ${className}`}>
       <CardContent className="p-4 space-y-4">
+        {/* Close Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full w-8 h-8 p-0 transition-all duration-200"
+            title="Close breathing exercise"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
         <div className="text-center space-y-2">
           <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
             <Wind className="h-5 w-5 text-purple-600" />

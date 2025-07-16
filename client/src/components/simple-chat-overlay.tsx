@@ -401,13 +401,16 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 {showBreathingGuide && (
                   <div className="mb-4">
                     <GentleBreathingGuide 
-                      persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+                      persona={persona.id === 'sarah' ? 'sarah' : persona.id as any}
                       onComplete={() => {
                         setShowBreathingGuide(false);
                         setSessionData(prev => ({
                           ...prev,
                           breathingExercises: prev.breathingExercises + 1
                         }));
+                      }}
+                      onCancel={() => {
+                        setShowBreathingGuide(false);
                       }}
                     />
                   </div>
