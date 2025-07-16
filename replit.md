@@ -74,7 +74,7 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 - ✓ **Dedicated Handler Files**: Four separate persona handler files (maya_handler.ts, sarah_handler.ts, alex_handler.ts, marcus_handler.ts) connected to AI API
 - ✓ **Individual API Endpoints**: Dedicated routes (/api/chat/maya, /api/chat/sarah, /api/chat/alex, /api/chat/marcus) for true persona isolation
 - ✓ **Maya Module**: yoga_flow_generator, pranayama_guide, chakra_scanner, mantra_deck, meditation_engine with spiritual memory tracking
-- ✓ **Sarah Module**: cbt_techniques, therapy_summaries, journal_guidance, emotional_processing with therapeutic progress memory
+- ✓ **Sarah Module**: emotional_reflector, reframing_helper, self_compassion_engine, safe_redirect, coping_recommender, journaling_companion, session_logger with therapeutic progress memory
 - ✓ **Alex Module**: peer_support, humor_therapy, relatability_engine, encouragement_boosts with friendship moment memory
 - ✓ **Marcus Module**: goal_planner, habit_tracker, cbt_reframer, affirmation_memory, journaling_assistant, motivation_widget, crisis_redirect, life_wheel with achievement milestone memory
 - ✓ **Dynamic Feature Loading**: Persona-specific features activate only during that persona's session for true isolation

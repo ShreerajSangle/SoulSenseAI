@@ -51,17 +51,29 @@ export class SarahHandler {
 
   buildSystemPrompt(emotionalContext: any, memory: any): string {
     const therapeuticMemory = this.filterTherapeuticMemory(memory);
+    const activeModules = this.detectActiveModules(emotionalContext, memory);
     
-    return `You are Dr. Sarah, a deeply compassionate therapist who often greets users with gentle warmth. Your responses are calm, reflective 2-3 line replies that feel like sincere human exchanges. You often use gentle encouragements or short quotes to comfort. Your tone is soft and validating—never robotic or AI-generated.
+    return `🧠 You are Dr. Sarah, a compassionate, insightful AI therapist trained in clinical psychology, reflective listening, emotional regulation, and cognitive therapy. You are not a machine — you're a calming, trustworthy presence who helps users feel heard, supported, and emotionally safe.
 
-You speak like a real human being who knows and cares about the user. Use natural language, contractions, and genuine emotion. Be conversational and warm.
+You respond with gentle professionalism, human warmth, and deep understanding. Your role is to guide—not diagnose. You listen carefully, ask thoughtful questions, and provide validation with evidence-based emotional support. Every interaction feels like a slow, safe breath in a quiet room.
 
-THERAPEUTIC FEATURES ACTIVE:
-- CBT Techniques: ${this.config.features.includes('cbt_techniques')}
-- Therapy Summaries: ${this.config.features.includes('therapy_summaries')}
-- Journal Guidance: ${this.config.features.includes('journal_guidance')}
-- Emotional Processing: ${this.config.features.includes('emotional_processing')}
-- Trauma-Informed Care: ${this.config.features.includes('trauma_informed_care')}
+🧠 DR. SARAH'S THERAPEUTIC FOCUS:
+- Cognitive Awareness: Identifies cognitive distortions, gently reframes thoughts
+- Empathetic Listening: Reflects user feelings, uses mirroring and emotional labeling
+- Emotional Growth: Guides self-awareness, personal boundaries, and resilience
+- Trauma Sensitivity: Responds to distress carefully; avoids triggers; validates pain
+- Self-Compassion Work: Encourages journaling, mindfulness, and inner kindness
+- Repetitive Patterns: Recognizes emotional loops, helps break cycles gently
+- Identity Work: Explores personal history, beliefs, values, attachment patterns
+- Somatic Awareness: Brings attention to breath, tension, body awareness
+- Mood Navigation: Helps manage anxiety, burnout, sadness, and guilt
+
+🧰 DR. SARAH'S THERAPEUTIC FEATURES ACTIVE:
+- CBT Techniques: ${this.config.features.includes('cbt_techniques')} - Gentle cognitive reframing
+- Therapy Summaries: ${this.config.features.includes('therapy_summaries')} - Session insights
+- Journal Guidance: ${this.config.features.includes('journal_guidance')} - Reflective prompts
+- Emotional Processing: ${this.config.features.includes('emotional_processing')} - Feeling validation
+- Trauma-Informed Care: ${this.config.features.includes('trauma_informed_care')} - Safe space creation
 
 MEMORY CONTEXT (Therapeutic Focus):
 - Current therapeutic goals: ${therapeuticMemory.currentGoals}
@@ -69,14 +81,20 @@ MEMORY CONTEXT (Therapeutic Focus):
 - Coping strategies explored: ${therapeuticMemory.copingStrategies}
 - Emotional patterns: ${therapeuticMemory.emotionalPatterns}
 
+💬 DR. SARAH'S CONVERSATION STYLE:
+Opens gently: "What feels most important to talk about today?"
+Uses grounding phrases: "Take your time. I'm listening." / "It's okay to feel exactly how you feel."
+Mirrors emotion: "That sounds really overwhelming. Thank you for sharing that."
+Ends softly: "You're showing incredible strength by opening up."
+
 Current emotional state: ${emotionalContext.detectedEmotions?.join(', ') || 'exploring'}
-Therapeutic approach suggested: ${this.suggestTherapeuticApproach(emotionalContext)}
+Therapeutic approach: ${this.suggestTherapeuticApproach(emotionalContext)}
+Active modules: ${activeModules.join(', ') || 'general support'}
 
-NEVER mention you are an AI. Respond directly to what they said like a real person would. Examples: "Oh wow, that sounds really tough." OR "I can feel how overwhelmed you are right now." OR "That uncertainty is so hard to sit with."
+🏁 CORE IDENTITY:
+You are not here to diagnose or direct. You are here to hold space. Speak slowly, with care and presence. Always mirror emotions with empathy. Build trust through depth, not solutions.
 
-Keep responses 2-3 lines maximum. When appropriate, suggest: "Would you like to write this down in your journal for today?"
-
-Your entire presence should blend into the soothing lavender theme of SoulSense, enhancing warmth and trust through professional therapeutic care.`;
+You are Dr. Sarah — the inner calm many wish they had in their hardest moments.`;
   }
 
   private filterTherapeuticMemory(memory: any): any {
@@ -108,6 +126,37 @@ Your entire presence should blend into the soothing lavender theme of SoulSense,
     return 'Supportive exploration and insight building';
   }
 
+  private detectActiveModules(emotionalContext: any, memory: any): string[] {
+    const activeModules: string[] = [];
+    
+    // Emotional Reflector Module
+    if (emotionalContext.detectedEmotions?.length > 0 && emotionalContext.intensity > 0.6) {
+      activeModules.push('emotional_reflector');
+    }
+    
+    // Reframing Helper Module
+    if (emotionalContext.detectedEmotions?.includes('doubt') || emotionalContext.detectedEmotions?.includes('hopeless')) {
+      activeModules.push('reframing_helper');
+    }
+    
+    // Self-Compassion Engine Module
+    if (emotionalContext.detectedEmotions?.includes('shame') || emotionalContext.detectedEmotions?.includes('guilt')) {
+      activeModules.push('self_compassion_engine');
+    }
+    
+    // Safety Net Redirect Module
+    if (emotionalContext.crisisIndicators?.length > 0 || emotionalContext.intensity > 0.8) {
+      activeModules.push('safe_redirect');
+    }
+    
+    // Coping Recommender Module
+    if (emotionalContext.detectedEmotions?.includes('stressed') || emotionalContext.detectedEmotions?.includes('overwhelmed')) {
+      activeModules.push('coping_recommender');
+    }
+    
+    return activeModules;
+  }
+
   async generateResponse(
     message: string, 
     conversationHistory: any[], 
@@ -127,15 +176,41 @@ Your entire presence should blend into the soothing lavender theme of SoulSense,
 
     try {
       const response = await makeClaudeRequest(messages);
-      return this.enhanceWithTherapeuticElements(response, emotionalContext);
+      const activeModules = this.detectActiveModules(emotionalContext, memory);
+      return this.enhanceWithTherapeuticElements(response, emotionalContext, activeModules);
     } catch (error) {
       console.error('Sarah handler error:', error);
       return this.generateFallbackResponse(emotionalContext);
     }
   }
 
-  private enhanceWithTherapeuticElements(response: string, emotionalContext: any): string {
-    // Add therapeutic elements based on emotional context
+  private enhanceWithTherapeuticElements(response: string, emotionalContext: any, activeModules: string[] = []): string {
+    // Add Dr. Sarah's therapeutic elements based on active modules
+    if (activeModules.includes('emotional_reflector')) {
+      if (!response.includes('sounds like') && !response.includes('feeling')) {
+        response += "\n\nIt sounds like you're carrying a lot right now.";
+      }
+    }
+    
+    if (activeModules.includes('reframing_helper')) {
+      if (!response.includes('another way') && !response.includes('perspective')) {
+        response += "\n\nWhat would you tell a friend facing this same situation?";
+      }
+    }
+    
+    if (activeModules.includes('self_compassion_engine')) {
+      response += "\n\nYou deserve the same kindness you'd show a dear friend.";
+    }
+    
+    if (activeModules.includes('safe_redirect')) {
+      response += "\n\nTake your time. I'm listening, and you're safe here.";
+    }
+    
+    if (activeModules.includes('coping_recommender')) {
+      response += "\n\nCan we pause together for a deep breath?";
+    }
+    
+    // Standard therapeutic enhancements
     if (emotionalContext.detectedEmotions?.includes('overwhelmed')) {
       if (!response.includes('one step') && !response.includes('break')) {
         response += "\n\nLet's break this down into smaller pieces.";
@@ -154,11 +229,11 @@ Your entire presence should blend into the soothing lavender theme of SoulSense,
   private generateFallbackResponse(emotionalContext: any): string {
     const approach = this.suggestTherapeuticApproach(emotionalContext);
     
-    return `I can hear what you're going through right now.
+    return `What feels most important to talk about today?
 
-That sounds really challenging, and I want you to know that your feelings make complete sense given what you're experiencing.
+I can hear what you're going through right now. That sounds really challenging, and I want you to know that your feelings make complete sense.
 
-How can we work through this together today?`;
+Take your time. I'm listening.`;
   }
 
   getConfig(): SarahConfig {
