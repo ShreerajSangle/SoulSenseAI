@@ -6,7 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { FullscreenPersonaChat } from "@/components/fullscreen-persona-chat";
-import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import BreathingExercise from "@/components/breathing-exercise";
 import PrivacyPolicyModal from "@/components/privacy-policy-modal";
 import TermsOfUseModal from "@/components/terms-of-use-modal";
 import { useLocation } from "wouter";
@@ -45,7 +45,7 @@ const personaDescriptions = {
 export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
+  const [showBreathingExercise, setShowBreathingExercise] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsOfUse, setShowTermsOfUse] = useState(false);
   const [, setLocation] = useLocation();
@@ -465,10 +465,11 @@ export default function UnifiedHome() {
       )}
 
       {/* Breathing Guide Modal */}
-      {showBreathingGuide && (
-        <GentleBreathingGuide
-          isOpen={showBreathingGuide}
-          onClose={() => setShowBreathingGuide(false)}
+      {showBreathingExercise && (
+        <BreathingExercise
+          isOpen={showBreathingExercise}
+          onClose={() => setShowBreathingExercise(false)}
+          persona={{ id: 'maya', name: 'Maya' }}
           trigger="stress"
         />
       )}

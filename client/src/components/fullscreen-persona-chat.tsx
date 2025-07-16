@@ -5,15 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Wind, Target, BookOpen, MessageCircle, Smile, X } from "lucide-react";
-import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
-import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import BreathingExercise from "@/components/breathing-exercise";
 import { GoalCreationModal } from "@/components/goal-creation-modal";
 import { MiniJournalModal } from "@/components/mini-journal-modal";
 import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
 import { SessionRecapModal } from "@/components/session-recap-modal";
 import { DynamicTypingIndicator } from "@/components/dynamic-typing-indicator";
 import { MoodTimeline } from "@/components/mood-timeline";
-import BreathingExercise from "@/components/breathing-exercise";
+// Removed duplicate import - BreathingExercise already imported above
 
 interface Message {
   id: number;
@@ -418,12 +417,15 @@ export function FullscreenPersonaChat({ persona, isOpen, onClose }: FullscreenPe
                 }}
               />
               <div className="absolute bottom-3 right-3">
-                <EnhancedEmojiSelector
-                  currentEmotion={currentEmotion}
-                  onEmotionChange={setCurrentEmotion}
-                  intensity={emotionIntensity}
-                  onIntensityChange={setEmotionIntensity}
-                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="p-2 hover:bg-purple-100"
+                  onClick={() => setShowBreathingExercise(true)}
+                >
+                  <Smile className="h-4 w-4 text-purple-600" />
+                </Button>
               </div>
             </div>
             <Button
