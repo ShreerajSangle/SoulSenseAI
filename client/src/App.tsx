@@ -5,9 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import UnifiedHome from "@/pages/unified-home";
-import DiaryScreen from "@/pages/diary-screen";
+import EnhancedMemoryScreen from "@/pages/enhanced-memory-screen";
+import EnhancedDiaryScreen from "@/pages/enhanced-diary-screen";
+import EnhancedProfileScreen from "@/pages/enhanced-profile-screen";
 import GoalsPage from "@/pages/goals-page";
-import PersonaSelector from "@/pages/persona-selector";
 import ChatSession from "@/pages/chat-session";
 import NotFound from "@/pages/not-found";
 
@@ -15,9 +16,10 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={UnifiedHome} />
-      <Route path="/diary" component={DiaryScreen} />
+      <Route path="/memory" component={EnhancedMemoryScreen} />
+      <Route path="/diary" component={EnhancedDiaryScreen} />
       <Route path="/goals" component={GoalsPage} />
-      <Route path="/personas" component={PersonaSelector} />
+      <Route path="/profile" component={EnhancedProfileScreen} />
       <Route path="/chat/session/:sessionId" component={ChatSession} />
       <Route component={NotFound} />
     </Switch>
