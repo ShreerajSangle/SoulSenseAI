@@ -5,6 +5,20 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 
 ## Recent Changes
 
+### Immersive Fullscreen Persona Chat & Enhanced Modal System (July 2025)
+- ✓ **Fullscreen Persona Chat Mode**: Implemented dedicated fullscreen interface for focused one-on-one therapeutic sessions
+- ✓ **Smooth Navigation**: "← Back to Home" button with persona-specific color themes and animated transitions
+- ✓ **Enhanced Modal System**: All wellness tools (breathing exercises, goal creation, journaling, session recap) now feature improved UX
+- ✓ **ESC Key Support**: Press ESC to close any modal and return to chat seamlessly
+- ✓ **Overlay Click Dismissal**: Click outside modal areas to close them (desktop/tablet only)
+- ✓ **"Back to Chat" Buttons**: Consistent navigation flow with 💬 Back to Chat buttons across all modals
+- ✓ **Mobile-Friendly Design**: Bottom sheet modals on mobile with swipe-friendly close interactions
+- ✓ **Persona-Specific Styling**: Each persona's modals match their unique color scheme (Maya: purple/pink, Sarah: blue/teal, Alex: orange/red, Marcus: green/emerald)
+- ✓ **Immersive Experience**: Hidden background UI during fullscreen chat for distraction-free therapeutic sessions
+- ✓ **Smooth Animations**: Fade-in, zoom-in, and slide-in effects for all modal components
+- ✓ **Enhanced Accessibility**: Proper focus management, keyboard navigation, and visual feedback states
+- ✓ **Therapeutic Safety**: All modals preserve chat context and return users gracefully to conversation flow
+
 ### Therapeutic Homepage Redesign (July 2025)
 - ✓ **Complete Homepage Overhaul**: Replaced technical interface with therapeutic, inviting design inspired by therapist waiting room
 - ✓ **Hero Section**: Soft lavender-to-pink gradient with "Meet your digital emotional companion" headline and animated sparkle icon

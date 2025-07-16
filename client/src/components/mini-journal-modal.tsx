@@ -9,7 +9,7 @@ interface MiniJournalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEntryCreated: (entry: JournalEntry) => void;
-  persona: 'dr_sarah' | 'alex' | 'marcus' | 'maya';
+  persona: any;
 }
 
 interface JournalEntry {
@@ -43,7 +43,7 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
       text: entryText.trim(),
       mood: selectedMood,
       timestamp: new Date(),
-      persona
+      persona: persona.id
     };
 
     onEntryCreated(entry);
@@ -53,8 +53,8 @@ export function MiniJournalModal({ isOpen, onClose, onEntryCreated, persona }: M
   };
 
   const getPersonaPrompt = () => {
-    switch (persona) {
-      case 'dr_sarah':
+    switch (persona.id) {
+      case 'sarah':
         return "What emotions or thoughts would you like to reflect on today?";
       case 'maya':
         return "Take a moment to breathe and notice what's present in your heart...";

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
+import { FullscreenPersonaChat } from "@/components/fullscreen-persona-chat";
 import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
 import PrivacyPolicyModal from "@/components/privacy-policy-modal";
 import TermsOfUseModal from "@/components/terms-of-use-modal";
@@ -455,9 +455,9 @@ export default function UnifiedHome() {
         </div>
       </footer>
 
-      {/* Chat Overlay */}
+      {/* Fullscreen Persona Chat */}
       {chatOpen && selectedPersona && (
-        <SimpleChatOverlay
+        <FullscreenPersonaChat
           persona={selectedPersona}
           isOpen={chatOpen}
           onClose={handleCloseChat}
