@@ -1,0 +1,75 @@
+Carefully scan and debug the entire SoulSenseAI system, including frontend (UI), backend (FastAPI), routing, persona modules, and chat interactions. Resolve all existing bugs, improve stability, and ensure every feature works as expected across all 4 personas (Maya, Marcus, Sarah, Alex).
+
+✅ Step-by-Step Debugging Tasks
+1. 🎯 Frontend Functionality Check
+Ensure each persona panel opens full screen on click (not in a restricted section).
+
+Fix the “Start Breathing Exercise” and “Set Goal” overlays:
+
+Add a cancel/close (×) button to dismiss them.
+
+Ensure overlays don’t persist or overlap with chat history.
+
+Confirm emoji picker beside the send button is working for all panels.
+
+Verify individual chat themes for Maya, Marcus, Alex, and Sarah load correctly.
+
+2. 🧠 Persona Routing & Isolation
+Make sure each chat route (/chat/maya, /chat/marcus, etc.):
+
+Loads only that persona’s config and memory.
+
+Never overlaps responses from other personas.
+
+Has a unique tone, memory log, and system prompt in use.
+
+Check all *_config.py files and handlers are correctly wired.
+
+3. 🔄 Memory & Reflection Modules
+Validate that:
+
+Journals and reflections are saved under correct persona logs.
+
+Memory is loaded contextually (Maya doesn’t see Marcus’s logs).
+
+Daily affirmations, breathing status, mood tracker entries are saved and retrieved correctly.
+
+4. 💬 Chat Engine & Prompt Injection
+Ensure Mixtral/LLM is called with the correct persona prompt, not default fallback.
+
+Check all dynamic insertions (mood, journal, goals) are properly added to prompt templates before sending to the model.
+
+Ensure GPT or Claude responses are streamed and displayed live without freezing or lag.
+
+5. ⚙️ System Architecture Validation
+Confirm:
+
+main.py, controller.py, and all routes return valid responses.
+
+FastAPI has all endpoints active and reachable.
+
+requirements.txt includes all used dependencies (test if pip install -r requirements.txt works cleanly).
+
+6. 🔐 Security & Stability Checks
+Remove any sensitive tokens or hardcoded paths.
+
+Validate security/ modules (auth, encryption, session).
+
+Ensure logs and saved data (e.g., data/logs/) do not leak across personas.
+
+7. 🗂️ Remove Unused & Broken Code
+Delete broken UI buttons, placeholder components, unused handlers, old scripts (as previously prompted).
+
+Validate that updated component state is not relying on deprecated props or stale variables.
+
+📦 Final Expected Output
+Module	Expected Behavior
+Maya	Opens full-screen, breath UI with cancel, Yoga flow working
+Marcus	SMART goal planner opens with cancel, habit tracker saving
+Sarah	Mental health Q&A working with reflection journal
+Alex	Journaling + identity prompts + emotional mirroring functional
+All	Chat smooth, no freezing, each LLM response feels human
+UI	Clean transitions, panel isolation, responsive layout
+Backend	No route errors, logs clean, memory per persona
+Logs	/logs/{persona_name}_log.json storing reflections & moods properly
+Configs	All *_config.py files load proper prompt, features, tone

@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Send, Wind, Target, BookOpen, MessageCircle, Smile } from "lucide-react";
-import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
-import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import BreathingExercise from "@/components/breathing-exercise";
 import { GoalCreationModal } from "@/components/goal-creation-modal";
 import { MiniJournalModal } from "@/components/mini-journal-modal";
 import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
@@ -158,17 +157,12 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         };
       });
 
-      const response = await fetch(`/api/chat/${persona.id}`, {
+      const response = await fetch("/api/chat/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: message,
-          userId: 'anonymous',
-          conversationHistory: messages.map(msg => ({
-            sender: msg.sender,
-            content: msg.content,
-            timestamp: msg.timestamp
-          }))
+          personaId: persona.id,
+          message: message
         })
       });
 
@@ -176,29 +170,32 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         const data = await response.json();
         
         // Update user message with detected emotions
-        if (data.emotion) {
+        if (data.emotionalContext && data.emotionalContext.detectedEmotions) {
           setMessages(prev => prev.map(msg => 
             msg.id === userMessage.id 
               ? { 
                   ...msg, 
-                  emotions: [data.emotion],
-                  intensity: 0.5 // Default intensity
+                  emotions: data.emotionalContext.detectedEmotions,
+                  intensity: data.emotionalContext.intensity 
                 }
               : msg
           ));
           
           // Update global emotion state
-          setCurrentEmotion(data.emotion.charAt(0).toUpperCase() + data.emotion.slice(1));
-          setEmotionIntensity(50); // Default intensity
+          const primaryEmotion = data.emotionalContext.detectedEmotions[0];
+          if (primaryEmotion) {
+            setCurrentEmotion(primaryEmotion.charAt(0).toUpperCase() + primaryEmotion.slice(1));
+            setEmotionIntensity(Math.round(data.emotionalContext.intensity * 100));
+          }
         }
         
         const aiMessage: Message = {
           id: Date.now() + 1,
-          content: data.response || "I'm here to help. Could you tell me more about what you're experiencing?",
+          content: data.message?.content || data.aiResponse || "I'm here to help. Could you tell me more about what you're experiencing?",
           sender: "ai",
           timestamp: new Date(),
           persona: persona.name,
-          emotion: data.emotion
+          emotion: data.emotionDetected
         };
         
         setMessages(prev => [...prev, aiMessage]);
@@ -397,22 +394,16 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
               {/* Enhanced Input Area with Wellness Features */}
               <div className="glass-therapeutic border-t-0">
-                {/* Breathing Guide (when triggered) */}
+                {/* Breathing Guide Trigger */}
                 {showBreathingGuide && (
-                  <div className="mb-4">
-                    <GentleBreathingGuide 
-                      persona={persona.id === 'sarah' ? 'sarah' : persona.id as any}
-                      onComplete={() => {
-                        setShowBreathingGuide(false);
-                        setSessionData(prev => ({
-                          ...prev,
-                          breathingExercises: prev.breathingExercises + 1
-                        }));
-                      }}
-                      onCancel={() => {
-                        setShowBreathingGuide(false);
-                      }}
-                    />
+                  <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-purple-200/50">
+                    <p className="text-sm text-purple-700 mb-2">Take a moment to breathe...</p>
+                    <Button
+                      onClick={() => setShowBreathingGuide(false)}
+                      className="text-xs bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      Close Breathing Guide
+                    </Button>
                   </div>
                 )}
 
@@ -457,11 +448,16 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
                 {/* Unified Message Input Container */}
                 <div className="input-container-unified">
-                  {/* Emoji Selector */}
-                  <EnhancedEmojiSelector 
-                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
+                  {/* Wellness Actions */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBreathingGuide(true)}
                     className="action-button"
-                  />
+                    title="Breathing guide"
+                  >
+                    <Wind className="h-4 w-4" />
+                  </Button>
                   
                   {/* Journal Entry Icon */}
                   <button

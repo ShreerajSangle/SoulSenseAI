@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Brain, Target, Leaf, MessageCircle, Sparkles, BookOpen, User, BarChart3, Menu, X, ArrowRight, Wind, Star, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { SimpleChatOverlay } from "@/components/simple-chat-overlay";
-import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
+import { FullscreenPersonaChat } from "@/components/fullscreen-persona-chat";
+import BreathingExercise from "@/components/breathing-exercise";
 import PrivacyPolicyModal from "@/components/privacy-policy-modal";
 import TermsOfUseModal from "@/components/terms-of-use-modal";
 import { useLocation } from "wouter";
@@ -45,7 +45,7 @@ const personaDescriptions = {
 export default function UnifiedHome() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [showBreathingGuide, setShowBreathingGuide] = useState(false);
+  const [showBreathingExercise, setShowBreathingExercise] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsOfUse, setShowTermsOfUse] = useState(false);
   const [, setLocation] = useLocation();
@@ -455,9 +455,9 @@ export default function UnifiedHome() {
         </div>
       </footer>
 
-      {/* Chat Overlay */}
+      {/* Fullscreen Persona Chat */}
       {chatOpen && selectedPersona && (
-        <SimpleChatOverlay
+        <FullscreenPersonaChat
           persona={selectedPersona}
           isOpen={chatOpen}
           onClose={handleCloseChat}
@@ -465,17 +465,13 @@ export default function UnifiedHome() {
       )}
 
       {/* Breathing Guide Modal */}
-      {showBreathingGuide && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="max-w-md w-full">
-            <GentleBreathingGuide
-              persona="maya"
-              onComplete={() => setShowBreathingGuide(false)}
-              onCancel={() => setShowBreathingGuide(false)}
-              className="shadow-2xl"
-            />
-          </div>
-        </div>
+      {showBreathingExercise && (
+        <BreathingExercise
+          isOpen={showBreathingExercise}
+          onClose={() => setShowBreathingExercise(false)}
+          persona={{ id: 'maya', name: 'Maya' }}
+          trigger="stress"
+        />
       )}
 
       {/* Privacy Policy Modal */}
