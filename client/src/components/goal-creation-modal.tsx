@@ -16,7 +16,7 @@ interface GoalCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGoalCreated: (goal: Goal) => void;
-  persona: any;
+  persona: "sarah" | "alex" | "maya" | "marcus";
 }
 
 const GOAL_SUGGESTIONS = {
@@ -54,8 +54,8 @@ export function GoalCreationModal({ isOpen, onClose, onGoalCreated, persona }: G
   const [customGoal, setCustomGoal] = useState("");
   const [selectedSuggestion, setSelectedSuggestion] = useState("");
 
-  const suggestions = GOAL_SUGGESTIONS[persona.id] || GOAL_SUGGESTIONS.sarah;
-  const encouragement = PERSONA_ENCOURAGEMENT[persona.id] || PERSONA_ENCOURAGEMENT.sarah;
+  const suggestions = GOAL_SUGGESTIONS[persona] || GOAL_SUGGESTIONS.sarah;
+  const encouragement = PERSONA_ENCOURAGEMENT[persona] || PERSONA_ENCOURAGEMENT.sarah;
 
   const handleCreateGoal = () => {
     const goalText = customGoal.trim() || selectedSuggestion;
@@ -78,101 +78,103 @@ export function GoalCreationModal({ isOpen, onClose, onGoalCreated, persona }: G
   if (!isOpen) return null;
 
   return (
-    <Card className="w-full bg-white/95 backdrop-blur-sm border border-purple-200/50 shadow-xl animate-in zoom-in-95 duration-200">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-              <Target className="h-4 w-4 text-purple-600" />
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in-0 duration-200">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border border-purple-200/50 shadow-xl animate-in zoom-in-95 duration-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                <Target className="h-4 w-4 text-purple-600" />
+              </div>
+              <h3 className="font-medium text-gray-800">Set a Goal</h3>
             </div>
-            <h3 className="font-medium text-gray-800">Set a Goal with {persona.name}</h3>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <p className="text-sm text-gray-600 leading-relaxed">{encouragement}</p>
-      </CardHeader>
+          <p className="text-sm text-gray-600 leading-relaxed">{encouragement}</p>
+        </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Goal Type Selection */}
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { type: "small_step", label: "Right Now", icon: "⚡" },
-            { type: "today", label: "Today", icon: "☀️" },
-            { type: "this_week", label: "This Week", icon: "🗓️" }
-          ].map(({ type, label, icon }) => (
-            <button
-              key={type}
-              onClick={() => setGoalType(type as any)}
-              className={`p-2 rounded-lg border text-sm transition-all ${
-                goalType === type
-                  ? "bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300 text-purple-700"
-                  : "border-gray-200 hover:border-purple-200 hover:bg-purple-50/50"
-              }`}
-            >
-              <div>{icon}</div>
-              <div className="font-medium">{label}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* Goal Suggestions */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-500">Suggestions:</p>
-          <div className="space-y-1">
-            {suggestions[goalType].map((suggestion, index) => (
+        <CardContent className="space-y-4">
+          {/* Goal Type Selection */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { type: "small_step", label: "Right Now", icon: "⚡" },
+              { type: "today", label: "Today", icon: "☀️" },
+              { type: "this_week", label: "This Week", icon: "🗓️" }
+            ].map(({ type, label, icon }) => (
               <button
-                key={index}
-                onClick={() => {
-                  setSelectedSuggestion(suggestion);
-                  setCustomGoal("");
-                }}
-                className={`w-full text-left p-2 rounded-lg text-sm border transition-all ${
-                  selectedSuggestion === suggestion
-                    ? "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 text-purple-700"
-                    : "border-gray-100 hover:border-purple-200 hover:bg-purple-50/30"
+                key={type}
+                onClick={() => setGoalType(type as any)}
+                className={`p-2 rounded-lg border text-sm transition-all ${
+                  goalType === type
+                    ? "bg-gradient-to-br from-purple-50 to-pink-50 border-purple-300 text-purple-700"
+                    : "border-gray-200 hover:border-purple-200 hover:bg-purple-50/50"
                 }`}
               >
-                {suggestion}
+                <div>{icon}</div>
+                <div className="font-medium">{label}</div>
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Custom Goal Input */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-gray-500">Or create your own:</p>
-          <Input
-            value={customGoal}
-            onChange={(e) => {
-              setCustomGoal(e.target.value);
-              setSelectedSuggestion("");
-            }}
-            placeholder="What would you like to achieve?"
-            className="border-purple-200/50 focus:border-purple-300"
-          />
-        </div>
+          {/* Goal Suggestions */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500">Suggestions:</p>
+            <div className="space-y-1">
+              {suggestions[goalType].map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSelectedSuggestion(suggestion);
+                    setCustomGoal("");
+                  }}
+                  className={`w-full text-left p-2 rounded-lg text-sm border transition-all ${
+                    selectedSuggestion === suggestion
+                      ? "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 text-purple-700"
+                      : "border-gray-100 hover:border-purple-200 hover:bg-purple-50/30"
+                  }`}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            💬 Back to Chat
-          </Button>
-          <Button
-            onClick={handleCreateGoal}
-            disabled={!customGoal.trim() && !selectedSuggestion}
-            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100"
-          >
-            <Check className="h-4 w-4 mr-1" />
-            Create Goal
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          {/* Custom Goal Input */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500">Or create your own:</p>
+            <Input
+              value={customGoal}
+              onChange={(e) => {
+                setCustomGoal(e.target.value);
+                setSelectedSuggestion("");
+              }}
+              placeholder="What would you like to achieve?"
+              className="border-purple-200/50 focus:border-purple-300"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateGoal}
+              disabled={!customGoal.trim() && !selectedSuggestion}
+              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Create Goal
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

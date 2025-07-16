@@ -1,0 +1,31 @@
+Update the Hero Section of the SoulSense homepage by applying the Rosalia font exclusively to the main heading “Soul Sense” to give it a gentle, expressive, and graceful character. This heading should stand prominently at the top-center of the hero section, styled in large font size with generous letter spacing, soft-weighted strokes, and a soothing presence. Use a lavender-to-pink gradient background or a blurred texture to evoke calmness and emotional comfort. Beneath the main heading, use Inter or Poppins for supporting subheadlines: “Meet your digital emotional companion” and “Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.” Keep these in lighter weights with soft opacity or a muted tone to support the headline visually.
+
+Position two soft call-to-action buttons below:
+
+Button 1: “Start Chatting” — styled with a glowing lavender background, white text, rounded corners, and gentle hover effects.
+
+Button 2: “Meet the Personas” — styled as a translucent or pastel-bordered button with subtle hover fill.
+
+Ensure the overall hero layout is mobile-responsive, vertically centered, and has enough breathing space. Use smooth fade-in or upward slide animation for the text and buttons on page load to create a soft, welcoming transition. The typography hierarchy should be clear: Rosalia for the main logo/heading, and simple sans-serif fonts for all supporting text. Import the Rosalia font via Google Fonts, Bunny Fonts, or locally if needed, and apply it only to the H1 or site title to maintain visual elegance without overuse.
+
+🔤 Bonus (Font Link for Rosalia)
+If you're using Google Fonts or a local font setup:
+
+a. If it's available via Google Fonts or Bunny Fonts:
+html
+Copy
+Edit
+<link href="https://fonts.bunny.net/css?family=rosalia:400,600&display=swap" rel="stylesheet">
+b. Apply in CSS/JSX:
+css
+Copy
+Edit
+h1 {
+  font-family: 'Rosalia', serif;
+}
+Or in Tailwind (if configured):
+
+html
+Copy
+Edit
+<h1 className="font-rosalia text-5xl text-purple-700">Soul Sense</h1>

@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Send, Wind, Target, BookOpen, MessageCircle, Smile } from "lucide-react";
-import BreathingExercise from "@/components/breathing-exercise";
+import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
+import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
 import { GoalCreationModal } from "@/components/goal-creation-modal";
 import { MiniJournalModal } from "@/components/mini-journal-modal";
 import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
@@ -394,16 +395,19 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
               {/* Enhanced Input Area with Wellness Features */}
               <div className="glass-therapeutic border-t-0">
-                {/* Breathing Guide Trigger */}
+                {/* Breathing Guide (when triggered) */}
                 {showBreathingGuide && (
-                  <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-purple-200/50">
-                    <p className="text-sm text-purple-700 mb-2">Take a moment to breathe...</p>
-                    <Button
-                      onClick={() => setShowBreathingGuide(false)}
-                      className="text-xs bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      Close Breathing Guide
-                    </Button>
+                  <div className="mb-4">
+                    <GentleBreathingGuide 
+                      persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
+                      onComplete={() => {
+                        setShowBreathingGuide(false);
+                        setSessionData(prev => ({
+                          ...prev,
+                          breathingExercises: prev.breathingExercises + 1
+                        }));
+                      }}
+                    />
                   </div>
                 )}
 
@@ -448,16 +452,11 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
                 {/* Unified Message Input Container */}
                 <div className="input-container-unified">
-                  {/* Wellness Actions */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowBreathingGuide(true)}
+                  {/* Emoji Selector */}
+                  <EnhancedEmojiSelector 
+                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
                     className="action-button"
-                    title="Breathing guide"
-                  >
-                    <Wind className="h-4 w-4" />
-                  </Button>
+                  />
                   
                   {/* Journal Entry Icon */}
                   <button

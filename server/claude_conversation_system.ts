@@ -1,5 +1,10 @@
 import { EventEmitter } from 'events';
-// Core conversation system imports - removed deprecated modules
+import { conversationFlowEngine, ConversationPhase } from './conversation_flow_engine';
+import { enhancedPersonaSystem, EnhancedPersonaConfig } from './enhanced_persona_system';
+import { qualityEvaluator, QualityEvaluation } from './conversation_quality_evaluator';
+import { advancedIntelligenceEngine } from './advanced_intelligence_engine';
+import { gpt4oLevelProcessor } from './gpt4o_level_processor';
+import { dynamicGreetingSystem } from './dynamic_greetings';
 
 // Claude 3 Haiku via OpenRouter configuration for enhanced therapeutic conversations
 const CLAUDE_MODEL = "anthropic/claude-3.5-sonnet";
