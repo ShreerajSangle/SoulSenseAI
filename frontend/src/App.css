@@ -1,0 +1,397 @@
+/* SoulSense AI - Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Rosarivo:ital@0;1&family=Nunito:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Therapeutic Color Palette */
+  --lavender-50: #e8e4f3;
+  --lavender-100: #d1c4e9;
+  --lavender-200: #b39ddb;
+  --lavender-300: #9575cd;
+  --lavender-400: #7e57c2;
+  --lavender-500: #673ab7;
+  --lavender-600: #5e35b1;
+  --lavender-700: #512da8;
+  --lavender-800: #4527a0;
+  --lavender-900: #311b92;
+  
+  /* Soft Rose Palette */
+  --rose-50: #fce4ec;
+  --rose-100: #f8bbd9;
+  --rose-200: #f48fb1;
+  --rose-300: #f06292;
+  --rose-400: #ec407a;
+  --rose-500: #e91e63;
+  --rose-600: #d81b60;
+  --rose-700: #c2185b;
+  --rose-800: #ad1457;
+  --rose-900: #880e4f;
+  
+  /* Calming Blues */
+  --blue-50: #e3f2fd;
+  --blue-100: #bbdefb;
+  --blue-200: #90caf9;
+  --blue-300: #64b5f6;
+  --blue-400: #42a5f5;
+  --blue-500: #2196f3;
+  --blue-600: #1e88e5;
+  --blue-700: #1976d2;
+  --blue-800: #1565c0;
+  --blue-900: #0d47a1;
+  
+  /* Therapeutic Typography */
+  --font-rosarivo: 'Rosarivo', serif;
+  --font-nunito: 'Nunito', sans-serif;
+  --font-quicksand: 'Quicksand', sans-serif;
+  
+  /* Therapeutic Background */
+  --bg-therapeutic: #e8e4f3;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Shadows */
+  --shadow-gentle: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-therapeutic: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  
+  /* Transitions */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-gentle: all 0.2s ease-in-out;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: var(--font-nunito);
+  line-height: 1.6;
+  color: #374151;
+  background-color: var(--bg-therapeutic);
+  font-feature-settings: 'cv03', 'cv04', 'cv11';
+}
+
+.App {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8e4f3 0%, #fce4ec 50%, #e3f2fd 100%);
+}
+
+/* Typography Classes */
+.font-rosarivo {
+  font-family: var(--font-rosarivo);
+}
+
+.font-nunito {
+  font-family: var(--font-nunito);
+}
+
+.font-quicksand {
+  font-family: var(--font-quicksand);
+}
+
+/* Headings use Rosarivo for therapeutic warmth */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-rosarivo);
+  font-weight: 400;
+  line-height: 1.2;
+  color: #1f2937;
+}
+
+/* Body text and UI elements use Nunito for readability */
+p, span, div, button, input, textarea, select {
+  font-family: var(--font-nunito);
+  line-height: 1.6;
+}
+
+/* Quotes and special text use Quicksand for friendly accent */
+.quote-text, .callout-text, .accent-text {
+  font-family: var(--font-quicksand);
+  font-weight: 500;
+}
+
+/* Therapeutic Button Styles */
+.btn-primary {
+  background: linear-gradient(135deg, var(--lavender-500), var(--rose-500));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 1rem;
+  font-weight: 600;
+  transition: var(--transition-gentle);
+  box-shadow: var(--shadow-gentle);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-therapeutic);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--lavender-600);
+  padding: 0.75rem 1.5rem;
+  border: 2px solid var(--lavender-200);
+  border-radius: 1rem;
+  font-weight: 600;
+  transition: var(--transition-gentle);
+}
+
+.btn-secondary:hover {
+  border-color: var(--lavender-300);
+  background: var(--lavender-50);
+}
+
+/* Card Styles */
+.card-therapeutic {
+  background: var(--bg-card);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-gentle);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-therapeutic:hover {
+  box-shadow: var(--shadow-therapeutic);
+  transform: translateY(-2px);
+  transition: var(--transition-gentle);
+}
+
+/* Persona-Specific Styles */
+.persona-maya {
+  background: linear-gradient(135deg, var(--lavender-100), var(--rose-100));
+  color: var(--lavender-800);
+}
+
+.persona-sarah {
+  background: linear-gradient(135deg, var(--blue-100), var(--lavender-100));
+  color: var(--blue-800);
+}
+
+.persona-alex {
+  background: linear-gradient(135deg, #fed7aa, #fecaca);
+  color: #ea580c;
+}
+
+.persona-marcus {
+  background: linear-gradient(135deg, #dcfce7, #d1fae5);
+  color: #166534;
+}
+
+/* Chat Bubble Styles */
+.chat-bubble-user {
+  background: linear-gradient(135deg, var(--lavender-500), var(--rose-500));
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+  max-width: 70%;
+  margin-left: auto;
+  box-shadow: var(--shadow-soft);
+}
+
+.chat-bubble-ai {
+  background: var(--bg-card);
+  color: #374151;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  max-width: 70%;
+  margin-right: auto;
+  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-pulse-gentle {
+  animation: pulseGentle 2s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulseGentle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Form Styles */
+.form-input {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-nunito);
+  transition: var(--transition-gentle);
+}
+
+.form-input:focus {
+  border-color: var(--lavender-400);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(103, 58, 183, 0.1);
+}
+
+.form-textarea {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid transparent;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-nunito);
+  min-height: 120px;
+  resize: vertical;
+  transition: var(--transition-gentle);
+}
+
+.form-textarea:focus {
+  border-color: var(--lavender-400);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(103, 58, 183, 0.1);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-therapeutic);
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card-therapeutic {
+    padding: 1rem;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .chat-bubble-user, .chat-bubble-ai {
+    max-width: 85%;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .modal-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-therapeutic {
+    padding: 0.75rem;
+  }
+  
+  .chat-bubble-user, .chat-bubble-ai {
+    max-width: 90%;
+    padding: 0.5rem;
+  }
+  
+  .modal-content {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus indicators */
+button:focus, input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--lavender-400);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card-therapeutic {
+    border: 2px solid #000;
+  }
+  
+  .btn-primary {
+    border: 2px solid #000;
+  }
+  
+  .chat-bubble-user, .chat-bubble-ai {
+    border: 1px solid #000;
+  }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lavender-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lavender-400);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--lavender-200);
+  color: var(--lavender-800);
+}
+
+/* Print styles */
+@media print {
+  .App {
+    background: white;
+  }
+  
+  .card-therapeutic {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+  
+  .btn-primary, .btn-secondary {
+    border: 1px solid #000;
+  }
+}
