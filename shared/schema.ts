@@ -117,28 +117,22 @@ export const messages = pgTable("messages", {
 export const sessions = pgTable("therapy_sessions", {
   id: serial("id").primaryKey(),
   conversationId: integer("conversation_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  personaId: text("persona_id").notNull(),
   summary: text("summary"),
   keyTopics: json("key_topics").$type<string[]>(),
   techniquesUsed: json("techniques_used").$type<string[]>(),
   homework: json("homework").$type<string[]>(),
   moodBefore: integer("mood_before"), // 1-5 scale
   moodAfter: integer("mood_after"), // 1-5 scale
-  emotionAnalysis: jsonb("emotion_analysis").$type<{
-    primary_emotion: string;
-    intensity: number;
-    secondary_emotions: string[];
-    mood_valence: number;
-    arousal_level: number;
-  }>(),
-  crisisIndicators: jsonb("crisis_indicators").$type<{
-    level: string;
-    keywords: string[];
-    requires_intervention: boolean;
-  }>(),
-  duration: integer("duration"), // in minutes
+  duration: integer("duration"), // Duration in minutes
+  messageCount: integer("message_count").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  endedAt: timestamp("ended_at"),
 }, (table) => [
   index("idx_sessions_conversation_id").on(table.conversationId),
+  index("idx_sessions_user_id").on(table.userId),
+  index("idx_sessions_persona_id").on(table.personaId),
 ]);
 
 // Mood tracking table
@@ -272,6 +266,76 @@ export const dailyCheckIns = pgTable("daily_check_ins", {
   index("idx_daily_checkins_date").on(table.createdAt),
 ]);
 
+// Session Analytics table for tracking user engagement
+export const sessionAnalytics = pgTable("session_analytics", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  personaId: text("persona_id").notNull(),
+  sessionType: varchar("session_type").notNull(), // 'chat', 'journal', 'goal_setting', 'breathing'
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // Duration in seconds
+  messageCount: integer("message_count").default(0),
+  toolsUsed: json("tools_used").$type<string[]>(),
+  moodBefore: integer("mood_before"),
+  moodAfter: integer("mood_after"),
+  engagementScore: integer("engagement_score"), // 1-100 calculated score
+  completionStatus: varchar("completion_status").default('incomplete'), // 'completed', 'incomplete', 'abandoned'
+  quality: varchar("quality"), // 'high', 'medium', 'low'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_session_analytics_user_id").on(table.userId),
+  index("idx_session_analytics_persona_id").on(table.personaId),
+  index("idx_session_analytics_created_at").on(table.createdAt),
+  index("idx_session_analytics_session_type").on(table.sessionType),
+]);
+
+// User Streaks table for tracking engagement consistency
+export const userStreaks = pgTable("user_streaks", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  streakType: varchar("streak_type").notNull(), // 'daily_chat', 'weekly_checkin', 'goal_progress'
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  streakStartDate: timestamp("streak_start_date").defaultNow(),
+  metadata: jsonb("metadata").$type<{
+    weeklyGoal?: number;
+    achievements?: string[];
+    milestones?: { days: number; achieved: boolean; date?: string }[];
+  }>(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_user_streaks_user_id").on(table.userId),
+  index("idx_user_streaks_type").on(table.streakType),
+  index("idx_user_streaks_last_activity").on(table.lastActivity),
+]);
+
+// Persona Usage Statistics
+export const personaUsageStats = pgTable("persona_usage_stats", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  personaId: text("persona_id").notNull(),
+  totalSessions: integer("total_sessions").default(0),
+  totalDuration: integer("total_duration").default(0), // Total time in minutes
+  averageSessionLength: integer("average_session_length").default(0), // In minutes
+  totalMessages: integer("total_messages").default(0),
+  lastInteraction: timestamp("last_interaction"),
+  preferenceScore: integer("preference_score").default(0), // 0-100 based on usage frequency
+  effectivenessRating: integer("effectiveness_rating"), // User-provided 1-5 rating
+  favoriteFeatures: json("favorite_features").$type<string[]>(),
+  commonTopics: json("common_topics").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_persona_usage_user_id").on(table.userId),
+  index("idx_persona_usage_persona_id").on(table.personaId),
+  index("idx_persona_usage_last_interaction").on(table.lastInteraction),
+  uniqueIndex("idx_persona_usage_unique").on(table.userId, table.personaId),
+]);
+
 // Database relations
 export const usersRelations = relations(users, ({ many }) => ({
   conversations: many(conversations),
@@ -362,6 +426,14 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
+
+// New analytics types
+export type SessionAnalytic = typeof sessionAnalytics.$inferSelect;
+export type InsertSessionAnalytic = typeof sessionAnalytics.$inferInsert;
+export type UserStreak = typeof userStreaks.$inferSelect;
+export type InsertUserStreak = typeof userStreaks.$inferInsert;
+export type PersonaUsageStat = typeof personaUsageStats.$inferSelect;
+export type InsertPersonaUsageStat = typeof personaUsageStats.$inferInsert;
 
 // Diary entries for journaling and reflection
 export const diaryEntries = pgTable("diary_entries", {

@@ -494,6 +494,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics endpoints
+  app.get('/api/analytics/dashboard/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const dashboardData = await storage.getUserDashboardData(userId);
+      res.json(dashboardData);
+    } catch (error) {
+      console.error("Error fetching dashboard analytics:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard analytics" });
+    }
+  });
+
+  app.post('/api/analytics/session', async (req, res) => {
+    try {
+      const sessionAnalytic = await storage.createSessionAnalytic(req.body);
+      res.json(sessionAnalytic);
+    } catch (error) {
+      console.error("Error creating session analytic:", error);
+      res.status(500).json({ error: "Failed to create session analytic" });
+    }
+  });
+
+  app.get('/api/analytics/sessions/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { start, end } = req.query;
+      
+      const dateRange = start && end ? {
+        start: new Date(start as string),
+        end: new Date(end as string)
+      } : undefined;
+      
+      const sessions = await storage.getUserSessionAnalytics(userId, dateRange);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching session analytics:", error);
+      res.status(500).json({ error: "Failed to fetch session analytics" });
+    }
+  });
+
+  app.put('/api/analytics/streak/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { streakType, activityDate } = req.body;
+      
+      const streak = await storage.updateUserStreak(
+        userId, 
+        streakType, 
+        new Date(activityDate)
+      );
+      res.json(streak);
+    } catch (error) {
+      console.error("Error updating user streak:", error);
+      res.status(500).json({ error: "Failed to update user streak" });
+    }
+  });
+
+  app.get('/api/analytics/streaks/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const streaks = await storage.getUserStreaks(userId);
+      res.json(streaks);
+    } catch (error) {
+      console.error("Error fetching user streaks:", error);
+      res.status(500).json({ error: "Failed to fetch user streaks" });
+    }
+  });
+
+  app.get('/api/analytics/personas/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const personaStats = await storage.getPersonaUsageStats(userId);
+      res.json(personaStats);
+    } catch (error) {
+      console.error("Error fetching persona usage stats:", error);
+      res.status(500).json({ error: "Failed to fetch persona usage stats" });
+    }
+  });
+
+  app.put('/api/analytics/personas/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { personaId, sessionData } = req.body;
+      
+      const stats = await storage.updatePersonaUsageStats(userId, personaId, sessionData);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error updating persona usage stats:", error);
+      res.status(500).json({ error: "Failed to update persona usage stats" });
+    }
+  });
+
   // Debug dashboard endpoints
   app.get('/api/debug/conversation-logs', (req, res) => {
     try {

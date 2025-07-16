@@ -12,6 +12,9 @@ import {
   diaryEntries,
   userProfiles,
   goals,
+  sessionAnalytics,
+  userStreaks,
+  personaUsageStats,
   type User,
   type UpsertUser,
   type Persona,
@@ -24,9 +27,15 @@ import {
   type InsertSession,
   type Goal,
   type InsertGoal,
+  type SessionAnalytic,
+  type InsertSessionAnalytic,
+  type UserStreak,
+  type InsertUserStreak,
+  type PersonaUsageStat,
+  type InsertPersonaUsageStat,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, gte, lte } from "drizzle-orm";
 import { SupabaseStorage } from "./supabase-storage";
 
 export interface IStorage {
@@ -89,6 +98,34 @@ export interface IStorage {
   updateGoal(id: number, updates: Partial<Goal>): Promise<Goal>;
   deleteGoal(id: number): Promise<void>;
   updateGoalStatus(id: number, status: string, completedDate?: Date): Promise<Goal>;
+
+  // Session Analytics
+  createSessionAnalytic(analytic: InsertSessionAnalytic): Promise<SessionAnalytic>;
+  getUserSessionAnalytics(userId: string, dateRange?: { start: Date; end: Date }): Promise<SessionAnalytic[]>;
+  updateSessionAnalytic(id: number, updates: Partial<SessionAnalytic>): Promise<SessionAnalytic | undefined>;
+
+  // User Streaks
+  getUserStreaks(userId: string): Promise<UserStreak[]>;
+  updateUserStreak(userId: string, streakType: string, activityDate: Date): Promise<UserStreak>;
+
+  // Persona Usage Statistics
+  getPersonaUsageStats(userId: string): Promise<PersonaUsageStat[]>;
+  updatePersonaUsageStats(userId: string, personaId: string, sessionData: any): Promise<PersonaUsageStat>;
+
+  // Dashboard Analytics
+  getUserDashboardData(userId: string): Promise<{
+    totalSessions: number;
+    currentStreak: number;
+    averageMood: number;
+    favoritePersona: string;
+    sessionHistory: any[];
+    moodTrends: any[];
+    goals: {
+      total: number;
+      completed: number;
+      inProgress: number;
+    };
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -804,6 +841,253 @@ export class DatabaseStorage implements IStorage {
     });
     
     return `${baseName} - ${dateStr}`;
+  }
+
+  // Session Analytics Implementation
+  async createSessionAnalytic(analytic: InsertSessionAnalytic): Promise<SessionAnalytic> {
+    const [newAnalytic] = await db
+      .insert(sessionAnalytics)
+      .values(analytic)
+      .returning();
+    return newAnalytic;
+  }
+
+  async getUserSessionAnalytics(userId: string, dateRange?: { start: Date; end: Date }): Promise<SessionAnalytic[]> {
+    let query = db
+      .select()
+      .from(sessionAnalytics)
+      .where(eq(sessionAnalytics.userId, userId));
+
+    if (dateRange) {
+      query = query.where(
+        and(
+          gte(sessionAnalytics.createdAt, dateRange.start),
+          lte(sessionAnalytics.createdAt, dateRange.end)
+        )
+      );
+    }
+
+    return await query.orderBy(desc(sessionAnalytics.createdAt));
+  }
+
+  async updateSessionAnalytic(id: number, updates: Partial<SessionAnalytic>): Promise<SessionAnalytic | undefined> {
+    const [updatedAnalytic] = await db
+      .update(sessionAnalytics)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(sessionAnalytics.id, id))
+      .returning();
+    return updatedAnalytic;
+  }
+
+  // User Streaks Implementation
+  async getUserStreaks(userId: string): Promise<UserStreak[]> {
+    return await db
+      .select()
+      .from(userStreaks)
+      .where(eq(userStreaks.userId, userId))
+      .orderBy(desc(userStreaks.currentStreak));
+  }
+
+  async updateUserStreak(userId: string, streakType: string, activityDate: Date): Promise<UserStreak> {
+    const existing = await db
+      .select()
+      .from(userStreaks)
+      .where(and(
+        eq(userStreaks.userId, userId),
+        eq(userStreaks.streakType, streakType)
+      ))
+      .limit(1);
+
+    const now = new Date();
+
+    if (existing.length === 0) {
+      // Create new streak
+      const [newStreak] = await db
+        .insert(userStreaks)
+        .values({
+          userId,
+          streakType,
+          currentStreak: 1,
+          longestStreak: 1,
+          lastActivity: activityDate,
+          streakStartDate: activityDate,
+          isActive: true,
+        })
+        .returning();
+      return newStreak;
+    }
+
+    const streak = existing[0];
+    const lastActivity = new Date(streak.lastActivity);
+    const daysSinceLastActivity = Math.floor((activityDate.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+    let newCurrentStreak = streak.currentStreak;
+    let newLongestStreak = streak.longestStreak;
+    let newStartDate = streak.streakStartDate;
+
+    if (daysSinceLastActivity === 1) {
+      // Continue streak
+      newCurrentStreak += 1;
+      newLongestStreak = Math.max(newLongestStreak, newCurrentStreak);
+    } else if (daysSinceLastActivity > 1) {
+      // Reset streak
+      newCurrentStreak = 1;
+      newStartDate = activityDate;
+    }
+
+    const [updatedStreak] = await db
+      .update(userStreaks)
+      .set({
+        currentStreak: newCurrentStreak,
+        longestStreak: newLongestStreak,
+        lastActivity: activityDate,
+        streakStartDate: newStartDate,
+        updatedAt: now,
+      })
+      .where(eq(userStreaks.id, streak.id))
+      .returning();
+
+    return updatedStreak;
+  }
+
+  // Persona Usage Statistics Implementation
+  async getPersonaUsageStats(userId: string): Promise<PersonaUsageStat[]> {
+    return await db
+      .select()
+      .from(personaUsageStats)
+      .where(eq(personaUsageStats.userId, userId))
+      .orderBy(desc(personaUsageStats.totalSessions));
+  }
+
+  async updatePersonaUsageStats(userId: string, personaId: string, sessionData: any): Promise<PersonaUsageStat> {
+    const existing = await db
+      .select()
+      .from(personaUsageStats)
+      .where(and(
+        eq(personaUsageStats.userId, userId),
+        eq(personaUsageStats.personaId, personaId)
+      ))
+      .limit(1);
+
+    const now = new Date();
+
+    if (existing.length === 0) {
+      // Create new persona usage record
+      const [newStats] = await db
+        .insert(personaUsageStats)
+        .values({
+          userId,
+          personaId,
+          totalSessions: 1,
+          totalDuration: sessionData.duration || 0,
+          averageSessionLength: sessionData.duration || 0,
+          totalMessages: sessionData.messageCount || 0,
+          lastInteraction: now,
+          preferenceScore: 10, // Initial score
+        })
+        .returning();
+      return newStats;
+    }
+
+    const stats = existing[0];
+    const newTotalSessions = stats.totalSessions + 1;
+    const newTotalDuration = stats.totalDuration + (sessionData.duration || 0);
+    const newAverageSessionLength = Math.round(newTotalDuration / newTotalSessions);
+    const newTotalMessages = stats.totalMessages + (sessionData.messageCount || 0);
+
+    const [updatedStats] = await db
+      .update(personaUsageStats)
+      .set({
+        totalSessions: newTotalSessions,
+        totalDuration: newTotalDuration,
+        averageSessionLength: newAverageSessionLength,
+        totalMessages: newTotalMessages,
+        lastInteraction: now,
+        preferenceScore: Math.min(100, stats.preferenceScore + 2), // Increase preference
+        updatedAt: now,
+      })
+      .where(eq(personaUsageStats.id, stats.id))
+      .returning();
+
+    return updatedStats;
+  }
+
+  // Dashboard Analytics Implementation
+  async getUserDashboardData(userId: string): Promise<{
+    totalSessions: number;
+    currentStreak: number;
+    averageMood: number;
+    favoritePersona: string;
+    sessionHistory: any[];
+    moodTrends: any[];
+    goals: {
+      total: number;
+      completed: number;
+      inProgress: number;
+    };
+  }> {
+    // Get session analytics
+    const sessionAnalyticsList = await this.getUserSessionAnalytics(userId);
+    
+    // Get streaks
+    const streaks = await this.getUserStreaks(userId);
+    const chatStreak = streaks.find(s => s.streakType === 'daily_chat')?.currentStreak || 0;
+
+    // Get persona usage stats
+    const personaStats = await this.getPersonaUsageStats(userId);
+    const favoritePersona = personaStats.length > 0 
+      ? personaStats[0].personaId 
+      : 'sarah';
+
+    // Get mood entries for average
+    const moodEntries = await this.getUserMoodEntries(userId, 'month');
+    const averageMood = moodEntries.length > 0
+      ? Math.round(moodEntries.reduce((sum, entry) => sum + entry.moodRating, 0) / moodEntries.length)
+      : 0;
+
+    // Get goals
+    const userGoals = await this.getUserGoals(userId);
+    const completedGoals = userGoals.filter(g => g.status === 'completed').length;
+    const inProgressGoals = userGoals.filter(g => g.status === 'in_progress').length;
+
+    // Session history (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentSessions = await this.getUserSessionAnalytics(userId, {
+      start: thirtyDaysAgo,
+      end: new Date()
+    });
+
+    // Mood trends (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentMoodEntries = moodEntries.filter(entry => 
+      new Date(entry.createdAt) >= sevenDaysAgo
+    );
+
+    return {
+      totalSessions: sessionAnalyticsList.length,
+      currentStreak: chatStreak,
+      averageMood,
+      favoritePersona,
+      sessionHistory: recentSessions.map(session => ({
+        date: session.createdAt,
+        personaId: session.personaId,
+        duration: session.duration,
+        mood: session.moodAfter || session.moodBefore,
+        sessionType: session.sessionType,
+      })),
+      moodTrends: recentMoodEntries.map(entry => ({
+        date: entry.createdAt,
+        mood: entry.moodRating,
+        emotions: entry.emotions,
+      })),
+      goals: {
+        total: userGoals.length,
+        completed: completedGoals,
+        inProgress: inProgressGoals,
+      },
+    };
   }
 }
 

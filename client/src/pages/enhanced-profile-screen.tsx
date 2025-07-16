@@ -13,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnalyticsDashboard } from "@/components/analytics-dashboard";
 import { format } from "date-fns";
 import { 
   User, 
@@ -30,7 +31,8 @@ import {
   Calendar,
   TrendingUp,
   Award,
-  BookOpen
+  BookOpen,
+  BarChart3
 } from "lucide-react";
 
 interface UserProfile {
@@ -319,12 +321,21 @@ export default function EnhancedProfileScreen() {
           </p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 bg-white dark:bg-gray-800 rounded-2xl">
+        <Tabs defaultValue="analytics" className="space-y-8">
+          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4 bg-white dark:bg-gray-800 rounded-2xl">
+            <TabsTrigger value="analytics" className="rounded-2xl">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="overview" className="rounded-2xl">Overview</TabsTrigger>
             <TabsTrigger value="goals" className="rounded-2xl">Goals</TabsTrigger>
             <TabsTrigger value="settings" className="rounded-2xl">Settings</TabsTrigger>
           </TabsList>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-8">
+            <AnalyticsDashboard userId={profile?.userId || "anonymous"} />
+          </TabsContent>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-8">
