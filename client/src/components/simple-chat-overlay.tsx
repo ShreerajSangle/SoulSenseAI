@@ -445,6 +445,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                       }}
                       lastAiMessage={messages.length > 0 ? messages[messages.length - 1]?.content || "" : ""}
                       userEmotion={currentEmotion || "neutral"}
+                      conversationHistory={messages}
                     />
                   </div>
                 )}
