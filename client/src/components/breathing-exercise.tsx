@@ -130,8 +130,14 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white dark:bg-gray-900 shadow-xl">
+    <div 
+      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <Card 
+        className="w-full max-w-md bg-white dark:bg-gray-900 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
@@ -141,7 +147,8 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+              title="Close breathing exercise"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -218,23 +225,43 @@ export default function BreathingExercise({ isOpen, onClose, persona }: Breathin
             {/* Controls */}
             <div className="flex justify-center gap-3">
               {!isActive ? (
-                <Button
-                  onClick={startExercise}
-                  className="flex items-center gap-2"
-                  style={{ backgroundColor: persona.color }}
-                >
-                  <Play className="h-4 w-4" />
-                  Start
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={startExercise}
+                    className="flex items-center gap-2"
+                    style={{ backgroundColor: persona.color }}
+                  >
+                    <Play className="h-4 w-4" />
+                    Start
+                  </Button>
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
               ) : (
-                <Button
-                  onClick={stopExercise}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  <Pause className="h-4 w-4" />
-                  Stop
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={stopExercise}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Pause className="h-4 w-4" />
+                    Stop
+                  </Button>
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Done
+                  </Button>
+                </div>
               )}
             </div>
 
