@@ -137,10 +137,12 @@ You are Marcus — the mentor who believes in the next version of each soul you 
     emotionalContext: any,
     memory: any
   ): Promise<string> {
-    const systemPrompt = this.buildSystemPrompt(emotionalContext, memory);
+    // Detect and activate Marcus's feature modules based on user input
+    const activeModules = this.detectActiveModules(message, emotionalContext, memory);
+    const enhancedSystemPrompt = this.buildSystemPrompt(emotionalContext, memory) + this.buildModuleContext(activeModules);
     
     const messages = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: enhancedSystemPrompt },
       ...conversationHistory.map(msg => ({
         role: msg.sender === 'user' ? 'user' : 'assistant',
         content: msg.content
@@ -150,15 +152,128 @@ You are Marcus — the mentor who believes in the next version of each soul you 
 
     try {
       const response = await makeClaudeRequest(messages);
-      return this.enhanceWithCoachingElements(response, emotionalContext);
+      return this.enhanceWithCoachingElements(response, emotionalContext, activeModules);
     } catch (error) {
       console.error('Marcus handler error:', error);
       return this.generateFallbackResponse(emotionalContext);
     }
   }
 
-  private enhanceWithCoachingElements(response: string, emotionalContext: any): string {
-    // Add Marcus's coaching elements based on emotional context
+  private detectActiveModules(message: string, emotionalContext: any, memory: any): string[] {
+    const activeModules: string[] = [];
+    const lowerMessage = message.toLowerCase();
+    
+    // Goal Planner Module
+    if (lowerMessage.includes('goal') || lowerMessage.includes('plan') || lowerMessage.includes('achieve')) {
+      activeModules.push('goal_planner');
+    }
+    
+    // Habit Tracker Module
+    if (lowerMessage.includes('habit') || lowerMessage.includes('routine') || lowerMessage.includes('daily')) {
+      activeModules.push('habit_tracker');
+    }
+    
+    // CBT Reframer Module
+    if (lowerMessage.includes('failing') || lowerMessage.includes('can\'t') || lowerMessage.includes('impossible') || 
+        lowerMessage.includes('useless') || emotionalContext.detectedEmotions?.includes('doubt')) {
+      activeModules.push('cbt_reframer');
+    }
+    
+    // Affirmation Memory Module
+    if (emotionalContext.detectedEmotions?.includes('stressed') || emotionalContext.detectedEmotions?.includes('anxious') ||
+        emotionalContext.detectedEmotions?.includes('overwhelmed')) {
+      activeModules.push('affirmation_memory');
+    }
+    
+    // Journaling Assistant Module
+    if (lowerMessage.includes('reflect') || lowerMessage.includes('journal') || lowerMessage.includes('write')) {
+      activeModules.push('journaling_assistant');
+    }
+    
+    // Motivation Widget Module
+    if (emotionalContext.detectedEmotions?.includes('sad') || emotionalContext.detectedEmotions?.includes('unmotivated') ||
+        emotionalContext.intensity > 0.7) {
+      activeModules.push('motivation_widget');
+    }
+    
+    // Crisis Redirect Module
+    if (lowerMessage.includes('worthless') || lowerMessage.includes('hopeless') || 
+        emotionalContext.crisisIndicators?.length > 0) {
+      activeModules.push('crisis_redirect');
+    }
+    
+    // Life Wheel Module
+    if (lowerMessage.includes('balance') || lowerMessage.includes('areas') || lowerMessage.includes('life check')) {
+      activeModules.push('life_wheel');
+    }
+    
+    return activeModules;
+  }
+
+  private buildModuleContext(activeModules: string[]): string {
+    if (activeModules.length === 0) return '';
+    
+    let moduleContext = '\n\n🔧 ACTIVE COACHING MODULES:\n';
+    
+    activeModules.forEach(module => {
+      switch (module) {
+        case 'goal_planner':
+          moduleContext += '- Goal Planner: Guide SMART goal creation with "What would success look like for you this week?"\n';
+          break;
+        case 'habit_tracker':
+          moduleContext += '- Habit Tracker: Suggest habit stacking and reward systems for daily progress\n';
+          break;
+        case 'cbt_reframer':
+          moduleContext += '- CBT Reframer: Gently challenge negative self-talk and offer positive reframes\n';
+          break;
+        case 'affirmation_memory':
+          moduleContext += '- Affirmation Memory: Offer saved affirmations or create personalized ones\n';
+          break;
+        case 'journaling_assistant':
+          moduleContext += '- Journaling Assistant: Suggest reflective prompts and provide gentle feedback\n';
+          break;
+        case 'motivation_widget':
+          moduleContext += '- Motivation Widget: Send encouraging cards and momentum builders\n';
+          break;
+        case 'crisis_redirect':
+          moduleContext += '- Crisis Support: Offer gentle support and suggest professional resources if needed\n';
+          break;
+        case 'life_wheel':
+          moduleContext += '- Life Wheel: Check balance across career, health, relationships, personal growth\n';
+          break;
+      }
+    });
+    
+    return moduleContext;
+  }
+
+  private enhanceWithCoachingElements(response: string, emotionalContext: any, activeModules: string[] = []): string {
+    // Add Marcus's coaching elements based on emotional context and active modules
+    if (activeModules.includes('goal_planner') && !response.includes('SMART')) {
+      response += "\n\nWant to break that down into a SMART goal together?";
+    }
+    
+    if (activeModules.includes('cbt_reframer') && !response.includes('reframe')) {
+      response += "\n\nLet's reframe that thought. What would you tell a friend in this situation?";
+    }
+    
+    if (activeModules.includes('habit_tracker') && !response.includes('habit')) {
+      response += "\n\nWhat's one small habit we could stack onto something you already do daily?";
+    }
+    
+    if (activeModules.includes('affirmation_memory')) {
+      response += "\n\nRemember: 'I am building a life I'm proud of, one decision at a time.'";
+    }
+    
+    if (activeModules.includes('motivation_widget')) {
+      response += "\n\nEven slow progress is still progress. You've got this! 💪";
+    }
+    
+    if (activeModules.includes('crisis_redirect')) {
+      response += "\n\nYou matter, and this feeling will pass. Would it help to talk to someone today?";
+    }
+    
+    // Standard emotional context enhancements
     if (emotionalContext.detectedEmotions?.includes('stuck')) {
       if (!response.includes('action') && !response.includes('step')) {
         response += "\n\nLet's break it down and move forward, one brave step at a time.";

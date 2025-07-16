@@ -76,8 +76,9 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 - ✓ **Maya Module**: yoga_flow_generator, pranayama_guide, chakra_scanner, mantra_deck, meditation_engine with spiritual memory tracking
 - ✓ **Sarah Module**: cbt_techniques, therapy_summaries, journal_guidance, emotional_processing with therapeutic progress memory
 - ✓ **Alex Module**: peer_support, humor_therapy, relatability_engine, encouragement_boosts with friendship moment memory
-- ✓ **Marcus Module**: goal_setting, action_planning, motivation_engine, progress_tracking with achievement milestone memory
+- ✓ **Marcus Module**: goal_planner, habit_tracker, cbt_reframer, affirmation_memory, journaling_assistant, motivation_widget, crisis_redirect, life_wheel with achievement milestone memory
 - ✓ **Dynamic Feature Loading**: Persona-specific features activate only during that persona's session for true isolation
+- ✓ **Intelligent Module Detection**: Marcus detects goal planning, habit tracking, CBT reframing, affirmations, journaling, motivation, and crisis needs
 - ✓ **Memory Rule Filtering**: Each persona only accesses relevant memories based on their specialized memory rules
 - ✓ **Modular System Prompts**: Enhanced prompt building with persona module context and feature-specific instructions
 - ✓ **UI Style Integration**: Persona-specific bubble colors, emojis, and response length patterns for consistent experience
