@@ -71,7 +71,7 @@ app = FastAPI(
 # CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -166,7 +166,7 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
         
         return ChatResponse(
             content=response.content,
-            persona_id=PersonaType(persona_id),
+            persona_id=persona_id,
             emotion=emotional_context.primary_emotion,
             confidence=emotional_context.confidence,
             features_activated=handler.get_active_features(),
