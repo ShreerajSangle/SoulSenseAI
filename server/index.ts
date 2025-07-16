@@ -1,70 +1,40 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes-clean";
-import { setupVite, serveStatic, log } from "./vite";
+/**
+ * SoulSense AI - Compatibility Bridge
+ * Redirects to Python FastAPI backend
+ */
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+console.log('🔄 Starting SoulSense AI Python Backend...');
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
+const backendPath = path.join(__dirname, '..', 'backend');
+const pythonProcess = spawn('python3', ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000', '--reload'], {
+  cwd: backendPath,
+  stdio: 'inherit'
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+pythonProcess.on('close', (code) => {
+  console.log(`Backend process exited with code ${code}`);
+  process.exit(code);
+});
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+pythonProcess.on('error', (error) => {
+  console.error('Failed to start backend:', error);
+  process.exit(1);
+});
 
-    res.status(status).json({ message });
-    throw err;
-  });
+// Keep the process alive
+process.on('SIGINT', () => {
+  console.log('\n🛑 Shutting down SoulSense AI...');
+  pythonProcess.kill();
+  process.exit(0);
+});
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+console.log('✅ SoulSense AI Backend Starting...');
+console.log('🌐 API: http://localhost:8000');
+console.log('📚 Docs: http://localhost:8000/docs');
