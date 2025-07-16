@@ -158,12 +158,17 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         };
       });
 
-      const response = await fetch("/api/chat/message", {
+      const response = await fetch(`/api/chat/${persona.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          personaId: persona.id,
-          message: message
+          message: message,
+          userId: 'anonymous',
+          conversationHistory: messages.map(msg => ({
+            sender: msg.sender,
+            content: msg.content,
+            timestamp: msg.timestamp
+          }))
         })
       });
 
@@ -171,32 +176,29 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         const data = await response.json();
         
         // Update user message with detected emotions
-        if (data.emotionalContext && data.emotionalContext.detectedEmotions) {
+        if (data.emotion) {
           setMessages(prev => prev.map(msg => 
             msg.id === userMessage.id 
               ? { 
                   ...msg, 
-                  emotions: data.emotionalContext.detectedEmotions,
-                  intensity: data.emotionalContext.intensity 
+                  emotions: [data.emotion],
+                  intensity: 0.5 // Default intensity
                 }
               : msg
           ));
           
           // Update global emotion state
-          const primaryEmotion = data.emotionalContext.detectedEmotions[0];
-          if (primaryEmotion) {
-            setCurrentEmotion(primaryEmotion.charAt(0).toUpperCase() + primaryEmotion.slice(1));
-            setEmotionIntensity(Math.round(data.emotionalContext.intensity * 100));
-          }
+          setCurrentEmotion(data.emotion.charAt(0).toUpperCase() + data.emotion.slice(1));
+          setEmotionIntensity(50); // Default intensity
         }
         
         const aiMessage: Message = {
           id: Date.now() + 1,
-          content: data.message?.content || data.aiResponse || "I'm here to help. Could you tell me more about what you're experiencing?",
+          content: data.response || "I'm here to help. Could you tell me more about what you're experiencing?",
           sender: "ai",
           timestamp: new Date(),
           persona: persona.name,
-          emotion: data.emotionDetected
+          emotion: data.emotion
         };
         
         setMessages(prev => [...prev, aiMessage]);

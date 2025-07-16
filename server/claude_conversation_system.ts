@@ -6,24 +6,26 @@ import { advancedIntelligenceEngine } from './advanced_intelligence_engine';
 import { gpt4oLevelProcessor } from './gpt4o_level_processor';
 import { dynamicGreetingSystem } from './dynamic_greetings';
 
-// Claude 3 Haiku via OpenRouter configuration for enhanced therapeutic conversations
-const CLAUDE_MODEL = "anthropic/claude-3.5-sonnet";
+// Mixtral 8x7B via OpenRouter configuration for enhanced therapeutic conversations
+const MIXTRAL_MODEL = "mistralai/mixtral-8x7b-instruct";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // OpenRouter API client setup - using OPENAI_API_KEY since that's what the user provided
-export async function makeClaudeRequest(messages: any[]) {
-  console.log('Making Claude request via OpenRouter with messages:', JSON.stringify(messages, null, 2));
+export async function makeClaudeRequest(messages: any[]): Promise<string> {
+  console.log('Making Mixtral API request via OpenRouter...');
+  console.log('API Key length:', process.env.OPENROUTER_API_KEY?.length || 0);
+  console.log('API Key starts with:', process.env.OPENROUTER_API_KEY?.substring(0, 10) + '...');
   
   const response = await fetch(OPENROUTER_API_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://soulsense.ai',
       'X-Title': 'SoulSense AI Therapeutic Assistant'
     },
     body: JSON.stringify({
-      model: CLAUDE_MODEL,
+      model: MIXTRAL_MODEL,
       messages: messages,
       temperature: 0.8,
       max_tokens: 800,
@@ -37,7 +39,14 @@ export async function makeClaudeRequest(messages: any[]) {
     throw new Error(`OpenRouter API error: ${response.status} ${response.statusText} - ${errorText}`);
   }
 
-  return response.json();
+  const data = await response.json();
+  console.log('Mixtral response received successfully');
+  
+  // Extract only the message content from the response
+  const content = data.choices?.[0]?.message?.content || 'I understand you\'re reaching out. How can I support you today?';
+  
+  console.log('Claude response processed successfully:', content.substring(0, 50) + '...');
+  return content;
 }
 
 interface PersonaConfig {
