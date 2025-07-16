@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wind, Pause, RotateCcw } from "lucide-react";
+import { Wind, Pause, RotateCcw, X } from "lucide-react";
 
 interface BreathingGuideProps {
   persona: "sarah" | "alex" | "maya" | "marcus";
   onComplete?: () => void;
+  onClose?: () => void;
   className?: string;
 }
 
@@ -46,7 +47,7 @@ const PERSONA_GUIDANCE = {
   }
 };
 
-export function GentleBreathingGuide({ persona, onComplete, className = "" }: BreathingGuideProps) {
+export function GentleBreathingGuide({ persona, onComplete, onClose, className = "" }: BreathingGuideProps) {
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState<"inhale" | "hold" | "exhale">("inhale");
   const [count, setCount] = useState(4);
@@ -107,6 +108,21 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
   return (
     <Card className={`bg-gradient-to-br from-purple-50/80 to-pink-50/80 border-purple-200/50 animate-in fade-in-0 slide-in-from-bottom-3 duration-300 ${className}`}>
       <CardContent className="p-4 space-y-4">
+        {/* Close Button */}
+        {onClose && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 text-gray-400"
+              title="Close breathing guide"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+        
         <div className="text-center space-y-2">
           <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
             <Wind className="h-5 w-5 text-purple-600" />
@@ -146,13 +162,21 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
 
         <div className="flex justify-center gap-2">
           {!isActive ? (
-            <Button
-              onClick={handleStart}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white px-6 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
-            >
-              <Wind className="h-4 w-4 mr-2" />
-              Start Breathing
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleStart}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 text-white px-6 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+              >
+                <Wind className="h-4 w-4 mr-2" />
+                Start Breathing
+              </Button>
+              {onClose && (
+                <Button variant="outline" onClick={onClose}>
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+              )}
+            </div>
           ) : (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleStop}>
@@ -163,6 +187,12 @@ export function GentleBreathingGuide({ persona, onComplete, className = "" }: Br
                 <RotateCcw className="h-4 w-4 mr-1" />
                 Restart
               </Button>
+              {onClose && (
+                <Button variant="outline" size="sm" onClick={onClose}>
+                  <X className="h-4 w-4 mr-1" />
+                  Done
+                </Button>
+              )}
             </div>
           )}
         </div>
