@@ -7,6 +7,7 @@ import { naturalConversationSystem } from "./natural_conversation_system";
 import { supabaseSync } from "./supabase-sync";
 import { insertConversationSchema, insertMessageSchema, insertSessionSchema } from "@shared/schema";
 import { z } from "zod";
+import personaRoutes from "./persona_routes";
 
 // Request schemas
 const createChatMessageRequestSchema = z.object({
@@ -36,6 +37,9 @@ const createSessionSummaryRequestSchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+
+  // Add dedicated persona routes for modular architecture
+  app.use("/api", personaRoutes);
 
   // Personas
   app.get("/api/personas", async (req, res) => {

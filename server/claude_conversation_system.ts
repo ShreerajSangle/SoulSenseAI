@@ -11,7 +11,7 @@ const CLAUDE_MODEL = "anthropic/claude-3.5-sonnet";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 // OpenRouter API client setup - using OPENAI_API_KEY since that's what the user provided
-async function makeClaudeRequest(messages: any[]) {
+export async function makeClaudeRequest(messages: any[]) {
   console.log('Making Claude request via OpenRouter with messages:', JSON.stringify(messages, null, 2));
   
   const response = await fetch(OPENROUTER_API_URL, {
@@ -715,7 +715,7 @@ Respond with this enhanced understanding, maintaining your authentic persona voi
     }
   }
 
-  private async detectEmotions(message: string): Promise<EmotionalContext> {
+  async detectEmotions(message: string): Promise<EmotionalContext> {
     // Check cache first
     const cacheKey = message.toLowerCase().trim();
     if (this.emotionDetectionCache.has(cacheKey)) {
@@ -876,7 +876,7 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
     };
   }
 
-  private getConversationMemory(userId: string, personaId: string): ConversationMemory {
+  getConversationMemory(userId: string, personaId: string): ConversationMemory {
     const memoryKey = `${userId}-${personaId}`;
     
     if (!this.conversationMemories.has(memoryKey)) {
@@ -915,7 +915,7 @@ Emotions can include: joy, sadness, anger, fear, surprise, disgust, love, optimi
     return this.conversationMemories.get(memoryKey)!;
   }
 
-  private async updateConversationMemory(
+  async updateConversationMemory(
     memory: ConversationMemory,
     message: string,
     emotionalContext: EmotionalContext,
