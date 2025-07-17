@@ -29,6 +29,7 @@ from core.emotional_timeline import EmotionalTimelineTracker
 from core.persona_pathways import PersonaPathwaySystem
 from core.daily_loop import DailySoulSenseLoop
 from core.daily_loop_integration import DailyLoopIntegration
+from core.advanced_emotion_engine import AdvancedEmotionEngine
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
