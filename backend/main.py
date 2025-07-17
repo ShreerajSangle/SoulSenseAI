@@ -28,6 +28,7 @@ from core.session_manager import SessionManager
 from core.emotional_timeline import EmotionalTimelineTracker
 from core.persona_pathways import PersonaPathwaySystem
 from core.daily_loop import DailySoulSenseLoop
+from core.daily_loop_integration import DailyLoopIntegration
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -50,6 +51,7 @@ session_manager = SessionManager()
 emotional_timeline = EmotionalTimelineTracker()
 persona_pathways = PersonaPathwaySystem()
 daily_loop = DailySoulSenseLoop()
+daily_loop_integration = DailyLoopIntegration()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -74,6 +76,7 @@ async def lifespan(app: FastAPI):
     await emotional_timeline.initialize()
     await persona_pathways.initialize()
     await daily_loop.initialize()
+    await daily_loop_integration.initialize()
     yield
     await database.close()
     await passive_logger.close()
@@ -81,6 +84,7 @@ async def lifespan(app: FastAPI):
     await emotional_timeline.close()
     await persona_pathways.close()
     await daily_loop.close()
+    await daily_loop_integration.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -158,12 +162,16 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
         # Detect emotional context
         emotional_context = await emotion_engine.analyze_emotion(message.content)
         
-        # Generate persona-specific response
+        # Get daily loop context for personalized response
+        daily_context = await daily_loop_integration.get_persona_context(user_id, persona_id)
+        
+        # Generate persona-specific response with daily loop context
         response = await handler.generate_response(
             message.content,
             message.conversation_history or [],
             emotional_context,
-            memory
+            memory,
+            daily_context
         )
         
         # Update memory with persona-specific rules
@@ -637,6 +645,39 @@ async def get_weekly_summary(user_id: str, week_start: str = None):
     
     summary = await daily_loop.get_weekly_loop_summary(user_id, parsed_week_start)
     return summary
+
+# Daily Loop Integration endpoints
+@app.get("/api/daily-loop-integration/persona-context/{user_id}/{persona_id}")
+async def get_persona_context(user_id: str, persona_id: str, date: str = None):
+    """Get daily loop context for a specific persona"""
+    parsed_date = None
+    if date:
+        try:
+            parsed_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_date = None
+    
+    context = await daily_loop_integration.get_persona_context(user_id, persona_id, parsed_date)
+    return context
+
+@app.get("/api/daily-loop-integration/weekly-insights/{user_id}")
+async def get_weekly_persona_insights(user_id: str):
+    """Get weekly insights for persona recommendations"""
+    insights = await daily_loop_integration.get_weekly_persona_insights(user_id)
+    return insights
+
+@app.post("/api/daily-loop-integration/save-context")
+async def save_persona_context(request: dict):
+    """Save persona context for future reference"""
+    user_id = request.get('user_id')
+    persona_id = request.get('persona_id')
+    context_data = request.get('context_data')
+    
+    if not user_id or not persona_id or not context_data:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    await daily_loop_integration.save_persona_context(user_id, persona_id, context_data)
+    return {"message": "Context saved successfully"}
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

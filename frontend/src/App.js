@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import PathwayExplorer from './components/PathwayExplorer';
 import DailyLoopDashboard from './components/DailyLoopDashboard';
+import DailyInsightsBanner from './components/DailyInsightsBanner';
 import './App.css';
 
 // Persona data
@@ -41,9 +42,17 @@ const PERSONAS = [
 ];
 
 // HomePage component with persona selection
-const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop }) => {
+const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop, userId }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      {/* Daily Insights Banner */}
+      <div className="container mx-auto px-4 pt-6">
+        <DailyInsightsBanner 
+          userId={userId}
+          onPersonaRecommendation={onPersonaSelect}
+        />
+      </div>
+      
       {/* Hero Section */}
       <div className="text-center py-16 px-4">
         <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-8 animate-pulse">
@@ -293,7 +302,12 @@ function App() {
           <DailyLoopDashboard userId={user.id} />
         </div>
       ) : (
-        <HomePage onPersonaSelect={handlePersonaSelect} onShowPathways={handleShowPathways} onShowDailyLoop={handleShowDailyLoop} />
+        <HomePage 
+          onPersonaSelect={handlePersonaSelect} 
+          onShowPathways={handleShowPathways} 
+          onShowDailyLoop={handleShowDailyLoop}
+          userId={user.id}
+        />
       )}
     </div>
   );

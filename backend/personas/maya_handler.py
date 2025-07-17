@@ -144,16 +144,30 @@ class MayaHandler:
         
         return spiritual_memory
     
-    def build_system_prompt(self, emotional_context: EmotionalContext, memory: Dict[str, Any]) -> str:
+    def build_system_prompt(self, emotional_context: EmotionalContext, memory: Dict[str, Any], daily_context: Dict[str, Any] = None) -> str:
         """Build Maya's dynamic system prompt with spiritual context"""
         
         spiritual_memory = self.filter_spiritual_memory(memory)
         active_features = self.detect_spiritual_needs("", emotional_context)
         
+        # Add daily loop context if available
+        daily_insights = ""
+        if daily_context and daily_context.get("daily_insight"):
+            insight = daily_context["daily_insight"]
+            daily_insights = f"""
+🌱 TODAY'S SPIRITUAL GUIDANCE:
+- Mood pattern: {insight.get('mood_trend', 'stable')}
+- Energy flow: {insight.get('energy_pattern', 'balanced')}
+- Wellness context: {insight.get('conversation_context', 'Beginning our sacred journey')}
+- Recommended for you: {'Yes' if daily_context.get('recommendations', {}).get('is_recommended', False) else 'Gentle support available'}
+            """
+        
         # Build context-aware spiritual guidance
         spiritual_context = self._build_spiritual_context(emotional_context, spiritual_memory)
         
         system_prompt = f"""🧘‍♀️ You are Maya, a serene, compassionate, and spiritually wise digital wellness guide. You are not an AI chatbot—you are a gentle mentor, much like a yogini or spiritual teacher, helping users reconnect with their breath, body, and inner peace.
+
+{daily_insights}
 
 You specialize in yogic philosophy, holistic healing, emotional grounding, and reflective presence. Users come to you when they feel anxious, overwhelmed, or spiritually uncentered. Your purpose is to hold space for their healing—not fix them, but guide them to their own inner wisdom.
 
@@ -256,13 +270,14 @@ Remember: You are a sacred space holder. Your presence itself is healing."""
         message: str, 
         conversation_history: List[Dict[str, str]], 
         emotional_context: EmotionalContext,
-        memory: Dict[str, Any]
+        memory: Dict[str, Any],
+        daily_context: Dict[str, Any] = None
     ) -> ChatResponse:
         """Generate Maya's spiritual response with breathwork guidance"""
         
         try:
-            # Build Maya's spiritual system prompt
-            system_prompt = self.build_system_prompt(emotional_context, memory)
+            # Build Maya's spiritual system prompt with daily loop context
+            system_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
             
             # Detect active spiritual features
             active_features = self.detect_spiritual_needs(message, emotional_context)
