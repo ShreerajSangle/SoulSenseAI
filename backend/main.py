@@ -23,6 +23,8 @@ from core.database import Database
 from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
+from core.data_pipeline import DataPipeline
+from core.llm_client import LLMClient
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -40,6 +42,8 @@ database = Database()
 emotion_engine = EmotionEngine()
 memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
+llm_client = LLMClient()
+data_pipeline = DataPipeline(database, llm_client)
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -180,15 +184,43 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             for reply in quick_replies
         ]
         
-        # Store conversation in database
-        await database.store_conversation(
+        # Store comprehensive conversation data through pipeline
+        conversation_id = await data_pipeline.log_conversation(
             user_id=user_id,
             persona_id=persona_id,
+            session_id=message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             user_message=message.content,
             ai_response=response.content,
-            emotional_context=emotional_context,
+            emotional_context=emotional_context.__dict__,
+            quick_replies=quick_reply_data,
             features_used=handler.get_active_features()
         )
+        
+        # Log quick reply interaction for learning
+        await data_pipeline.log_quick_reply_interaction(
+            user_id=user_id,
+            persona_id=persona_id,
+            session_id=message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            user_message=message.content,
+            suggested_replies=quick_reply_data
+        )
+
+@app.post("/api/data/quick-reply-log")
+async def log_quick_reply_selection(request: dict):
+    """Log quick reply selection for AI learning"""
+    try:
+        await data_pipeline.log_quick_reply_interaction(
+            user_id=request.get('user_id'),
+            persona_id=request.get('persona_id'),
+            session_id=request.get('session_id'),
+            user_message="",  # Will be filled from conversation context
+            suggested_replies=[],  # Will be filled from conversation context
+            selected_reply=request.get('selected_reply'),
+            time_to_select=request.get('time_to_select')
+        )
+        return {"status": "logged", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
         
         return ChatResponse(
             content=response.content,
@@ -248,6 +280,10 @@ async def get_user_analytics(user_id: str):
 async def get_persona_analytics(user_id: str, persona_id: str):
     """Get persona-specific usage analytics"""
     return await database.get_persona_analytics(user_id, persona_id)
+
+# Enhanced data endpoints
+from api.data_endpoints import router as data_router
+app.include_router(data_router, prefix="/api/data", tags=["data"])
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

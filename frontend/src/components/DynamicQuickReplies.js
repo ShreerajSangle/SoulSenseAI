@@ -57,32 +57,47 @@ const DynamicQuickReplies = ({
   const handleReplyClick = async (reply) => {
     if (disabled) return;
     
+    const startTime = Date.now();
     setSelectedReply(reply);
+    
+    // Log quick reply selection for AI learning
+    try {
+      const timeToSelect = (Date.now() - startTime) / 1000;
+      await fetch('/api/data/quick-reply-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: localStorage.getItem('userId') || 'anonymous',
+          persona_id: persona,
+          session_id: localStorage.getItem('currentSessionId') || `session_${Date.now()}`,
+          selected_reply: reply,
+          time_to_select: timeToSelect,
+          timestamp: new Date().toISOString()
+        })
+      });
+    } catch (error) {
+      console.log('Quick reply logging skipped:', error.message);
+    }
     
     // Handle different action types
     switch (reply.action_type) {
       case 'message':
-        // Send as regular message
         onReplySelect(reply.text, 'message');
         break;
       
       case 'breathing':
-        // Trigger breathing exercise
         onReplySelect(reply.text, 'breathing', reply.action_data);
         break;
       
       case 'journal':
-        // Open journal with prompt
         onReplySelect(reply.text, 'journal', reply.action_data);
         break;
       
       case 'goal':
-        // Open goal setting
         onReplySelect(reply.text, 'goal', reply.action_data);
         break;
       
       case 'mantra':
-        // Show mantra or send as message
         onReplySelect(reply.text, 'mantra', reply.action_data);
         break;
       

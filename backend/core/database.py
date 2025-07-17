@@ -177,6 +177,106 @@ class Database:
             )
         ''')
         
+        # Enhanced conversation summaries table
+        await self.connection.execute('''
+            CREATE TABLE IF NOT EXISTS conversation_summaries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                persona_id TEXT NOT NULL,
+                summary_text TEXT NOT NULL,
+                key_topics TEXT,
+                emotional_journey TEXT,
+                insights_gained TEXT,
+                follow_up_suggestions TEXT,
+                session_duration_minutes INTEGER,
+                message_count INTEGER,
+                dominant_emotions TEXT,
+                therapeutic_techniques_used TEXT,
+                user_satisfaction_inferred TEXT,
+                ai_confidence_score REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Quick replies tracking for AI learning
+        await self.connection.execute('''
+            CREATE TABLE IF NOT EXISTS quick_reply_interactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                persona_id TEXT NOT NULL,
+                session_id TEXT,
+                user_message TEXT NOT NULL,
+                suggested_replies TEXT NOT NULL,
+                selected_reply TEXT,
+                reply_action_type TEXT,
+                reply_action_data TEXT,
+                context_emotions TEXT,
+                conversation_phase TEXT,
+                time_to_select_seconds REAL,
+                was_helpful BOOLEAN,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Mood check-ins and emotional tracking
+        await self.connection.execute('''
+            CREATE TABLE IF NOT EXISTS mood_checkins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                persona_id TEXT,
+                session_id TEXT,
+                mood_rating INTEGER NOT NULL,
+                emotion_tags TEXT,
+                energy_level INTEGER,
+                stress_level INTEGER,
+                additional_notes TEXT,
+                context_activity TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Enhanced journal reflections
+        await self.connection.execute('''
+            CREATE TABLE IF NOT EXISTS journal_reflections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                journal_entry_id INTEGER NOT NULL,
+                user_id TEXT NOT NULL,
+                persona_id TEXT NOT NULL,
+                raw_user_input TEXT NOT NULL,
+                ai_generated_reflection TEXT,
+                follow_up_questions TEXT,
+                emotional_insights TEXT,
+                pattern_observations TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (journal_entry_id) REFERENCES journal_entries (id),
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Comprehensive interaction training data
+        await self.connection.execute('''
+            CREATE TABLE IF NOT EXISTS interaction_training_data (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                persona_id TEXT NOT NULL,
+                session_id TEXT,
+                interaction_type TEXT NOT NULL,
+                context_data TEXT NOT NULL,
+                user_input TEXT,
+                ai_response TEXT,
+                emotional_state_before TEXT,
+                emotional_state_after TEXT,
+                effectiveness_score REAL,
+                metadata TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
         await self.connection.commit()
     
     async def store_conversation(
