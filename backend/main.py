@@ -25,6 +25,7 @@ from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
 from core.passive_logger import PassiveLogger
 from core.session_manager import SessionManager
+from core.emotional_timeline import EmotionalTimelineTracker
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -44,6 +45,7 @@ memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
 passive_logger = PassiveLogger()
 session_manager = SessionManager()
+emotional_timeline = EmotionalTimelineTracker()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -65,10 +67,12 @@ async def lifespan(app: FastAPI):
     await database.initialize()
     await passive_logger.initialize()
     await session_manager.initialize()
+    await emotional_timeline.initialize()
     yield
     await database.close()
     await passive_logger.close()
     await session_manager.close()
+    await emotional_timeline.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -199,6 +203,17 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             emotional_context=emotional_context.__dict__
         )
         
+        # Emotional timeline tracking
+        await emotional_timeline.log_emotional_point(
+            user_id=user_id,
+            emotion=emotional_context.primary_emotion,
+            intensity=emotional_context.intensity,
+            session_id=session_id,
+            persona_id=persona_id,
+            source_type="chat",
+            context_excerpt=message.content[:100]  # First 100 chars as excerpt
+        )
+
         # Passive logging - store conversation in background (non-blocking)
         passive_logger.log_conversation_async(
             session_id=session_id,
@@ -377,6 +392,81 @@ async def get_recent_sessions(user_id: str, persona_id: str = None, limit: int =
         }
         for session in sessions
     ]
+
+# Emotional timeline endpoints
+@app.get("/api/emotional-timeline/{user_id}")
+async def get_emotional_timeline(user_id: str, period: str = "week", start_date: str = None):
+    """Get emotional timeline data for visualization"""
+    from datetime import datetime
+    
+    parsed_start_date = None
+    if start_date:
+        try:
+            parsed_start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_start_date = None
+    
+    timeline_points = await emotional_timeline.get_emotional_timeline(
+        user_id=user_id,
+        period=period,
+        start_date=parsed_start_date
+    )
+    
+    return [
+        {
+            "date": point.date.isoformat(),
+            "primary_emotion": point.primary_emotion,
+            "intensity": point.intensity,
+            "session_id": point.session_id,
+            "persona_id": point.persona_id,
+            "key_excerpt": point.key_excerpt,
+            "mood_color": point.mood_color,
+            "session_type": point.session_type
+        }
+        for point in timeline_points
+    ]
+
+@app.get("/api/emotional-timeline/{user_id}/metrics")
+async def get_timeline_metrics(user_id: str, period: str = "week"):
+    """Get timeline analytics and insights"""
+    metrics = await emotional_timeline.get_timeline_metrics(user_id, period)
+    
+    return {
+        "date_range": [metrics.date_range[0].isoformat(), metrics.date_range[1].isoformat()],
+        "total_sessions": metrics.total_sessions,
+        "dominant_emotions": metrics.dominant_emotions,
+        "emotional_trend": metrics.emotional_trend,
+        "crisis_moments": metrics.crisis_moments,
+        "breakthrough_moments": metrics.breakthrough_moments
+    }
+
+@app.get("/api/emotional-timeline/{user_id}/moments/{target_date}")
+async def get_clickable_moments(user_id: str, target_date: str):
+    """Get detailed moments for a specific date"""
+    from datetime import datetime
+    
+    try:
+        parsed_date = datetime.strptime(target_date, '%Y-%m-%d').date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    moments = await emotional_timeline.get_clickable_moments(user_id, parsed_date)
+    return moments
+
+@app.get("/api/emotional-timeline/{user_id}/weekly-insights")
+async def get_weekly_insights(user_id: str, week_start: str = None):
+    """Generate weekly emotional pattern insights"""
+    from datetime import datetime
+    
+    parsed_week_start = None
+    if week_start:
+        try:
+            parsed_week_start = datetime.strptime(week_start, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_week_start = None
+    
+    insights = await emotional_timeline.generate_weekly_insights(user_id, parsed_week_start)
+    return insights
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Settings, BarChart3, Target, Save } from 'lucide-react';
+import { ArrowLeft, User, Settings, BarChart3, Target, Save, Calendar } from 'lucide-react';
+import EmotionalTimeline from '../components/EmotionalTimeline';
 
 const ProfilePage = ({ user, setUser }) => {
   const navigate = useNavigate();
@@ -238,6 +239,15 @@ const ProfilePage = ({ user, setUser }) => {
     </div>
   );
 
+  const renderTimelineTab = () => (
+    <div className="space-y-6">
+      <EmotionalTimeline 
+        userId={user?.user_id || 'anonymous'} 
+        period="week"
+      />
+    </div>
+  );
+
   const renderAnalyticsTab = () => (
     <div className="space-y-6">
       {analytics && (
@@ -432,6 +442,13 @@ const ProfilePage = ({ user, setUser }) => {
             onClick={() => setActiveTab('analytics')}
           />
           <TabButton
+            id="timeline"
+            icon={Calendar}
+            label="Emotional Journey"
+            isActive={activeTab === 'timeline'}
+            onClick={() => setActiveTab('timeline')}
+          />
+          <TabButton
             id="settings"
             icon={Settings}
             label="Settings"
@@ -443,6 +460,7 @@ const ProfilePage = ({ user, setUser }) => {
         {/* Tab Content */}
         {activeTab === 'profile' && renderProfileTab()}
         {activeTab === 'analytics' && renderAnalyticsTab()}
+        {activeTab === 'timeline' && renderTimelineTab()}
         {activeTab === 'settings' && renderSettingsTab()}
       </div>
     </div>

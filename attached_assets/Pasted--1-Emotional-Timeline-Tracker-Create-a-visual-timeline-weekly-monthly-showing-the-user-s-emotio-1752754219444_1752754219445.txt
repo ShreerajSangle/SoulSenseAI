@@ -1,0 +1,71 @@
+🌱 1. Emotional Timeline Tracker
+Create a visual timeline (weekly/monthly) showing the user’s emotional journey across sessions.
+
+Use mood logs, journal sentiments, and AI sentiment detection to color-code the graph.
+
+Users can click on points to revisit chat excerpts, goals, or reflections from that day.
+
+🧭 2. Persona-Guided Pathways
+Let users choose from guided tracks (e.g., Healing from Burnout, Finding Purpose, Building Confidence).
+
+Each persona offers a themed 7-day or 21-day journey with tailored prompts, meditations, and reflections.
+
+Progress is shown as a calming path, flower bloom, or chakra map.
+
+🔁 3. Daily SoulSense Loop
+A gentle daily ritual powered by the AI:
+
+Mood check-in (emoji or short phrase)
+
+One reflection question
+
+Suggested activity (breathing, journaling, etc.)
+
+Affirmation of the day
+
+Can be customized by persona tone (Maya's loop is soft and meditative, Marcus’s is structured and uplifting).
+
+🧠 4. Conversational Memory Recall
+Allow personas to remember key user moments, like “You told me last week you were nervous about the presentation. How did it go?”
+
+Stored lightly in memory and brought back in a natural way after 2–3 days.
+
+💌 5. Emotion-Aware Responses
+When a user expresses sadness, stress, or joy, adjust the persona’s tone and reply length dynamically.
+
+Example: If a user types “I feel lost,” Dr. Sarah could reply with a slower, empathetic 3-line message and offer to journal or breathe.
+
+🎭 6. Interactive Emotion Cards
+After a big emotional message, show optional cards:
+
+“Name this feeling” 🧠
+
+“Want to explore this deeper?” 🌀
+
+“Add this to your journal?” 📓
+
+🪄 7. Magic Phrase Recognition
+If a user types something like “I need help” or “Can you motivate me?” — trigger a special supportive flow from Marcus, Alex, or Maya instantly.
+
+This makes it feel like the AI gets them in real time.
+
+📦 8. Soft Archive & Memory Lane
+Let users revisit a calming archive: “Moments you overcame,” “Thoughts that healed you,” “Affirmations that worked.”
+
+Filter by persona, emotion, or goal type.
+
+🎨 9. User-Editable Persona Layers
+Allow users to:
+
+Rename the personas (“Coach M” instead of Marcus)
+
+Choose their preferred tone: Cheerful, Soothing, Wise, etc.
+
+Select themes, fonts, or music styles for background ambiance.
+
+🔐 10. Personal Safe Space Mode
+A toggle that slows down all responses, dims the interface, and activates Maya’s most grounding flow.
+
+Includes music, meditation, and a “do not disturb” bubble.
+
+Ideal for anxious moments.
