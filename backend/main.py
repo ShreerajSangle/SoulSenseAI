@@ -26,6 +26,7 @@ from core.quick_reply_engine import QuickReplyEngine
 from core.passive_logger import PassiveLogger
 from core.session_manager import SessionManager
 from core.emotional_timeline import EmotionalTimelineTracker
+from core.persona_pathways import PersonaPathwaySystem
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -46,6 +47,7 @@ quick_reply_engine = QuickReplyEngine()
 passive_logger = PassiveLogger()
 session_manager = SessionManager()
 emotional_timeline = EmotionalTimelineTracker()
+persona_pathways = PersonaPathwaySystem()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -68,11 +70,13 @@ async def lifespan(app: FastAPI):
     await passive_logger.initialize()
     await session_manager.initialize()
     await emotional_timeline.initialize()
+    await persona_pathways.initialize()
     yield
     await database.close()
     await passive_logger.close()
     await session_manager.close()
     await emotional_timeline.close()
+    await persona_pathways.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -467,6 +471,77 @@ async def get_weekly_insights(user_id: str, week_start: str = None):
     
     insights = await emotional_timeline.generate_weekly_insights(user_id, parsed_week_start)
     return insights
+
+# Persona pathways endpoints
+@app.get("/api/pathways")
+async def get_available_pathways(persona_id: str = None):
+    """Get available guided pathways, optionally filtered by persona"""
+    pathways = await persona_pathways.get_available_pathways(persona_id)
+    return pathways
+
+@app.post("/api/pathways/{pathway_id}/enroll")
+async def enroll_in_pathway(pathway_id: str, request: dict):
+    """Enroll user in a guided pathway"""
+    user_id = request.get('user_id')
+    if not user_id:
+        raise HTTPException(status_code=400, detail="User ID required")
+    
+    success = await persona_pathways.enroll_user_in_pathway(user_id, pathway_id)
+    if success:
+        return {"message": "Successfully enrolled in pathway", "pathway_id": pathway_id}
+    else:
+        raise HTTPException(status_code=400, detail="Failed to enroll in pathway")
+
+@app.get("/api/pathways/user/{user_id}")
+async def get_user_pathways(user_id: str):
+    """Get all pathways for a user"""
+    pathways = await persona_pathways.get_user_pathways(user_id)
+    return pathways
+
+@app.get("/api/pathways/{pathway_id}/activity/{day_number}")
+async def get_daily_activity(pathway_id: str, day_number: int):
+    """Get the daily activity for a specific pathway and day"""
+    activity = await persona_pathways.get_daily_activity(pathway_id, day_number)
+    if activity:
+        return activity
+    else:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+@app.post("/api/pathways/{pathway_id}/complete")
+async def complete_daily_activity(pathway_id: str, request: dict):
+    """Mark a daily activity as completed"""
+    user_id = request.get('user_id')
+    day_number = request.get('day_number')
+    mood_rating = request.get('mood_rating')
+    completion_notes = request.get('completion_notes', '')
+    time_spent_minutes = request.get('time_spent_minutes')
+    
+    if not user_id or not day_number:
+        raise HTTPException(status_code=400, detail="User ID and day number required")
+    
+    success = await persona_pathways.complete_daily_activity(
+        user_id, pathway_id, day_number, mood_rating, completion_notes, time_spent_minutes
+    )
+    
+    if success:
+        return {"message": "Activity completed successfully"}
+    else:
+        raise HTTPException(status_code=400, detail="Failed to complete activity")
+
+@app.get("/api/pathways/{pathway_id}/progress/{user_id}")
+async def get_pathway_progress(pathway_id: str, user_id: str):
+    """Get detailed progress for a user's pathway"""
+    progress = await persona_pathways.get_user_progress(user_id, pathway_id)
+    if progress:
+        return progress
+    else:
+        raise HTTPException(status_code=404, detail="Pathway progress not found")
+
+@app.get("/api/pathways/recommendations/{user_id}")
+async def get_pathway_recommendations(user_id: str, emotional_state: str = None):
+    """Get personalized pathway recommendations"""
+    recommendations = await persona_pathways.get_pathway_recommendations(user_id, emotional_state)
+    return recommendations
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

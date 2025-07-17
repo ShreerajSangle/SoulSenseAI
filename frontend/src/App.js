@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
+import PathwayExplorer from './components/PathwayExplorer';
 import './App.css';
 
 // Persona data
@@ -39,7 +40,7 @@ const PERSONAS = [
 ];
 
 // HomePage component with persona selection
-const HomePage = ({ onPersonaSelect }) => {
+const HomePage = ({ onPersonaSelect, onShowPathways }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Hero Section */}
@@ -147,6 +148,24 @@ const HomePage = ({ onPersonaSelect }) => {
           </div>
         </div>
       </div>
+      
+      {/* Pathways CTA */}
+      <div className="bg-gradient-to-r from-green-500 to-teal-500 py-16">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Guided Therapeutic Pathways
+          </h2>
+          <p className="text-green-100 text-lg mb-8">
+            Embark on structured healing journeys with your favorite personas
+          </p>
+          <button 
+            onClick={onShowPathways}
+            className="bg-white text-green-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
+            🧭 Explore Guided Pathways
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -154,6 +173,7 @@ const HomePage = ({ onPersonaSelect }) => {
 function App() {
   const [user, setUser] = useState({ id: 'demo_user', name: 'Demo User', sessionId: Date.now() });
   const [selectedPersona, setSelectedPersona] = useState(null);
+  const [showPathways, setShowPathways] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -176,9 +196,16 @@ function App() {
 
   const handlePersonaSelect = (persona) => {
     setSelectedPersona(persona);
+    setShowPathways(false);
   };
 
   const handleBackToHome = () => {
+    setSelectedPersona(null);
+    setShowPathways(false);
+  };
+
+  const handleShowPathways = () => {
+    setShowPathways(true);
     setSelectedPersona(null);
   };
 
@@ -205,7 +232,7 @@ function App() {
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <span>←</span>
-              <span>Back to Personas</span>
+              <span>Back to Home</span>
             </button>
           </div>
           
@@ -214,8 +241,24 @@ function App() {
             <ChatInterface selectedPersona={selectedPersona} user={user} />
           </div>
         </div>
+      ) : showPathways ? (
+        <div className="min-h-screen">
+          {/* Back button */}
+          <div className="bg-white border-b px-4 py-2">
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <span>←</span>
+              <span>Back to Home</span>
+            </button>
+          </div>
+          
+          {/* Pathways Explorer */}
+          <PathwayExplorer userId={user.id} />
+        </div>
       ) : (
-        <HomePage onPersonaSelect={handlePersonaSelect} />
+        <HomePage onPersonaSelect={handlePersonaSelect} onShowPathways={handleShowPathways} />
       )}
     </div>
   );
