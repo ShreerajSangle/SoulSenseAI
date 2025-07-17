@@ -114,6 +114,7 @@ class ChatResponse(BaseModel):
     session_id: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.now)
     suggestions: Optional[List[str]] = []
+    quick_replies: List[Dict[str, Any]] = []
     
     class Config:
         schema_extra = {

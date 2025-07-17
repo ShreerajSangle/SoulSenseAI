@@ -1,27 +1,150 @@
 import React, { useState, useEffect } from 'react';
+import ChatInterface from './components/ChatInterface';
 import './App.css';
 
-// Simple HomePage component for testing
-const HomePage = () => {
+// Persona data
+const PERSONAS = [
+  {
+    id: 'maya',
+    name: 'Maya',
+    role: 'Spiritual Guide & Breathwork Mentor',
+    emoji: '🪷',
+    description: 'Serene guidance through mindfulness, breathwork, and spiritual practices',
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
+    id: 'sarah',
+    name: 'Dr. Sarah',
+    role: 'Clinical Psychologist',
+    emoji: '🧠',
+    description: 'Evidence-based therapy with CBT techniques and emotional processing',
+    color: 'from-blue-500 to-indigo-500'
+  },
+  {
+    id: 'alex',
+    name: 'Alex',
+    role: 'Peer Support Companion',
+    emoji: '😊',
+    description: 'Relatable support with humor therapy and friendship dynamics',
+    color: 'from-green-500 to-teal-500'
+  },
+  {
+    id: 'marcus',
+    name: 'Marcus',
+    role: 'Life Coach',
+    emoji: '⚡',
+    description: 'Action-oriented coaching with goal setting and motivation',
+    color: 'from-orange-500 to-red-500'
+  }
+];
+
+// HomePage component with persona selection
+const HomePage = ({ onPersonaSelect }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
-      <div className="text-center max-w-2xl mx-auto px-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6 animate-pulse">
-          <span className="text-2xl">🪷</span>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      {/* Hero Section */}
+      <div className="text-center py-16 px-4">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-8 animate-pulse">
+          <span className="text-3xl">🪷</span>
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+        <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
           Soul Sense
         </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-          Your digital emotional companion - Four specialized AI personas designed to support your mental wellness journey.
+        <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          Your digital emotional companion featuring four specialized AI personas with dynamic, 
+          context-aware quick replies that adapt to your emotional state and conversation flow.
         </p>
-        <div className="space-y-4">
-          <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-full text-lg font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-            Start Your Journey
-          </button>
-          <p className="text-sm text-gray-500">
-            React + Python FastAPI Architecture Successfully Deployed
-          </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-8">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          Dynamic Quick Replies System Active
+        </div>
+      </div>
+
+      {/* Persona Grid */}
+      <div className="max-w-6xl mx-auto px-4 pb-16">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          Choose Your Therapeutic Companion
+        </h2>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {PERSONAS.map((persona) => (
+            <div
+              key={persona.id}
+              onClick={() => onPersonaSelect(persona)}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer group overflow-hidden"
+            >
+              <div className={`bg-gradient-to-r ${persona.color} p-6 text-center`}>
+                <span className="text-4xl block mb-3">{persona.emoji}</span>
+                <h3 className="text-xl font-bold text-white mb-2">{persona.name}</h3>
+                <p className="text-sm text-white opacity-90">{persona.role}</p>
+              </div>
+              
+              <div className="p-6">
+                <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  {persona.description}
+                </p>
+                
+                <div className="text-xs text-gray-500 mb-3">
+                  Features dynamic suggestions for:
+                </div>
+                <div className="flex flex-wrap gap-1 text-xs">
+                  {persona.id === 'maya' && (
+                    <>
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">Breathing</span>
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded">Mantras</span>
+                    </>
+                  )}
+                  {persona.id === 'sarah' && (
+                    <>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">CBT</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded">Journaling</span>
+                    </>
+                  )}
+                  {persona.id === 'alex' && (
+                    <>
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded">Support</span>
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded">Comfort</span>
+                    </>
+                  )}
+                  {persona.id === 'marcus' && (
+                    <>
+                      <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded">Goals</span>
+                      <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded">Planning</span>
+                    </>
+                  )}
+                </div>
+                
+                <button className={`w-full mt-4 py-3 bg-gradient-to-r ${persona.color} text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200`}>
+                  Start Conversation
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Replies Demo */}
+      <div className="bg-white py-16">
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
+            Intelligent Context-Aware Suggestions
+          </h2>
+          <div className="bg-gray-50 rounded-2xl p-8">
+            <div className="text-center text-gray-600 mb-6">
+              Example: When you say "I feel anxious", Maya might suggest:
+            </div>
+            <div className="flex flex-wrap justify-center gap-3">
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium border border-purple-200">
+                🧘 3-min breathing pause?
+              </div>
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium border border-purple-200">
+                📿 Grounding mantra?
+              </div>
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-4 py-2 rounded-full text-sm font-medium border border-purple-200">
+                💬 Share what triggered this?
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -29,14 +152,15 @@ const HomePage = () => {
 };
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ id: 'demo_user', name: 'Demo User', sessionId: Date.now() });
+  const [selectedPersona, setSelectedPersona] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Test backend connection
     const testBackend = async () => {
       try {
-        const response = await fetch('/api/health');
+        const response = await fetch('/api/personas');
         if (response.ok) {
           console.log('Backend connection successful');
         }
@@ -50,20 +174,49 @@ function App() {
     testBackend();
   }, []);
 
+  const handlePersonaSelect = (persona) => {
+    setSelectedPersona(persona);
+  };
+
+  const handleBackToHome = () => {
+    setSelectedPersona(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-lg font-medium text-gray-600">Loading SoulSense...</p>
+          <p className="text-sm text-gray-500 mt-2">Initializing Dynamic Quick Replies...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="App">
-      <HomePage />
+    <div className="App min-h-screen bg-gray-50">
+      {selectedPersona ? (
+        <div className="h-screen flex flex-col">
+          {/* Back button */}
+          <div className="bg-white border-b px-4 py-2">
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <span>←</span>
+              <span>Back to Personas</span>
+            </button>
+          </div>
+          
+          {/* Chat Interface */}
+          <div className="flex-1">
+            <ChatInterface selectedPersona={selectedPersona} user={user} />
+          </div>
+        </div>
+      ) : (
+        <HomePage onPersonaSelect={handlePersonaSelect} />
+      )}
     </div>
   );
 }

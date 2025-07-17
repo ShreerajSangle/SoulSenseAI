@@ -22,6 +22,7 @@ from personas.marcus_handler import MarcusHandler
 from core.database import Database
 from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
+from core.quick_reply_engine import QuickReplyEngine
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -38,6 +39,7 @@ from models.schemas import (
 database = Database()
 emotion_engine = EmotionEngine()
 memory_system = MemorySystem()
+quick_reply_engine = QuickReplyEngine()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -154,6 +156,30 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             handler.get_memory_rules()
         )
         
+        # Generate dynamic quick replies based on context
+        conversation_history = message.conversation_history or []
+        quick_replies = quick_reply_engine.generate_quick_replies(
+            persona_id=persona_id,
+            user_message=message.content,
+            conversation_history=conversation_history,
+            conversation_context={
+                'duration_minutes': 0,  # Calculate based on session time
+                'emotional_state': emotional_context
+            }
+        )
+        
+        # Convert QuickReply objects to dictionaries
+        quick_reply_data = [
+            {
+                "text": reply.text,
+                "action_type": reply.action_type,
+                "action_data": reply.action_data,
+                "emoji": reply.emoji,
+                "priority": reply.priority
+            }
+            for reply in quick_replies
+        ]
+        
         # Store conversation in database
         await database.store_conversation(
             user_id=user_id,
@@ -171,7 +197,8 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             confidence=emotional_context.confidence,
             features_activated=handler.get_active_features(),
             persona_config=handler.get_config(),
-            session_id=message.session_id
+            session_id=message.session_id,
+            quick_replies=quick_reply_data
         )
         
     except Exception as e:
