@@ -1,220 +1,380 @@
 #!/usr/bin/env python3
 """
-Comprehensive Data Pipeline Demo
-Tests all data persistence features for SoulSense AI
+Comprehensive Data Demo for Daily Loop Integration
+Shows real data flow from daily patterns to persona responses
 """
 
 import asyncio
 import json
-from datetime import datetime
-import sys
-import os
+from datetime import datetime, date, timedelta
+from backend.core.daily_loop import DailySoulSenseLoop
+from backend.core.daily_loop_integration import DailyLoopIntegration
 
-# Add backend to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
+async def create_realistic_user_journey():
+    """Create a realistic 3-day user journey with varied patterns"""
+    print("🎭 Creating Realistic User Journey Data")
+    print("=" * 50)
+    
+    daily_loop = DailySoulSenseLoop()
+    integration = DailyLoopIntegration()
+    
+    await daily_loop.initialize()
+    await integration.initialize()
+    
+    demo_user_id = "realistic_user_demo"
+    
+    try:
+        # Day 1: Struggling with anxiety and low energy
+        print("\n📅 DAY 1: Struggling with Anxiety")
+        
+        # Morning - high anxiety, low energy
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="morning_checkin",
+            mood_rating=3.0,
+            energy_level=2.5,
+            stress_level=8.5,
+            gratitude_notes="Grateful for my morning coffee and supportive partner",
+            goals_for_day="Try to manage anxiety and get through work meetings",
+            reflection_notes="Woke up with racing thoughts about upcoming presentation",
+            selected_persona="sarah"
+        )
+        
+        # Midday - slight improvement after therapy session
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="midday_pulse",
+            mood_rating=4.5,
+            energy_level=3.0,
+            stress_level=7.0,
+            gratitude_notes="Grateful for Dr. Sarah's breathing exercises",
+            reflection_notes="Feeling more grounded after our conversation",
+            selected_persona="sarah"
+        )
+        
+        # Evening - exhausted but accomplished
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="evening_reflection",
+            mood_rating=5.5,
+            energy_level=3.5,
+            stress_level=6.0,
+            gratitude_notes="Grateful for getting through the day and having support",
+            challenges_faced="Presentation anxiety was overwhelming",
+            accomplishments="Completed presentation despite anxiety, practiced breathing techniques",
+            reflection_notes="Challenging day but I survived and learned coping strategies",
+            selected_persona="sarah"
+        )
+        
+        # Day 2: Feeling better, exploring spirituality
+        print("\n📅 DAY 2: Exploring Spiritual Wellness")
+        
+        # Morning - more balanced, curious about mindfulness
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="morning_checkin",
+            mood_rating=6.0,
+            energy_level=5.5,
+            stress_level=5.0,
+            gratitude_notes="Grateful for yesterday's growth and inner strength",
+            goals_for_day="Explore mindfulness practices and maintain balance",
+            reflection_notes="Woke up feeling more centered, interested in meditation",
+            selected_persona="maya",
+            date_param=date.today() + timedelta(days=1)
+        )
+        
+        # Midday - energized by yoga practice
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="midday_pulse",
+            mood_rating=7.5,
+            energy_level=7.0,
+            stress_level=3.5,
+            gratitude_notes="Grateful for Maya's yoga flow and spiritual guidance",
+            reflection_notes="Feel so much lighter after our pranayama session",
+            selected_persona="maya",
+            date_param=date.today() + timedelta(days=1)
+        )
+        
+        # Evening - peaceful and reflective
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="evening_reflection",
+            mood_rating=8.0,
+            energy_level=6.5,
+            stress_level=2.5,
+            gratitude_notes="Grateful for spiritual awakening and inner peace",
+            challenges_faced="None - peaceful day",
+            accomplishments="Completed 20-minute meditation, connected with inner wisdom",
+            reflection_notes="Feeling deeply connected to myself and the universe",
+            selected_persona="maya",
+            date_param=date.today() + timedelta(days=1)
+        )
+        
+        # Day 3: High energy, ready for goals
+        print("\n📅 DAY 3: High Energy and Goal Setting")
+        
+        # Morning - energized and motivated
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="morning_checkin",
+            mood_rating=8.5,
+            energy_level=8.0,
+            stress_level=2.0,
+            gratitude_notes="Grateful for this transformation and newfound clarity",
+            goals_for_day="Set ambitious goals and create action plans",
+            reflection_notes="Woke up feeling unstoppable and ready to achieve",
+            selected_persona="marcus",
+            date_param=date.today() + timedelta(days=2)
+        )
+        
+        # Midday - productive and focused
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="midday_pulse",
+            mood_rating=8.5,
+            energy_level=8.5,
+            stress_level=2.5,
+            gratitude_notes="Grateful for Marcus's goal-setting framework",
+            reflection_notes="So productive! Loving this structured approach",
+            selected_persona="marcus",
+            date_param=date.today() + timedelta(days=2)
+        )
+        
+        # Evening - accomplished and planning ahead
+        await daily_loop.complete_loop_activity(
+            user_id=demo_user_id,
+            loop_type="evening_reflection",
+            mood_rating=9.0,
+            energy_level=7.5,
+            stress_level=1.5,
+            gratitude_notes="Grateful for this incredible growth journey",
+            challenges_faced="None - amazing day",
+            accomplishments="Set 3 major goals, created detailed action plans, completed all tasks",
+            reflection_notes="Feel like I've found my rhythm and purpose",
+            selected_persona="marcus",
+            date_param=date.today() + timedelta(days=2)
+        )
+        
+        print("\n✅ Realistic user journey created successfully!")
+        return demo_user_id
+        
+    except Exception as e:
+        print(f"❌ Error creating user journey: {e}")
+        return None
 
-from core.database import Database
-from core.data_pipeline import DataPipeline
-from core.llm_client import LLMClient
-# Import only what we need for the demo
+async def demonstrate_persona_recommendations():
+    """Show how persona recommendations evolve based on patterns"""
+    print("\n🎯 Persona Recommendation Evolution")
+    print("=" * 50)
+    
+    integration = DailyLoopIntegration()
+    await integration.initialize()
+    
+    demo_user_id = "realistic_user_demo"
+    
+    try:
+        # Day 1 analysis (high stress, low energy)
+        print("\n📊 DAY 1 ANALYSIS (High Stress, Low Energy)")
+        day1_insights = await integration.get_weekly_persona_insights(demo_user_id)
+        
+        if day1_insights:
+            print(f"Mood trend: {day1_insights.get('mood_trend', 'N/A')}")
+            print(f"Energy trend: {day1_insights.get('energy_trend', 'N/A')}")
+            print(f"Recommended focus: {day1_insights.get('recommended_focus', [])}")
+            print("Persona priorities:")
+            for persona, priority in day1_insights.get('persona_priority', {}).items():
+                print(f"  {persona}: {priority:.1%}")
+        
+        # Get individual persona contexts for Day 1
+        for persona in ['sarah', 'maya', 'alex', 'marcus']:
+            context = await integration.get_persona_context(demo_user_id, persona)
+            if context:
+                recommended = "✅ RECOMMENDED" if context['recommendations']['is_recommended'] else "❌ Not recommended"
+                confidence = context['recommendations']['confidence']
+                print(f"  {persona.capitalize()}: {recommended} (Confidence: {confidence:.1%})")
+        
+        # Day 2 analysis (balanced, spiritual exploration)
+        print("\n📊 DAY 2 ANALYSIS (Balanced, Spiritual)")
+        # Simulate day 2 by analyzing patterns
+        day2_analysis = await integration.analyze_daily_patterns(demo_user_id, date.today() + timedelta(days=1))
+        
+        if day2_analysis:
+            print(f"Mood trend: {day2_analysis.mood_trend}")
+            print(f"Energy pattern: {day2_analysis.energy_pattern}")
+            print(f"Recommended personas: {day2_analysis.recommended_personas}")
+            print(f"Focus areas: {day2_analysis.gratitude_themes}")
+        
+        # Day 3 analysis (high energy, goal-oriented)
+        print("\n📊 DAY 3 ANALYSIS (High Energy, Goal-Oriented)")
+        day3_analysis = await integration.analyze_daily_patterns(demo_user_id, date.today() + timedelta(days=2))
+        
+        if day3_analysis:
+            print(f"Mood trend: {day3_analysis.mood_trend}")
+            print(f"Energy pattern: {day3_analysis.energy_pattern}")
+            print(f"Recommended personas: {day3_analysis.recommended_personas}")
+            print(f"Conversation context: {day3_analysis.conversation_context}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error in persona recommendations: {e}")
+        return False
 
-async def demo_comprehensive_data_pipeline():
-    """Demonstrate complete data persistence system"""
-    print("🧠 SoulSense AI - Comprehensive Data Pipeline Demo")
-    print("=" * 60)
+async def demonstrate_contextual_responses():
+    """Show how daily context influences persona responses"""
+    print("\n💬 Contextual Response Demonstration")
+    print("=" * 50)
     
-    # Initialize components
-    database = Database()
-    await database.initialize()
+    integration = DailyLoopIntegration()
+    await integration.initialize()
     
-    llm_client = LLMClient()
-    data_pipeline = DataPipeline(database, llm_client)
+    demo_user_id = "realistic_user_demo"
     
-    # Demo user and session
-    user_id = "demo_user_123"
-    session_id = f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    try:
+        # Day 1: Sarah's context for high stress
+        print("\n👩‍⚕️ SARAH'S CONTEXT (Day 1 - High Stress)")
+        sarah_context = await integration.get_persona_context(demo_user_id, "sarah")
+        
+        if sarah_context:
+            print(f"Daily insight: {sarah_context['daily_insight']}")
+            print(f"Persona approach: {sarah_context['persona_context']['approach']}")
+            print(f"Focus areas: {sarah_context['persona_context']['focus_areas']}")
+            print(f"Suggested techniques: {sarah_context['persona_context']['suggested_techniques']}")
+        
+        # Day 2: Maya's context for spiritual exploration
+        print("\n🪷 MAYA'S CONTEXT (Day 2 - Spiritual Exploration)")
+        maya_context = await integration.get_persona_context(demo_user_id, "maya", date.today() + timedelta(days=1))
+        
+        if maya_context:
+            print(f"Daily insight: {maya_context['daily_insight']}")
+            print(f"Persona approach: {maya_context['persona_context']['approach']}")
+            print(f"Focus areas: {maya_context['persona_context']['focus_areas']}")
+            print(f"Suggested techniques: {maya_context['persona_context']['suggested_techniques']}")
+        
+        # Day 3: Marcus's context for goal achievement
+        print("\n💪 MARCUS'S CONTEXT (Day 3 - Goal Achievement)")
+        marcus_context = await integration.get_persona_context(demo_user_id, "marcus", date.today() + timedelta(days=2))
+        
+        if marcus_context:
+            print(f"Daily insight: {marcus_context['daily_insight']}")
+            print(f"Persona approach: {marcus_context['persona_context']['approach']}")
+            print(f"Focus areas: {marcus_context['persona_context']['focus_areas']}")
+            print(f"Suggested techniques: {marcus_context['persona_context']['suggested_techniques']}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error in contextual responses: {e}")
+        return False
+
+async def demonstrate_weekly_insights():
+    """Show comprehensive weekly insights"""
+    print("\n📈 Weekly Insights Dashboard")
+    print("=" * 50)
     
-    print(f"👤 Demo User: {user_id}")
-    print(f"📅 Session: {session_id}")
-    print()
+    integration = DailyLoopIntegration()
+    await integration.initialize()
     
-    # Test 1: Log comprehensive conversation with Maya
-    print("1️⃣  CONVERSATION LOGGING TEST")
-    print("-" * 40)
+    demo_user_id = "realistic_user_demo"
     
-    emotional_context = {
-        "primary_emotion": "anxiety",
-        "secondary_emotions": ["worry", "overwhelm"],
-        "intensity": 0.7,
-        "valence": -0.4,
-        "arousal": 0.8,
-        "confidence": 0.85,
-        "triggers": ["work deadline"],
-        "support_needs": ["grounding", "breathing"],
-        "crisis_indicators": []
-    }
+    try:
+        weekly_insights = await integration.get_weekly_persona_insights(demo_user_id)
+        
+        if weekly_insights:
+            print(f"📊 Overall mood trend: {weekly_insights.get('mood_trend', 'N/A')}")
+            print(f"⚡ Energy pattern: {weekly_insights.get('energy_trend', 'N/A')}")
+            print(f"🎯 Recommended focus areas: {weekly_insights.get('recommended_focus', [])}")
+            print(f"💡 Key insights: {weekly_insights.get('key_insights', [])}")
+            
+            print("\n🎭 Persona Priority Ranking:")
+            persona_priorities = weekly_insights.get('persona_priority', {})
+            sorted_personas = sorted(persona_priorities.items(), key=lambda x: x[1], reverse=True)
+            
+            for i, (persona, priority) in enumerate(sorted_personas, 1):
+                bars = "█" * int(priority * 10)
+                print(f"  {i}. {persona.capitalize()}: {bars} {priority:.1%}")
+            
+            print(f"\n🌟 Growth highlights: {weekly_insights.get('growth_highlights', [])}")
+            print(f"🎪 Recommended activities: {weekly_insights.get('recommended_activities', [])}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error in weekly insights: {e}")
+        return False
+
+async def cleanup_demo_data():
+    """Clean up demo data"""
+    print("\n🧹 Cleaning up demo data...")
     
-    quick_replies = [
-        {"text": "Help me breathe", "action_type": "breathing", "action_data": {"technique": "4-7-8"}},
-        {"text": "I need grounding", "action_type": "grounding", "action_data": {"technique": "5-4-3-2-1"}},
-        {"text": "Tell me more", "action_type": "continue", "action_data": {}}
+    daily_loop = DailySoulSenseLoop()
+    integration = DailyLoopIntegration()
+    
+    await daily_loop.initialize()
+    await integration.initialize()
+    
+    demo_user_id = "realistic_user_demo"
+    
+    # Clean up all demo data
+    tables_to_clean = [
+        "daily_loop_entries",
+        "daily_loop_streaks", 
+        "daily_wellness_insights",
+        "daily_persona_recommendations",
+        "daily_conversation_context",
+        "daily_wellness_for_personas"
     ]
     
-    conversation_id = await data_pipeline.log_conversation(
-        user_id=user_id,
-        persona_id="maya",
-        session_id=session_id,
-        user_message="I'm feeling really anxious about my work deadline approaching. My mind is racing and I can't focus.",
-        ai_response="I understand that feeling of overwhelm when deadlines approach. Let's take a moment to ground ourselves together. Would you like to try some breathing exercises, or shall we explore what specifically is making this feel so intense?",
-        emotional_context=emotional_context,
-        quick_replies=quick_replies,
-        features_used=["emotional_detection", "anxiety_support", "breathing_recommendation"]
-    )
+    for table in tables_to_clean:
+        await daily_loop.connection.execute(f"DELETE FROM {table} WHERE user_id = ?", (demo_user_id,))
     
-    print(f"✓ Conversation logged (ID: {conversation_id})")
-    print(f"  - Emotional context: {emotional_context['primary_emotion']} (intensity: {emotional_context['intensity']})")
-    print(f"  - Quick replies: {len(quick_replies)} suggestions")
-    print(f"  - Features used: {', '.join(['emotional_detection', 'anxiety_support', 'breathing_recommendation'])}")
+    await daily_loop.connection.commit()
+    await integration.connection.commit()
     
-    # Test 2: Log quick reply interaction
-    print("\n2️⃣  QUICK REPLY INTERACTION TEST")
-    print("-" * 40)
+    await daily_loop.close()
+    await integration.close()
     
-    await data_pipeline.log_quick_reply_interaction(
-        user_id=user_id,
-        persona_id="maya",
-        session_id=session_id,
-        user_message="I'm feeling really anxious about my work deadline approaching.",
-        suggested_replies=quick_replies,
-        selected_reply=quick_replies[0],  # User selected "Help me breathe"
-        time_to_select=2.3
-    )
+    print("✅ Demo data cleaned up successfully")
+
+async def main():
+    """Run comprehensive data demonstration"""
+    print("🚀 Comprehensive Daily Loop Integration Data Demo")
+    print("This demonstration shows real data flow and persona integration")
+    print("=" * 80)
     
-    print("✓ Quick reply interaction logged")
-    print(f"  - User selected: '{quick_replies[0]['text']}'")
-    print(f"  - Time to select: 2.3 seconds")
-    print(f"  - Action triggered: {quick_replies[0]['action_type']}")
-    
-    # Test 3: Log mood check-in
-    print("\n3️⃣  MOOD CHECK-IN TEST")
-    print("-" * 40)
-    
-    await data_pipeline.log_mood_checkin(
-        user_id=user_id,
-        persona_id="maya",
-        session_id=session_id,
-        mood_rating=6,
-        emotion_tags=["anxious", "motivated", "focused"],
-        energy_level=7,
-        stress_level=8,
-        additional_notes="After breathing exercise, feeling more centered but still concerned about deadline",
-        context_activity="work_preparation"
-    )
-    
-    print("✓ Mood check-in logged")
-    print("  - Mood rating: 6/10")
-    print("  - Energy: 7/10, Stress: 8/10")
-    print("  - Emotions: anxious, motivated, focused")
-    print("  - Context: work_preparation")
-    
-    # Test 4: Enhanced journal entry with AI reflection
-    print("\n4️⃣  JOURNAL WITH AI REFLECTION TEST")
-    print("-" * 40)
-    
-    # First create a basic journal entry
-    journal_entry_id = 1  # Simulated ID
-    
-    reflection = await data_pipeline.log_journal_with_ai_reflection(
-        user_id=user_id,
-        persona_id="maya",
-        journal_entry_id=journal_entry_id,
-        raw_user_input="Today I practiced the breathing technique Maya taught me. I noticed my anxiety didn't completely disappear, but I felt more in control. I think I'm learning to observe my thoughts without being overwhelmed by them. This mindfulness approach is starting to make sense.",
-        mood="reflective"
-    )
-    
-    print("✓ Journal reflection generated")
-    print(f"  - AI reflection: {reflection.get('reflection', 'Generated successfully')}")
-    print(f"  - Follow-up questions: {len(reflection.get('follow_up_questions', []))}")
-    print(f"  - Emotional insights: {reflection.get('emotional_insights', 'Captured')}")
-    
-    # Test 5: Generate session summary
-    print("\n5️⃣  SESSION SUMMARY GENERATION TEST")
-    print("-" * 40)
-    
-    # Add a few more conversations to the session for a richer summary
-    await data_pipeline.log_conversation(
-        user_id=user_id,
-        persona_id="maya",
-        session_id=session_id,
-        user_message="The breathing helped! I feel more grounded now.",
-        ai_response="I'm so glad the breathing technique brought you some relief. Notice how you're already developing awareness of what works for you. This is a beautiful step in your mindfulness journey.",
-        emotional_context={**emotional_context, "primary_emotion": "calm", "intensity": 0.3},
-        quick_replies=[
-            {"text": "Practice more", "action_type": "practice", "action_data": {}},
-            {"text": "Journal this", "action_type": "journal", "action_data": {}}
-        ],
-        features_used=["progress_acknowledgment", "mindfulness_guidance"]
-    )
-    
-    summary = await data_pipeline.generate_and_store_session_summary(
-        session_id=session_id,
-        user_id=user_id,
-        persona_id="maya"
-    )
-    
-    print("✓ Session summary generated")
-    print(f"  - Key topics: {len(summary.get('key_topics', []))} identified")
-    print(f"  - Emotional journey: {summary.get('emotional_journey', 'Tracked')}")
-    print(f"  - Effectiveness score: {summary.get('effectiveness_score', 'N/A')}/10")
-    
-    # Test 6: Get interaction history
-    print("\n6️⃣  INTERACTION HISTORY RETRIEVAL TEST")
-    print("-" * 40)
-    
-    history = await data_pipeline.get_user_interaction_history(
-        user_id=user_id,
-        persona_id="maya",
-        days_back=1
-    )
-    
-    print("✓ Interaction history retrieved")
-    print(f"  - Total conversations: {history['summary']['total_conversations']}")
-    print(f"  - Total quick replies: {history['summary']['total_quick_replies']}")
-    print(f"  - Total mood check-ins: {history['summary']['total_mood_checkins']}")
-    print(f"  - Engagement score: {history['summary']['engagement_score']}/10")
-    
-    # Test 7: Database statistics
-    print("\n7️⃣  DATABASE STATISTICS TEST")
-    print("-" * 40)
-    
-    # Check table counts
-    tables = [
-        'conversations', 'conversation_summaries', 'quick_reply_interactions',
-        'mood_checkins', 'journal_reflections', 'interaction_training_data'
-    ]
-    
-    for table in tables:
-        result = await database.connection.execute(f'SELECT COUNT(*) as count FROM {table}')
-        count_row = await result.fetchone()
-        print(f"  - {table}: {count_row['count']} records")
-    
-    print("\n✅ COMPREHENSIVE DATA PIPELINE TEST COMPLETE")
-    print("=" * 60)
-    print("🎯 Key Achievements:")
-    print("   • Full conversation logging with emotional context")
-    print("   • Quick reply interaction tracking for AI learning")
-    print("   • Detailed mood check-ins with multi-dimensional data")
-    print("   • AI-generated journal reflections and insights")
-    print("   • Automatic session summarization and analysis")
-    print("   • Complete interaction history for adaptive learning")
-    print("   • Ready for AI fine-tuning and model improvement")
-    print("\n🔮 Next Steps:")
-    print("   • Implement embeddings storage for semantic search")
-    print("   • Add PostgreSQL migration compatibility")
-    print("   • Create fine-tuning data export formats")
-    print("   • Build adaptive prompt generation from patterns")
-    
-    await database.close()
+    try:
+        # Create realistic user journey
+        user_id = await create_realistic_user_journey()
+        
+        if user_id:
+            # Show persona recommendations
+            await demonstrate_persona_recommendations()
+            
+            # Show contextual responses
+            await demonstrate_contextual_responses()
+            
+            # Show weekly insights
+            await demonstrate_weekly_insights()
+            
+            print("\n🎉 Comprehensive Demo Complete!")
+            print("=" * 50)
+            print("✅ Daily Loop Integration successfully demonstrated with:")
+            print("  • Realistic 3-day user journey with varied patterns")
+            print("  • Dynamic persona recommendations based on wellness data")
+            print("  • Contextual responses that reference daily patterns")
+            print("  • Comprehensive weekly insights and priority scoring")
+            print("  • Seamless integration between wellness tracking and therapeutic support")
+            
+        else:
+            print("❌ Failed to create user journey data")
+            
+    except Exception as e:
+        print(f"❌ Demo failed: {e}")
+        
+    finally:
+        # Clean up
+        await cleanup_demo_data()
 
 if __name__ == "__main__":
-    asyncio.run(demo_comprehensive_data_pipeline())
+    asyncio.run(main())
