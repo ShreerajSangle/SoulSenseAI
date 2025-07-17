@@ -1,0 +1,63 @@
+🔁 1. Session Continuity with Smart Context Loading
+Auto-load last unfinished session with the same persona when the app reopens.
+
+Example: “Welcome back, Shreeraj. Last time we spoke about your sleep struggles — would you like to continue?”
+
+🧠 Why: It makes the app feel more “alive” and emotionally aware without needing deep memory logic.
+
+🧵 2. Threaded Micro-Conversations (Bubble Collapsing)
+Group back-and-forth under “threads” for one issue (e.g., anxiety discussion, goal planning).
+
+Add “tap to expand full chat” UI per thread.
+
+🎯 Why: Helps users not feel overwhelmed by long text chains and adds visual clarity.
+
+📩 3. End-of-Session Review Cards
+At the end of every 10-minute chat or when user closes the panel:
+
+Show: “Today you… set a new goal, practiced breathing, felt calmer.”
+
+Offer buttons: 📓 Save Summary | 📥 Email to Self | 🔁 Continue
+
+📌 Why: Keeps closure natural and gently guides the user to reflect and return.
+
+🛎️ 4. Subtle Persona Reminders
+After inactivity or long typing pause:
+
+Maya: “Would you like to do a grounding breath?”
+
+Marcus: “Let me know if you need help reframing that thought.”
+
+🧘 Why: Keeps users engaged without being intrusive.
+
+📝 5. Auto-Journaling Mode (Based on Mood or Topic)
+If user mentions feelings or writes a lot, auto-prompt:
+
+“This feels important. Would you like to save this in your diary?”
+
+🔍 Why: Encourages self-reflection with zero extra effort.
+
+💡 6. Customizable Persona Suggestions
+Let user “tune” suggestions per persona:
+
+Marcus: More goal-based | More reflective
+
+Alex: More humor | More cheerleader energy
+
+Sarah: More analytical | More nurturing
+
+🧠 Why: Makes the AI feel more like “my version” of the persona.
+
+⚡ 7. Quick Mood Log with Emoji + Trigger Tags
+Beside chat box: 😔 😐 😊 💥 with optional trigger tag (e.g., “social anxiety”)
+
+Automatically links mood to session and sends it to emotion tracker.
+
+🌈 Why: Lightweight input = stronger emotional intelligence over time.
+
+📊 8. Smart Persona Routing (Optional Future Feature)
+If user says: “I’m feeling really stuck in my career,” system can suggest:
+
+“Would you like to talk to Marcus about this?”
+
+🛠 Why: Introduces gentle handoffs between personas without breaking immersion.

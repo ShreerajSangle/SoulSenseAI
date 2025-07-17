@@ -24,6 +24,7 @@ from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
 from core.passive_logger import PassiveLogger
+from core.session_manager import SessionManager
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -42,6 +43,7 @@ emotion_engine = EmotionEngine()
 memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
 passive_logger = PassiveLogger()
+session_manager = SessionManager()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -62,9 +64,11 @@ async def lifespan(app: FastAPI):
     """Initialize database and setup on startup"""
     await database.initialize()
     await passive_logger.initialize()
+    await session_manager.initialize()
     yield
     await database.close()
     await passive_logger.close()
+    await session_manager.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -184,8 +188,18 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             for reply in quick_replies
         ]
         
+        # Session management and passive logging
+        session_id = message.session_id or await session_manager.start_session(user_id, persona_id)
+        
+        # Update session context
+        await session_manager.update_session_context(
+            session_id=session_id,
+            user_message=message.content,
+            ai_response=response.content,
+            emotional_context=emotional_context.__dict__
+        )
+        
         # Passive logging - store conversation in background (non-blocking)
-        session_id = message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         passive_logger.log_conversation_async(
             session_id=session_id,
             user_id=user_id,
@@ -308,6 +322,61 @@ async def get_persona_analytics(user_id: str, persona_id: str):
 # Enhanced data endpoints
 from api.data_endpoints import router as data_router
 app.include_router(data_router, prefix="/api/data", tags=["data"])
+
+# Session continuity endpoints
+@app.get("/api/session/last-unfinished/{user_id}/{persona_id}")
+async def get_last_unfinished_session(user_id: str, persona_id: str):
+    """Get the most recent unfinished session for resumption"""
+    context = await session_manager.get_last_unfinished_session(user_id, persona_id)
+    if not context:
+        return {"has_unfinished": False}
+    
+    # Generate continuation prompt
+    continuation_prompt = await session_manager.generate_continuation_prompt(context, "there")
+    
+    return {
+        "has_unfinished": True,
+        "session_id": context.session_id,
+        "continuation_prompt": continuation_prompt,
+        "last_activity": context.last_activity.isoformat(),
+        "message_count": context.message_count,
+        "key_topics": context.key_topics,
+        "emotional_tone": context.emotional_tone
+    }
+
+@app.post("/api/session/finish/{session_id}")
+async def finish_session(session_id: str, request: dict):
+    """Mark session as finished and generate summary"""
+    achievements = request.get('achievements', [])
+    mood_change = request.get('mood_change', '')
+    next_steps = request.get('next_steps', [])
+    
+    summary = await session_manager.finish_session(
+        session_id=session_id,
+        achievements=achievements,
+        mood_change=mood_change,
+        next_steps=next_steps
+    )
+    
+    return summary
+
+@app.get("/api/session/recent/{user_id}")
+async def get_recent_sessions(user_id: str, persona_id: str = None, limit: int = 5):
+    """Get recent sessions for a user"""
+    sessions = await session_manager.get_recent_sessions(user_id, persona_id, limit)
+    
+    return [
+        {
+            "session_id": session.session_id,
+            "persona_id": session.persona_id,
+            "last_activity": session.last_activity.isoformat(),
+            "message_count": session.message_count,
+            "key_topics": session.key_topics,
+            "emotional_tone": session.emotional_tone,
+            "unfinished": session.unfinished
+        }
+        for session in sessions
+    ]
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

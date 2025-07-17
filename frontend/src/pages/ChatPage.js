@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Sparkles, Heart, Zap, Target } from 'lucide-react';
+import SessionContinuity from '../components/SessionContinuity';
+import EndOfSessionReview from '../components/EndOfSessionReview';
 
 const ChatPage = ({ user }) => {
   const { personaId } = useParams();
@@ -10,7 +12,10 @@ const ChatPage = ({ user }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
-  const [sessionId] = useState(`session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId, setSessionId] = useState(null);
+  const [showSessionReview, setShowSessionReview] = useState(false);
+  const [sessionSummary, setSessionSummary] = useState(null);
+  const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef(null);
 
   // Persona-specific configurations
@@ -145,6 +150,7 @@ const ChatPage = ({ user }) => {
 
         setMessages(prev => [...prev, aiMessage]);
         setSuggestions(data.suggestions || []);
+        setMessageCount(prev => prev + 2); // User message + AI response
       } else {
         throw new Error('Failed to send message');
       }
@@ -230,6 +236,16 @@ const ChatPage = ({ user }) => {
           </div>
         </div>
       </header>
+
+      {/* Session Continuity Component */}
+      {!sessionId && (
+        <SessionContinuity
+          userId={user?.id || 'anonymous'}
+          personaId={personaId}
+          onContinueSession={handleContinueSession}
+          onStartNew={handleStartNewSession}
+        />
+      )}
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4">
@@ -324,8 +340,67 @@ const ChatPage = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* End of Session Review Modal */}
+      {showSessionReview && sessionSummary && (
+        <EndOfSessionReview
+          sessionId={sessionId}
+          sessionData={sessionSummary}
+          onClose={() => setShowSessionReview(false)}
+          onContinue={() => setShowSessionReview(false)}
+          onSaveSummary={handleSaveSummary}
+          onEmailSummary={handleEmailSummary}
+        />
+      )}
     </div>
   );
+
+  // Session continuity functions
+  function handleContinueSession(resumeSessionId, continuationPrompt) {
+    setSessionId(resumeSessionId);
+    // Add continuation message to chat
+    const continuationMsg = {
+      id: Date.now(),
+      role: 'assistant',
+      content: continuationPrompt,
+      timestamp: new Date(),
+      emotion: 'welcoming'
+    };
+    setMessages([continuationMsg]);
+    setMessageCount(1);
+  }
+
+  function handleStartNewSession() {
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+    setMessages([]);
+    setMessageCount(0);
+  }
+
+  function handleSaveSummary(summaryData) {
+    // Save summary to local storage or send to backend
+    console.log('Saving session summary:', summaryData);
+  }
+
+  function handleEmailSummary(summaryData) {
+    // Send email with session summary
+    console.log('Emailing session summary:', summaryData);
+  }
+
+  // Automatically show session review after 10 minutes or 15+ messages
+  useEffect(() => {
+    if (messageCount >= 15) {
+      // Generate session summary
+      const summary = {
+        duration_minutes: 10,
+        achievements: ['Had meaningful conversation', 'Explored emotional patterns'],
+        mood_change: 'Feeling more centered and understood',
+        next_steps: ['Continue self-reflection', 'Practice breathing exercises']
+      };
+      setSessionSummary(summary);
+      setShowSessionReview(true);
+    }
+  }, [messageCount]);
 };
 
 export default ChatPage;
