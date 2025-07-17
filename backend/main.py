@@ -27,6 +27,7 @@ from core.passive_logger import PassiveLogger
 from core.session_manager import SessionManager
 from core.emotional_timeline import EmotionalTimelineTracker
 from core.persona_pathways import PersonaPathwaySystem
+from core.daily_loop import DailySoulSenseLoop
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -48,6 +49,7 @@ passive_logger = PassiveLogger()
 session_manager = SessionManager()
 emotional_timeline = EmotionalTimelineTracker()
 persona_pathways = PersonaPathwaySystem()
+daily_loop = DailySoulSenseLoop()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -71,12 +73,14 @@ async def lifespan(app: FastAPI):
     await session_manager.initialize()
     await emotional_timeline.initialize()
     await persona_pathways.initialize()
+    await daily_loop.initialize()
     yield
     await database.close()
     await passive_logger.close()
     await session_manager.close()
     await emotional_timeline.close()
     await persona_pathways.close()
+    await daily_loop.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -542,6 +546,97 @@ async def get_pathway_recommendations(user_id: str, emotional_state: str = None)
     """Get personalized pathway recommendations"""
     recommendations = await persona_pathways.get_pathway_recommendations(user_id, emotional_state)
     return recommendations
+
+# Daily Loop endpoints
+@app.get("/api/daily-loop/morning/{user_id}")
+async def get_morning_activity(user_id: str, date: str = None):
+    """Get personalized morning check-in activity"""
+    parsed_date = None
+    if date:
+        try:
+            parsed_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_date = None
+    
+    activity = await daily_loop.get_morning_activity(user_id, parsed_date)
+    return activity
+
+@app.get("/api/daily-loop/evening/{user_id}")
+async def get_evening_activity(user_id: str, date: str = None):
+    """Get personalized evening reflection activity"""
+    parsed_date = None
+    if date:
+        try:
+            parsed_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_date = None
+    
+    activity = await daily_loop.get_evening_activity(user_id, parsed_date)
+    return activity
+
+@app.get("/api/daily-loop/midday/{user_id}")
+async def get_midday_pulse(user_id: str):
+    """Get midday pulse check activity"""
+    activity = await daily_loop.get_midday_pulse(user_id)
+    return activity
+
+@app.post("/api/daily-loop/complete")
+async def complete_loop_activity(request: dict):
+    """Complete a daily loop activity"""
+    user_id = request.get('user_id')
+    loop_type = request.get('loop_type')
+    mood_rating = request.get('mood_rating')
+    energy_level = request.get('energy_level')
+    stress_level = request.get('stress_level')
+    
+    if not user_id or not loop_type:
+        raise HTTPException(status_code=400, detail="User ID and loop type required")
+    
+    success = await daily_loop.complete_loop_activity(
+        user_id=user_id,
+        loop_type=loop_type,
+        mood_rating=mood_rating,
+        energy_level=energy_level,
+        stress_level=stress_level,
+        gratitude_notes=request.get('gratitude_notes', ''),
+        challenges_faced=request.get('challenges_faced', ''),
+        accomplishments=request.get('accomplishments', ''),
+        goals_for_day=request.get('goals_for_day', ''),
+        reflection_notes=request.get('reflection_notes', ''),
+        selected_persona=request.get('selected_persona', ''),
+        date=None
+    )
+    
+    if success:
+        return {"message": "Loop activity completed successfully"}
+    else:
+        raise HTTPException(status_code=400, detail="Failed to complete loop activity")
+
+@app.get("/api/daily-loop/summary/{user_id}")
+async def get_daily_summary(user_id: str, date: str = None):
+    """Get comprehensive daily summary"""
+    parsed_date = None
+    if date:
+        try:
+            parsed_date = datetime.strptime(date, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_date = None
+    
+    summary = await daily_loop.get_user_daily_summary(user_id, parsed_date)
+    return summary
+
+@app.get("/api/daily-loop/weekly/{user_id}")
+async def get_weekly_summary(user_id: str, week_start: str = None):
+    """Get weekly summary of daily loop activities"""
+    parsed_week_start = None
+    if week_start:
+        try:
+            parsed_week_start = datetime.strptime(week_start, '%Y-%m-%d').date()
+        except ValueError:
+            parsed_week_start = None
+    
+    summary = await daily_loop.get_weekly_loop_summary(user_id, parsed_week_start)
+    return summary
 
 # User profile endpoints
 @app.get("/api/profile/{user_id}")

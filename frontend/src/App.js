@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import PathwayExplorer from './components/PathwayExplorer';
+import DailyLoopDashboard from './components/DailyLoopDashboard';
 import './App.css';
 
 // Persona data
@@ -40,7 +41,7 @@ const PERSONAS = [
 ];
 
 // HomePage component with persona selection
-const HomePage = ({ onPersonaSelect, onShowPathways }) => {
+const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Hero Section */}
@@ -149,21 +150,29 @@ const HomePage = ({ onPersonaSelect, onShowPathways }) => {
         </div>
       </div>
       
-      {/* Pathways CTA */}
+      {/* Wellness Features */}
       <div className="bg-gradient-to-r from-green-500 to-teal-500 py-16">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Guided Therapeutic Pathways
+            Complete Wellness Ecosystem
           </h2>
           <p className="text-green-100 text-lg mb-8">
-            Embark on structured healing journeys with your favorite personas
+            Daily routines and structured healing journeys for comprehensive mental health support
           </p>
-          <button 
-            onClick={onShowPathways}
-            className="bg-white text-green-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl"
-          >
-            🧭 Explore Guided Pathways
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={onShowDailyLoop}
+              className="bg-white text-green-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-50 transition-all duration-300 shadow-lg hover:shadow-xl"
+            >
+              ✨ Daily SoulSense Loop
+            </button>
+            <button 
+              onClick={onShowPathways}
+              className="bg-white/20 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm"
+            >
+              🧭 Guided Pathways
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -174,6 +183,7 @@ function App() {
   const [user, setUser] = useState({ id: 'demo_user', name: 'Demo User', sessionId: Date.now() });
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [showPathways, setShowPathways] = useState(false);
+  const [showDailyLoop, setShowDailyLoop] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -197,16 +207,25 @@ function App() {
   const handlePersonaSelect = (persona) => {
     setSelectedPersona(persona);
     setShowPathways(false);
+    setShowDailyLoop(false);
   };
 
   const handleBackToHome = () => {
     setSelectedPersona(null);
     setShowPathways(false);
+    setShowDailyLoop(false);
   };
 
   const handleShowPathways = () => {
     setShowPathways(true);
     setSelectedPersona(null);
+    setShowDailyLoop(false);
+  };
+
+  const handleShowDailyLoop = () => {
+    setShowDailyLoop(true);
+    setSelectedPersona(null);
+    setShowPathways(false);
   };
 
   if (loading) {
@@ -257,8 +276,24 @@ function App() {
           {/* Pathways Explorer */}
           <PathwayExplorer userId={user.id} />
         </div>
+      ) : showDailyLoop ? (
+        <div className="min-h-screen">
+          {/* Back button */}
+          <div className="bg-white border-b px-4 py-2">
+            <button
+              onClick={handleBackToHome}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <span>←</span>
+              <span>Back to Home</span>
+            </button>
+          </div>
+          
+          {/* Daily Loop Dashboard */}
+          <DailyLoopDashboard userId={user.id} />
+        </div>
       ) : (
-        <HomePage onPersonaSelect={handlePersonaSelect} onShowPathways={handleShowPathways} />
+        <HomePage onPersonaSelect={handlePersonaSelect} onShowPathways={handleShowPathways} onShowDailyLoop={handleShowDailyLoop} />
       )}
     </div>
   );
