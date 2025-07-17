@@ -23,8 +23,7 @@ from core.database import Database
 from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
-from core.data_pipeline import DataPipeline
-from core.llm_client import LLMClient
+from core.passive_logger import PassiveLogger
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -42,8 +41,7 @@ database = Database()
 emotion_engine = EmotionEngine()
 memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
-llm_client = LLMClient()
-data_pipeline = DataPipeline(database, llm_client)
+passive_logger = PassiveLogger()
 
 # Initialize persona handlers
 maya_handler = MayaHandler()
@@ -63,8 +61,10 @@ PERSONA_HANDLERS = {
 async def lifespan(app: FastAPI):
     """Initialize database and setup on startup"""
     await database.initialize()
+    await passive_logger.initialize()
     yield
     await database.close()
+    await passive_logger.close()
 
 # FastAPI app initialization
 app = FastAPI(
@@ -184,44 +184,29 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             for reply in quick_replies
         ]
         
-        # Store comprehensive conversation data through pipeline
-        conversation_id = await data_pipeline.log_conversation(
+        # Passive logging - store conversation in background (non-blocking)
+        session_id = message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        passive_logger.log_conversation_async(
+            session_id=session_id,
             user_id=user_id,
             persona_id=persona_id,
-            session_id=message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             user_message=message.content,
             ai_response=response.content,
-            emotional_context=emotional_context.__dict__,
-            quick_replies=quick_reply_data,
-            features_used=handler.get_active_features()
+            emotional_context=emotional_context.__dict__
         )
         
-        # Log quick reply interaction for learning
-        await data_pipeline.log_quick_reply_interaction(
+        # Log quick reply suggestions passively
+        passive_logger.log_interaction_async(
             user_id=user_id,
             persona_id=persona_id,
-            session_id=message.session_id or f"session_{user_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            user_message=message.content,
-            suggested_replies=quick_reply_data
+            session_id=session_id,
+            interaction_type="quick_replies_suggested",
+            interaction_data={
+                "quick_replies": quick_reply_data,
+                "emotional_context": emotional_context.primary_emotion.value if hasattr(emotional_context, 'primary_emotion') else 'neutral'
+            }
         )
 
-@app.post("/api/data/quick-reply-log")
-async def log_quick_reply_selection(request: dict):
-    """Log quick reply selection for AI learning"""
-    try:
-        await data_pipeline.log_quick_reply_interaction(
-            user_id=request.get('user_id'),
-            persona_id=request.get('persona_id'),
-            session_id=request.get('session_id'),
-            user_message="",  # Will be filled from conversation context
-            suggested_replies=[],  # Will be filled from conversation context
-            selected_reply=request.get('selected_reply'),
-            time_to_select=request.get('time_to_select')
-        )
-        return {"status": "logged", "timestamp": datetime.now().isoformat()}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-        
         return ChatResponse(
             content=response.content,
             persona_id=persona_id,
@@ -229,7 +214,7 @@ async def log_quick_reply_selection(request: dict):
             confidence=emotional_context.confidence,
             features_activated=handler.get_active_features(),
             persona_config=handler.get_config(),
-            session_id=message.session_id,
+            session_id=session_id,
             quick_replies=quick_reply_data
         )
         
@@ -241,7 +226,22 @@ async def log_quick_reply_selection(request: dict):
 @app.post("/api/breathing/session")
 async def create_breathing_session(session: BreathingSession, user_id: str = "anonymous"):
     """Create and track breathing exercise session"""
-    return await database.store_breathing_session(user_id, session)
+    result = await database.store_breathing_session(user_id, session)
+    
+    # Passive logging for breathing session
+    passive_logger.log_wellness_activity_async(
+        user_id=user_id,
+        persona_id=getattr(session, 'persona_id', 'unknown'),
+        activity_type="breathing_exercise",
+        activity_data={
+            "technique": session.technique,
+            "rounds_completed": getattr(session, 'rounds_completed', 0)
+        },
+        duration_seconds=session.duration_seconds,
+        effectiveness_rating=getattr(session, 'effectiveness_rating', 0)
+    )
+    
+    return result
 
 @app.get("/api/breathing/history/{user_id}")
 async def get_breathing_history(user_id: str):
@@ -252,7 +252,18 @@ async def get_breathing_history(user_id: str):
 @app.post("/api/journal/entry")
 async def create_journal_entry(entry: JournalEntry, user_id: str = "anonymous"):
     """Create journal entry with persona-specific insights"""
-    return await database.store_journal_entry(user_id, entry)
+    result = await database.store_journal_entry(user_id, entry)
+    
+    # Passive logging for journal entry
+    passive_logger.log_diary_entry_async(
+        user_id=user_id,
+        persona_id=getattr(entry, 'persona_id', 'unknown'),
+        entry_content=entry.content,
+        mood_rating=entry.mood.value if hasattr(entry.mood, 'value') else str(entry.mood),
+        emotion_tags=getattr(entry, 'emotion_tags', [])
+    )
+    
+    return result
 
 @app.get("/api/journal/entries/{user_id}")
 async def get_journal_entries(user_id: str):
@@ -263,7 +274,20 @@ async def get_journal_entries(user_id: str):
 @app.post("/api/goals")
 async def create_goal(goal: Goal, user_id: str = "anonymous"):
     """Create wellness goal with persona guidance"""
-    return await database.store_goal(user_id, goal)
+    result = await database.store_goal(user_id, goal)
+    
+    # Passive logging for goal creation
+    passive_logger.log_goal_interaction_async(
+        user_id=user_id,
+        persona_id=getattr(goal, 'persona_id', 'unknown'),
+        goal_title=goal.title,
+        goal_description=goal.description,
+        goal_category=goal.category,
+        action_type="create",
+        progress_value=0.0
+    )
+    
+    return result
 
 @app.get("/api/goals/{user_id}")
 async def get_goals(user_id: str):
