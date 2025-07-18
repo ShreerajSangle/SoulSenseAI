@@ -1,61 +1,70 @@
-// SoulSense AI - Full Stack Development Server
-import { spawn } from 'child_process';
-import express from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import path from 'path';
+import express, { type Request, Response, NextFunction } from "express";
+import { registerRoutes } from "./routes-clean";
+import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-console.log('🚀 Starting SoulSense AI Full Stack...');
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path = req.path;
+  let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-// Start Python FastAPI backend
-const pythonProcess = spawn('python3', ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', '8000', '--reload'], {
-  cwd: './backend',
-  stdio: 'inherit',
-  env: { ...process.env, NODE_ENV: 'development' }
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path.startsWith("/api")) {
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "…";
+      }
+
+      log(logLine);
+    }
+  });
+
+  next();
 });
 
-// Start React development server
-const reactProcess = spawn('npm', ['run', 'dev'], {
-  cwd: './client',
-  stdio: 'inherit',
-  env: { ...process.env, PORT: '3000' }
-});
+(async () => {
+  const server = await registerRoutes(app);
 
-// API proxy to Python backend
-app.use('/api', createProxyMiddleware({
-  target: 'http://127.0.0.1:8000',
-  changeOrigin: true,
-  timeout: 30000
-}));
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-app.use('/health', createProxyMiddleware({
-  target: 'http://127.0.0.1:8000',
-  changeOrigin: true
-}));
+    res.status(status).json({ message });
+    throw err;
+  });
 
-app.use('/docs', createProxyMiddleware({
-  target: 'http://127.0.0.1:8000',
-  changeOrigin: true
-}));
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
 
-// Frontend proxy to React dev server
-app.use('/', createProxyMiddleware({
-  target: 'http://127.0.0.1:3000',
-  changeOrigin: true,
-  ws: true // Enable websocket support for HMR
-}));
-
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`✅ SoulSense AI proxy running on http://localhost:${PORT}`);
-  console.log('🔗 API routed to Python backend (port 8000)');
-  console.log('🌐 Frontend routed to React dev server (port 3000)');
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  pythonProcess.kill();
-  reactProcess.kill();
-  process.exit(0);
-});
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();
