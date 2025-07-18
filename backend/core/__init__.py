@@ -1,1 +1,1 @@
-# SoulSense AI Core Systems Package
+# Core modules for SoulSense AI Backend

@@ -1,0 +1,38 @@
+I want to completely restructure the SoulSenseAI project from the ground up. The current system uses a TypeScript + Express backend and a React frontend. My objective is to fully replace the TypeScript backend with a clean, efficient Python backend using FastAPI, while preserving the exact UI, layout, and all current features of the React frontend. The frontend should remain untouched visually and functionally — users should see no difference in how the system behaves after the migration.
+
+The new backend must faithfully replicate all current logic, API endpoints, database interactions, and persona workflows that are implemented in the existing TypeScript files (server/index.ts, routes-clean.ts, etc.). Each persona (Maya, Marcus, Dr. Sarah, and Alex) should retain its individual flow, personality, memory, and task capabilities. Backend modules should manage:
+
+Chat flows and summaries
+
+Goals and task tracking
+
+Breathing and meditation sessions
+
+Journaling and emotional logs
+
+Analytics and progress stats shown in the Profile tab (sessions, streaks, mood chart, goals achieved, recent activity)
+
+The backend API structure must be fully mirrored in Python, exposing the same /api/ routes so the existing React frontend can continue to function without modification. The database logic currently handled in TypeScript should be migrated to SQLAlchemy or Tortoise ORM in Python, supporting PostgreSQL or SQLite.
+
+Once the new backend is fully integrated and working, delete all unnecessary TypeScript files, scripts, test stubs, old backend folders, temporary logs, and deprecated assets that are no longer relevant. This includes:
+
+Entire server/ directory if it’s built on TypeScript
+
+Any .ts, .tsx, .test.ts, or .spec.ts files
+
+All unlinked assets, unused components, and sample/demo files not tied to the working frontend or backend
+
+Any old Python backend fragments not used in the new FastAPI structure
+
+The goal is to deliver a clean, modular, production-ready system with:
+
+Frontend: React (same as current, no changes to UI/UX)
+
+Backend: FastAPI in Python (all features and endpoints preserved)
+
+Database: PostgreSQL or SQLite (same schema, active logging of chat, goals, journals, mood)
+
+Folder Structure: Organized and decluttered, only keeping active components and logic
+
+This system must be as robust, scalable, and feature-complete as the original, while improving backend maintainability and preparing for advanced AI upgrades in the future.
+

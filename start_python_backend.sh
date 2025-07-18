@@ -1,18 +1,17 @@
 #!/bin/bash
 
-# Start Python FastAPI Backend for SoulSense AI
-echo "Starting SoulSense AI Python FastAPI Backend..."
+echo "🔄 Stopping TypeScript Express server..."
+pkill -f "tsx server/index.ts" 2>/dev/null || true
+pkill -f "npm run dev" 2>/dev/null || true
 
-# Navigate to backend directory
+echo "🚀 Starting SoulSense AI Python Backend..."
 cd backend
 
-# Install dependencies if needed
-echo "Checking Python dependencies..."
-python -c "import fastapi, uvicorn, pydantic" 2>/dev/null || {
-    echo "Installing Python dependencies..."
-    pip install fastapi uvicorn pydantic httpx aiosqlite python-multipart "python-jose[cryptography]" "passlib[bcrypt]" python-dotenv
-}
+# Set environment variables
+export NODE_ENV=development
+export PYTHONPATH=$(pwd)
 
-# Start the FastAPI server
-echo "Starting FastAPI server on port 5000..."
-python main.py
+# Start the Python FastAPI server
+echo "📍 Starting server on http://localhost:5000"
+echo "📚 API docs: http://localhost:5000/docs"
+exec python3 main.py

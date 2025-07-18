@@ -1,371 +1,296 @@
 """
-Emotion Engine - Advanced Emotional Intelligence System
-Detects and analyzes emotions from text input with crisis detection
+Emotion detection and analysis engine for SoulSense AI
+Provides emotional intelligence capabilities for better therapeutic responses
 """
 
 import re
-import asyncio
-import json
-from typing import Dict, List, Any, Optional, Tuple
-from models.schemas import EmotionalContext, EmotionType
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
 from datetime import datetime
+
+
+@dataclass
+class EmotionResult:
+    """Result of emotion analysis"""
+    primary_emotion: str
+    confidence: float
+    intensity: float  # 0.0 to 1.0
+    secondary_emotions: List[str]
+    crisis_indicators: List[str]
+    support_needs: List[str]
+    emotional_complexity: float
+
 
 class EmotionEngine:
     """Advanced emotion detection and analysis system"""
     
     def __init__(self):
-        # Emotion detection patterns and keywords
+        # Primary emotion categories with keywords
         self.emotion_patterns = {
-            "happy": [
-                "happy", "joy", "excited", "thrilled", "delighted", "cheerful",
-                "glad", "pleased", "content", "elated", "euphoric", "upbeat",
-                "bright", "wonderful", "amazing", "fantastic", "great"
+            "anxiety": [
+                r"\b(anxious|worried|nervous|panic|stress|overwhelmed|scared)\b",
+                r"\b(can't (cope|handle)|too much|breaking down)\b",
+                r"\b(heart racing|sweating|shaking|dizzy)\b"
             ],
-            "sad": [
-                "sad", "depressed", "down", "blue", "melancholy", "gloomy",
-                "sorrowful", "dejected", "despondent", "heartbroken", "tearful",
-                "crying", "weeping", "miserable", "unhappy", "mournful"
+            "depression": [
+                r"\b(sad|depressed|down|empty|hopeless|worthless)\b",
+                r"\b(can't sleep|tired|exhausted|drained)\b",
+                r"\b(nothing matters|give up|pointless)\b"
             ],
-            "anxious": [
-                "anxious", "worried", "nervous", "stressed", "tense", "panic",
-                "fear", "scared", "frightened", "uneasy", "apprehensive",
-                "restless", "agitated", "jittery", "on edge", "overwhelmed"
+            "anger": [
+                r"\b(angry|furious|mad|irritated|frustrated|rage)\b",
+                r"\b(can't stand|hate|disgusted|fed up)\b",
+                r"\b(want to scream|punch|break)\b"
             ],
-            "angry": [
-                "angry", "mad", "furious", "irritated", "annoyed", "frustrated",
-                "rage", "livid", "pissed", "enraged", "outraged", "hostile",
-                "aggressive", "bitter", "resentful", "indignant"
+            "joy": [
+                r"\b(happy|excited|joyful|elated|thrilled|grateful)\b",
+                r"\b(amazing|wonderful|fantastic|great|awesome)\b",
+                r"\b(love|blessed|lucky|thankful)\b"
             ],
-            "calm": [
-                "calm", "peaceful", "serene", "tranquil", "relaxed", "zen",
-                "centered", "balanced", "still", "quiet", "composed", "settled",
-                "grounded", "stable", "untroubled", "at ease"
+            "fear": [
+                r"\b(afraid|terrified|scared|frightened|fearful)\b",
+                r"\b(nightmare|phobia|panic|dread)\b",
+                r"\b(can't breathe|frozen|paralyzed)\b"
             ],
-            "hopeful": [
-                "hopeful", "optimistic", "positive", "confident", "encouraged",
-                "inspired", "motivated", "determined", "faith", "belief",
-                "trust", "looking forward", "excited about", "anticipating"
+            "grief": [
+                r"\b(loss|grief|mourning|bereaved|devastated)\b",
+                r"\b(miss|gone|died|death|funeral)\b",
+                r"\b(crying|tears|heartbroken|aching)\b"
             ],
-            "overwhelmed": [
-                "overwhelmed", "swamped", "buried", "drowning", "too much",
-                "can't handle", "stressed out", "overloaded", "exhausted",
-                "burned out", "at capacity", "breaking point", "maxed out"
+            "confusion": [
+                r"\b(confused|lost|don't know|uncertain|unclear)\b",
+                r"\b(can't decide|mixed up|don't understand)\b",
+                r"\b(what should I|how do I|why)\b"
             ],
-            "lonely": [
-                "lonely", "alone", "isolated", "disconnected", "abandoned",
-                "solitary", "friendless", "empty", "hollow", "cut off",
-                "separated", "alienated", "withdrawn", "by myself"
+            "shame": [
+                r"\b(ashamed|embarrassed|guilty|humiliated)\b",
+                r"\b(my fault|I'm terrible|I messed up)\b",
+                r"\b(hide|can't face|disappointed)\b"
             ],
-            "grateful": [
-                "grateful", "thankful", "appreciative", "blessed", "fortunate",
-                "glad", "acknowledge", "recognition", "gratitude", "thanks",
-                "appreciate", "value", "treasure", "cherish"
+            "loneliness": [
+                r"\b(lonely|alone|isolated|disconnected)\b",
+                r"\b(no one|nobody|by myself|abandoned)\b",
+                r"\b(miss (having|being)|wish I had)\b"
             ],
-            "frustrated": [
-                "frustrated", "stuck", "blocked", "hindered", "thwarted",
-                "impeded", "stalled", "hitting wall", "can't progress",
-                "roadblock", "obstacle", "barrier", "difficulty"
+            "hope": [
+                r"\b(hope|hopeful|optimistic|positive|better)\b",
+                r"\b(looking forward|excited about|can't wait)\b",
+                r"\b(things will|getting better|improving)\b"
             ]
         }
         
-        # Crisis detection patterns - high priority
+        # Crisis indicator patterns
         self.crisis_patterns = [
-            "suicide", "kill myself", "end it all", "want to die", "better off dead",
-            "hurt myself", "self harm", "cut myself", "overdose", "jump off",
-            "can't go on", "no point", "hopeless", "give up", "end the pain",
-            "not worth living", "everyone would be better", "permanent solution",
-            "razor", "pills", "bridge", "gun", "rope", "knife"
+            r"\b(want to die|suicide|kill myself|end it all)\b",
+            r"\b(hurt myself|self-harm|cutting|worthless)\b",
+            r"\b(can't go on|give up|no point|better off dead)\b",
+            r"\b(plan to|thinking about (dying|suicide))\b"
         ]
         
         # Support need indicators
         self.support_patterns = {
-            "grounding_techniques": [
-                "panic", "anxiety attack", "can't breathe", "hyperventilating",
-                "dizzy", "shaking", "racing heart", "out of control"
+            "immediate_help": [
+                r"\b(crisis|emergency|urgent|desperate|can't cope)\b",
+                r"\b(right now|immediately|need help)\b"
             ],
-            "validation": [
-                "no one understands", "feel alone", "isolated", "misunderstood",
-                "invalidated", "dismissed", "not heard", "ignored"
+            "listening_ear": [
+                r"\b(need to talk|someone to listen|hear me out)\b",
+                r"\b(understand|get it|relate)\b"
+            ],
+            "practical_advice": [
+                r"\b(what should I|how do I|help me figure)\b",
+                r"\b(steps|plan|strategy|solution)\b"
+            ],
+            "emotional_validation": [
+                r"\b(normal|okay to feel|valid|makes sense)\b",
+                r"\b(not alone|others feel|common)\b"
             ],
             "coping_strategies": [
-                "don't know how", "can't handle", "overwhelmed", "breaking down",
-                "falling apart", "losing it", "can't cope", "too much"
-            ],
-            "crisis_support": [
-                "emergency", "crisis", "breaking point", "can't take it",
-                "desperate", "help me", "urgent", "immediate"
+                r"\b(cope|manage|deal with|handle|get through)\b",
+                r"\b(techniques|methods|strategies|tools)\b"
             ]
         }
-        
-        # Emotional intensity indicators
-        self.intensity_modifiers = {
-            "very": 0.8,
-            "extremely": 0.9,
-            "incredibly": 0.9,
-            "really": 0.7,
-            "so": 0.7,
-            "totally": 0.8,
-            "completely": 0.9,
-            "absolutely": 0.9,
-            "utterly": 0.9,
-            "super": 0.7,
-            "quite": 0.6,
-            "somewhat": 0.4,
-            "a bit": 0.3,
-            "slightly": 0.2,
-            "mildly": 0.3
-        }
-        
-        # Valence scoring (negative to positive)
-        self.valence_scores = {
-            "happy": 0.8,
-            "excited": 0.7,
-            "grateful": 0.6,
-            "hopeful": 0.5,
-            "calm": 0.3,
-            "peaceful": 0.4,
-            "sad": -0.6,
-            "angry": -0.5,
-            "anxious": -0.4,
-            "frustrated": -0.3,
-            "overwhelmed": -0.7,
-            "lonely": -0.6
-        }
-        
-        # Arousal scoring (calm to excited)
-        self.arousal_scores = {
-            "excited": 0.9,
-            "anxious": 0.8,
-            "angry": 0.7,
-            "frustrated": 0.6,
-            "overwhelmed": 0.8,
-            "happy": 0.6,
-            "sad": 0.3,
-            "calm": 0.1,
-            "peaceful": 0.1,
-            "grateful": 0.4
-        }
     
-    async def analyze_emotion(self, text: str) -> EmotionalContext:
-        """Analyze emotional context from text input"""
+    def analyze_emotion(self, text: str, context: Dict[str, Any] = None) -> EmotionResult:
+        """
+        Analyze emotion in text with context awareness
         
-        if not text or not text.strip():
-            return self._default_emotional_context()
+        Args:
+            text: User's message text
+            context: Additional context (previous messages, persona, etc.)
         
+        Returns:
+            EmotionResult with comprehensive analysis
+        """
         text_lower = text.lower()
         
-        # Detect primary and secondary emotions
-        detected_emotions = self._detect_emotions(text_lower)
-        
-        # Calculate emotional intensity
-        intensity = self._calculate_intensity(text_lower, detected_emotions)
-        
-        # Calculate valence and arousal
-        valence = self._calculate_valence(detected_emotions)
-        arousal = self._calculate_arousal(detected_emotions)
-        
-        # Detect crisis indicators
-        crisis_indicators = self._detect_crisis_indicators(text_lower)
-        
-        # Detect support needs
-        support_needs = self._detect_support_needs(text_lower)
-        
-        # Detect emotional triggers
-        emotional_triggers = self._detect_emotional_triggers(text_lower)
-        
-        # Calculate confidence score
-        confidence = self._calculate_confidence(detected_emotions, text_lower)
-        
-        return EmotionalContext(
-            primary_emotion=detected_emotions[0] if detected_emotions else EmotionType.CALM,
-            secondary_emotions=detected_emotions[1:3] if len(detected_emotions) > 1 else [],
-            intensity=intensity,
-            valence=valence,
-            arousal=arousal,
-            confidence=confidence,
-            emotional_triggers=emotional_triggers,
-            support_needs=support_needs,
-            crisis_indicators=crisis_indicators
-        )
-    
-    def _detect_emotions(self, text: str) -> List[EmotionType]:
-        """Detect emotions from text using pattern matching"""
+        # Detect emotions with confidence scores
         emotion_scores = {}
-        
         for emotion, patterns in self.emotion_patterns.items():
-            score = 0
+            score = 0.0
+            matches = 0
+            
             for pattern in patterns:
-                if pattern in text:
-                    score += 1
-                    # Boost score for exact matches
-                    if f" {pattern} " in f" {text} ":
-                        score += 0.5
+                pattern_matches = len(re.findall(pattern, text_lower, re.IGNORECASE))
+                if pattern_matches > 0:
+                    score += pattern_matches * 0.3
+                    matches += pattern_matches
             
             if score > 0:
-                emotion_scores[emotion] = score
+                # Adjust score based on text length and context
+                normalized_score = min(score / max(len(text.split()) * 0.1, 1), 1.0)
+                emotion_scores[emotion] = normalized_score
         
-        # Sort by score and return top emotions
-        sorted_emotions = sorted(emotion_scores.items(), key=lambda x: x[1], reverse=True)
+        # Determine primary emotion
+        if emotion_scores:
+            primary_emotion = max(emotion_scores, key=emotion_scores.get)
+            confidence = emotion_scores[primary_emotion]
+        else:
+            primary_emotion = "neutral"
+            confidence = 0.8
         
-        detected = []
-        for emotion, score in sorted_emotions:
-            if score >= 0.5:  # Threshold for emotion detection
-                try:
-                    detected.append(EmotionType(emotion))
-                except ValueError:
-                    pass  # Skip invalid emotion types
+        # Get secondary emotions (scores > 0.2)
+        secondary_emotions = [
+            emotion for emotion, score in emotion_scores.items() 
+            if score > 0.2 and emotion != primary_emotion
+        ]
         
-        return detected[:3]  # Return top 3 emotions
-    
-    def _calculate_intensity(self, text: str, emotions: List[EmotionType]) -> float:
-        """Calculate emotional intensity based on modifiers and context"""
-        base_intensity = 0.5
-        
-        # Check for intensity modifiers
-        for modifier, multiplier in self.intensity_modifiers.items():
-            if modifier in text:
-                base_intensity = max(base_intensity, multiplier)
-        
-        # Check for exclamation marks and caps
-        exclamation_count = text.count('!')
-        caps_ratio = sum(1 for c in text if c.isupper()) / len(text) if text else 0
-        
-        # Adjust intensity based on punctuation and formatting
-        if exclamation_count > 0:
-            base_intensity += min(exclamation_count * 0.1, 0.3)
-        
-        if caps_ratio > 0.3:
-            base_intensity += 0.2
-        
-        # Emotional context adjustments
-        if any(emotion in ["anxious", "angry", "overwhelmed"] for emotion in emotions):
-            base_intensity += 0.1
-        
-        return min(base_intensity, 1.0)
-    
-    def _calculate_valence(self, emotions: List[EmotionType]) -> float:
-        """Calculate emotional valence (negative to positive)"""
-        if not emotions:
-            return 0.0
-        
-        total_valence = 0.0
-        count = 0
-        
-        for emotion in emotions:
-            if emotion.value in self.valence_scores:
-                total_valence += self.valence_scores[emotion.value]
-                count += 1
-        
-        return total_valence / count if count > 0 else 0.0
-    
-    def _calculate_arousal(self, emotions: List[EmotionType]) -> float:
-        """Calculate emotional arousal (calm to excited)"""
-        if not emotions:
-            return 0.3
-        
-        total_arousal = 0.0
-        count = 0
-        
-        for emotion in emotions:
-            if emotion.value in self.arousal_scores:
-                total_arousal += self.arousal_scores[emotion.value]
-                count += 1
-        
-        return total_arousal / count if count > 0 else 0.3
-    
-    def _detect_crisis_indicators(self, text: str) -> List[str]:
-        """Detect crisis indicators in text"""
-        indicators = []
-        
+        # Detect crisis indicators
+        crisis_indicators = []
         for pattern in self.crisis_patterns:
-            if pattern in text:
-                indicators.append(pattern)
+            if re.search(pattern, text_lower, re.IGNORECASE):
+                crisis_indicators.append("suicide_risk")
+                break
         
-        return indicators
-    
-    def _detect_support_needs(self, text: str) -> List[str]:
-        """Detect what type of support the user needs"""
-        needs = []
-        
-        for need_type, patterns in self.support_patterns.items():
+        # Detect support needs
+        support_needs = []
+        for support_type, patterns in self.support_patterns.items():
             for pattern in patterns:
-                if pattern in text:
-                    needs.append(need_type)
+                if re.search(pattern, text_lower, re.IGNORECASE):
+                    support_needs.append(support_type)
                     break
         
-        return list(set(needs))
-    
-    def _detect_emotional_triggers(self, text: str) -> List[str]:
-        """Detect emotional triggers mentioned in text"""
-        triggers = []
+        # Calculate emotional intensity based on language intensity
+        intensity_indicators = [
+            r"\b(very|extremely|incredibly|absolutely|totally)\b",
+            r"\b(!!|!!!)\b",
+            r"\b(SO|REALLY|SUPER)\b",
+            r"\b(can't|won't|don't)\b"
+        ]
         
-        trigger_patterns = {
-            "work_stress": ["work", "job", "boss", "deadline", "meeting", "project"],
-            "relationship": ["partner", "boyfriend", "girlfriend", "spouse", "family"],
-            "health": ["sick", "pain", "doctor", "hospital", "illness", "injury"],
-            "financial": ["money", "debt", "bills", "financial", "broke", "expensive"],
-            "social": ["friends", "social", "party", "event", "people", "crowd"],
-            "academic": ["school", "exam", "test", "grades", "homework", "study"]
-        }
+        intensity = 0.5  # baseline
+        for pattern in intensity_indicators:
+            matches = len(re.findall(pattern, text, re.IGNORECASE))
+            intensity += matches * 0.1
         
-        for trigger_type, patterns in trigger_patterns.items():
-            for pattern in patterns:
-                if pattern in text:
-                    triggers.append(trigger_type)
-                    break
+        intensity = min(intensity, 1.0)
         
-        return triggers
-    
-    def _calculate_confidence(self, emotions: List[EmotionType], text: str) -> float:
-        """Calculate confidence in emotion detection"""
-        if not emotions:
-            return 0.3
+        # Calculate emotional complexity
+        complexity = len(emotion_scores) * 0.2 + len(secondary_emotions) * 0.1
+        complexity = min(complexity, 1.0)
         
-        # Base confidence
-        confidence = 0.5
-        
-        # Increase confidence for multiple emotion indicators
-        if len(emotions) > 1:
-            confidence += 0.2
-        
-        # Increase confidence for longer text
-        if len(text) > 50:
-            confidence += 0.1
-        
-        # Increase confidence for emotional language
-        emotional_words = sum(1 for emotion_list in self.emotion_patterns.values() 
-                            for word in emotion_list if word in text)
-        confidence += min(emotional_words * 0.05, 0.3)
-        
-        return min(confidence, 1.0)
-    
-    def _default_emotional_context(self) -> EmotionalContext:
-        """Return default emotional context for empty input"""
-        return EmotionalContext(
-            primary_emotion=EmotionType.CALM,
-            secondary_emotions=[],
-            intensity=0.3,
-            valence=0.0,
-            arousal=0.3,
-            confidence=0.3,
-            emotional_triggers=[],
-            support_needs=[],
-            crisis_indicators=[]
+        return EmotionResult(
+            primary_emotion=primary_emotion,
+            confidence=confidence,
+            intensity=intensity,
+            secondary_emotions=secondary_emotions,
+            crisis_indicators=crisis_indicators,
+            support_needs=support_needs,
+            emotional_complexity=complexity
         )
     
-    async def get_emotion_summary(self, text: str) -> Dict[str, Any]:
-        """Get detailed emotion analysis summary"""
-        context = await self.analyze_emotion(text)
-        
+    def get_emotion_summary(self, emotion_result: EmotionResult) -> Dict[str, Any]:
+        """Generate a summary of emotion analysis for storage"""
         return {
-            "primary_emotion": context.primary_emotion.value,
-            "secondary_emotions": [e.value for e in context.secondary_emotions],
-            "intensity": context.intensity,
-            "valence": context.valence,
-            "arousal": context.arousal,
-            "confidence": context.confidence,
-            "emotional_triggers": context.emotional_triggers,
-            "support_needs": context.support_needs,
-            "crisis_indicators": context.crisis_indicators,
-            "analysis_timestamp": datetime.now().isoformat()
+            "primary_emotion": emotion_result.primary_emotion,
+            "confidence": emotion_result.confidence,
+            "intensity": emotion_result.intensity,
+            "secondary_emotions": emotion_result.secondary_emotions,
+            "crisis_indicators": emotion_result.crisis_indicators,
+            "support_needs": emotion_result.support_needs,
+            "emotional_complexity": emotion_result.emotional_complexity,
+            "timestamp": datetime.now().isoformat()
         }
+    
+    def get_persona_recommendations(self, emotion_result: EmotionResult) -> Dict[str, float]:
+        """
+        Recommend which personas would be most helpful based on emotion analysis
+        
+        Returns:
+            Dict mapping persona_id to suitability score (0.0 to 1.0)
+        """
+        recommendations = {
+            "sarah": 0.5,  # Clinical therapist baseline
+            "maya": 0.5,   # Mindfulness expert baseline
+            "alex": 0.5,   # Peer counselor baseline
+            "marcus": 0.5  # Life coach baseline
+        }
+        
+        emotion = emotion_result.primary_emotion
+        
+        # Adjust recommendations based on primary emotion
+        if emotion in ["anxiety", "panic", "stress"]:
+            recommendations["maya"] += 0.3  # Mindfulness for anxiety
+            recommendations["sarah"] += 0.2  # Clinical support
+        elif emotion in ["depression", "hopelessness", "grief"]:
+            recommendations["sarah"] += 0.3  # Clinical expertise
+            recommendations["alex"] += 0.2   # Peer support
+        elif emotion in ["anger", "frustration"]:
+            recommendations["sarah"] += 0.2  # Professional guidance
+            recommendations["marcus"] += 0.2  # Structured approach
+        elif emotion in ["confusion", "lost"]:
+            recommendations["marcus"] += 0.3  # Goal-setting and clarity
+            recommendations["sarah"] += 0.1
+        elif emotion in ["loneliness", "isolated"]:
+            recommendations["alex"] += 0.3   # Peer connection
+            recommendations["maya"] += 0.1   # Self-compassion
+        elif emotion in ["joy", "excited", "hope"]:
+            recommendations["alex"] += 0.2   # Celebration and encouragement
+            recommendations["marcus"] += 0.2  # Goal reinforcement
+        
+        # Crisis situations favor clinical support
+        if emotion_result.crisis_indicators:
+            recommendations["sarah"] += 0.4
+            recommendations["maya"] += 0.2
+        
+        # Normalize scores to 0.0-1.0 range
+        for persona_id in recommendations:
+            recommendations[persona_id] = min(recommendations[persona_id], 1.0)
+        
+        return recommendations
+    
+    def generate_emotion_context(self, emotion_result: EmotionResult, recent_emotions: List[str] = None) -> str:
+        """
+        Generate contextual information about the user's emotional state
+        for inclusion in persona prompts
+        """
+        context_parts = []
+        
+        # Primary emotion context
+        emotion = emotion_result.primary_emotion
+        intensity_desc = "mildly" if emotion_result.intensity < 0.4 else "moderately" if emotion_result.intensity < 0.7 else "strongly"
+        
+        context_parts.append(f"User is currently feeling {intensity_desc} {emotion}")
+        
+        # Secondary emotions
+        if emotion_result.secondary_emotions:
+            context_parts.append(f"Also experiencing: {', '.join(emotion_result.secondary_emotions)}")
+        
+        # Support needs
+        if emotion_result.support_needs:
+            needs_desc = {
+                "immediate_help": "needs immediate emotional support",
+                "listening_ear": "wants someone to listen and understand",
+                "practical_advice": "seeking practical guidance and solutions",
+                "emotional_validation": "needs emotional validation and reassurance",
+                "coping_strategies": "looking for coping techniques and tools"
+            }
+            
+            need_descriptions = [needs_desc.get(need, need) for need in emotion_result.support_needs[:2]]
+            context_parts.append(f"Support needs: {', '.join(need_descriptions)}")
+        
+        # Crisis indicators
+        if emotion_result.crisis_indicators:
+            context_parts.append("⚠️ CRISIS INDICATORS DETECTED - Provide immediate compassionate support and consider professional resources")
+        
+        return ". ".join(context_parts) + "."

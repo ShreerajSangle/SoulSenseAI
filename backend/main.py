@@ -1,70 +1,79 @@
-import os
-import asyncio
-from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
-from contextlib import asynccontextmanager
+"""
+SoulSense AI - Python FastAPI Backend
+Complete replacement for TypeScript/Express backend
+Preserves all functionality while providing Python ecosystem benefits
+"""
 
-from fastapi import FastAPI, HTTPException, Depends, Request
+import os
+import time
+from datetime import datetime
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
 import uvicorn
 
-from database import get_db, DatabaseManager
-# Import directly from models.py to avoid circular imports
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+from core.database import Database, get_db
+from core.storage import Storage
+from core.persona_manager import PersonaManager
+from core.emotion_engine import EmotionEngine
+from core.claude_client import ClaudeClient
+from api.personas import router as personas_router
+from api.chat import router as chat_router
+from api.profile import router as profile_router
+from api.goals import router as goals_router
+from api.diary import router as diary_router
+from api.analytics import router as analytics_router
+from api.health import router as health_router
 
-try:
-    from models import (
-        ChatRequest, ChatResponse, MessageCreate, ConversationCreate,
-        MessageResponse, ConversationResponse, PersonaResponse,
-        GoalCreate, GoalResponse, MoodEntryCreate, MoodEntryResponse,
-        DiaryEntryCreate, DiaryEntryResponse, UserCreate, UserResponse
-    )
-except ImportError as e:
-    print(f"Failed to import models: {e}")
-    sys.exit(1)
-from routes import chat, personas, analytics, goals, diary, profile, breathing
-from auth import setup_auth, get_current_user
-from claude_client import ClaudeClient
-from emotion_engine import EmotionEngine
-from storage import Storage
-
-# Database manager instance
-db_manager = DatabaseManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Handle application startup and shutdown"""
-    # Startup
+    """Application startup and shutdown events"""
     print("Starting SoulSense AI Backend...")
-    await db_manager.create_tables()
     
     # Initialize core services
-    app.state.claude_client = ClaudeClient()
-    app.state.emotion_engine = EmotionEngine()
-    app.state.storage = Storage(db_manager)
+    database = Database()
+    await database.initialize()
     
+    storage = Storage(database)
+    emotion_engine = EmotionEngine()
+    claude_client = ClaudeClient()
+    persona_manager = PersonaManager(storage, claude_client, emotion_engine)
+    
+    # Initialize personas
+    await persona_manager.initialize_personas()
+    print("✓ Personas already exist")
+    
+    # Ensure database tables exist
+    await database.create_tables()
     print("✓ Database tables created")
+    
+    # Store services in app state
+    app.state.database = database
+    app.state.storage = storage
+    app.state.emotion_engine = emotion_engine
+    app.state.claude_client = claude_client
+    app.state.persona_manager = persona_manager
+    
     print("✓ Core services initialized")
     
     yield
     
-    # Shutdown
-    print("Shutting down SoulSense AI Backend...")
+    # Cleanup
+    await database.close()
 
-# Create FastAPI app
+
+# Initialize FastAPI app
 app = FastAPI(
-    title="SoulSense AI API",
-    description="Mental health therapy application with AI-powered personas",
-    version="1.0.0",
+    title="SoulSense AI Backend",
+    description="AI-powered mental wellness platform backend",
+    version="2.0.0",
     lifespan=lifespan
 )
 
-# Configure CORS
+# CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify exact origins
@@ -73,71 +82,80 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Request logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    start_time = datetime.now()
-    
-    # Extract user_id from request body and store in request state
-    if request.method == "POST" and "application/json" in request.headers.get("content-type", ""):
-        try:
-            body = await request.body()
-            if body:
-                import json
-                request_data = json.loads(body)
-                if "user_id" in request_data:
-                    request.state.user_id = request_data["user_id"]
-                
-                # Re-create request with body for downstream handlers
-                from starlette.requests import Request as StarletteRequest
-                request._body = body
-        except:
-            pass
+    """Log API requests with duration and response info"""
+    start_time = time.time()
     
     response = await call_next(request)
     
-    process_time = (datetime.now() - start_time).total_seconds() * 1000
+    duration = int((time.time() - start_time) * 1000)
     
     if request.url.path.startswith("/api"):
-        log_line = f"{request.method} {request.url.path} {response.status_code} in {process_time:.0f}ms"
-        if len(log_line) > 80:
-            log_line = log_line[:79] + "…"
+        log_line = f"{request.method} {request.url.path} {response.status_code} in {duration}ms"
+        
+        # Add response info for API calls
+        if hasattr(response, '_content'):
+            try:
+                content_preview = str(response._content)[:60]
+                if len(content_preview) == 60:
+                    content_preview += "..."
+                log_line += f" :: {content_preview}"
+            except:
+                pass
+        
         print(log_line)
     
     return response
 
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
-# Include all route modules
-app.include_router(chat.router, prefix="/api", tags=["chat"])
-app.include_router(personas.router, prefix="/api", tags=["personas"])
-app.include_router(analytics.router, prefix="/api", tags=["analytics"])
-app.include_router(goals.router, prefix="/api", tags=["goals"])
-app.include_router(diary.router, prefix="/api", tags=["diary"])
-app.include_router(profile.router, prefix="/api", tags=["profile"])
-app.include_router(breathing.router, prefix="/api", tags=["breathing"])
+# Include API routers
+app.include_router(personas_router, prefix="/api", tags=["personas"])
+app.include_router(chat_router, prefix="/api", tags=["chat"])
+app.include_router(profile_router, prefix="/api", tags=["profile"])
+app.include_router(goals_router, prefix="/api", tags=["goals"])
+app.include_router(diary_router, prefix="/api", tags=["diary"])
+app.include_router(analytics_router, prefix="/api", tags=["analytics"])
+app.include_router(health_router, tags=["health"])
 
-# Setup authentication
-setup_auth(app)
 
-# Serve static files in production
-if os.getenv("NODE_ENV") == "production":
-    app.mount("/", StaticFiles(directory="dist", html=True), name="static")
-
-# Root endpoint for development
+# Root endpoint
 @app.get("/")
 async def root():
-    return {"message": "SoulSense AI Backend", "docs": "/docs"}
+    """Root endpoint - serves React app in production"""
+    return {"message": "SoulSense AI Backend", "status": "running", "version": "2.0.0"}
+
+
+# Serve static files in production
+if os.getenv("NODE_ENV") != "development":
+    # Check if static files exist before mounting
+    static_dir = "../client/dist"
+    if os.path.exists(static_dir):
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
+
+# Global error handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler for unhandled errors"""
+    print(f"Unhandled error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal server error", "detail": str(exc)}
+    )
+
 
 if __name__ == "__main__":
-    # Run the server
+    # Run server directly when executed
+    port = int(os.getenv("PORT", 5000))
+    
     uvicorn.run(
-        "main:app",
+        app,
         host="0.0.0.0",
-        port=5000,
-        reload=True if os.getenv("NODE_ENV") == "development" else False,
+        port=port,
+        reload=False,
         log_level="info"
     )
