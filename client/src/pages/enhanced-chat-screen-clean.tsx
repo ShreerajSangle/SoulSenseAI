@@ -211,60 +211,62 @@ export default function EnhancedChatScreen() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <Card className="max-w-md mx-auto">
-            <CardHeader>
-              <CardTitle className="text-center">
-                Start a conversation with {persona.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-center text-muted-foreground">
-                {persona.description}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        
-        {messages.map((message) => (
-          <div key={message.id} className={`flex items-start gap-3 mb-4 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-            {message.sender === "ai" && persona && (
-              <Avatar className="w-10 h-10 flex-shrink-0 mt-1">
-                <AvatarImage src={persona.avatar} alt={persona.name} />
-                <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold">
-                  {persona.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-            )}
-            
-            <div className={`max-w-[75%] lg:max-w-md px-4 py-3 rounded-2xl relative ${
-              message.sender === "user" 
-                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto" 
-                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
-            }`}>
-              <p className="text-sm leading-relaxed">{message.content}</p>
-              {message.emotionDetected && (
-                <Badge variant="secondary" className="mt-2 text-xs">
-                  {message.emotionDetected}
-                </Badge>
+      <div className="flex-1 overflow-y-auto p-4 lg:p-6 xl:p-8 space-y-4">
+        <div className="max-w-full mx-auto">
+          {messages.length === 0 && (
+            <Card className="max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="text-center">
+                  Start a conversation with {persona.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground">
+                  {persona.description}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          
+          {messages.map((message) => (
+            <div key={message.id} className={`flex items-start gap-3 mb-4 w-full ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+              {message.sender === "ai" && persona && (
+                <Avatar className="w-10 h-10 flex-shrink-0 mt-1">
+                  <AvatarImage src={persona.avatar} alt={persona.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-purple-700 font-semibold">
+                    {persona.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
               )}
-              <div className="text-xs opacity-70 mt-1">
-                {new Date(message.timestamp).toLocaleTimeString()}
+              
+              <div className={`max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] xl:max-w-[65%] px-4 py-3 rounded-2xl relative ${
+                message.sender === "user" 
+                  ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white ml-auto" 
+                  : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
+              }`}>
+                <p className="text-sm leading-relaxed">{message.content}</p>
+                {message.emotionDetected && (
+                  <Badge variant="secondary" className="mt-2 text-xs">
+                    {message.emotionDetected}
+                  </Badge>
+                )}
+                <div className="text-xs opacity-70 mt-1">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        
-        {isTyping && (
-          <div className="flex justify-start">
-            <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
-              <TypingIndicator />
+          ))}
+          
+          {isTyping && (
+            <div className="flex justify-start w-full">
+              <div className="bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
+                <TypingIndicator />
+              </div>
             </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input */}

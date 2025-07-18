@@ -146,9 +146,9 @@ export default function ChatSession() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="w-full px-4 lg:px-6 xl:px-8 py-8">
         {/* Session Info */}
-        <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 mb-8">
+        <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 mb-8 max-w-4xl mx-auto">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
@@ -189,26 +189,26 @@ export default function ChatSession() {
         </Card>
 
         {/* Messages */}
-        <div className="space-y-6">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="space-y-6 max-w-full">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 max-w-4xl mx-auto">
             Conversation History
           </h3>
           
           {messages.length === 0 ? (
-            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900 max-w-md mx-auto">
               <CardContent className="p-8 text-center">
                 <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400">No messages found in this conversation.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 w-full">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex w-full ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
+                  <div className={`max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] xl:max-w-[65%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
                     <div className="flex items-center gap-2 mb-2">
                       {message.sender === 'ai' && (
                         <Avatar className="w-6 h-6">

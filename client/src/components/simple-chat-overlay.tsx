@@ -255,11 +255,11 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-center justify-center p-2 lg:p-4">
+      <div className="w-full max-w-full lg:max-w-7xl xl:max-w-screen-2xl h-[95vh] lg:h-[90vh] bg-white dark:bg-gray-900 rounded-lg lg:rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         
         {/* Minimalist Header */}
-        <div className="bg-white dark:bg-gray-900 px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-900 px-4 lg:px-6 py-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -341,60 +341,62 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
             /* Chat Interface */
             <>
               {/* Therapeutic Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-br from-purple-50/20 via-pink-50/10 to-purple-50/20">
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`flex items-start gap-3 max-w-[70%] ${message.sender === "user" ? "flex-row-reverse" : ""}`}>
-                      {message.sender === "ai" && (
+              <div className="flex-1 overflow-y-auto p-4 lg:p-6 xl:p-8 space-y-6 bg-gradient-to-br from-purple-50/20 via-pink-50/10 to-purple-50/20">
+                <div className="max-w-full mx-auto space-y-6">
+                  {messages.map((message) => (
+                    <div key={message.id} className={`flex w-full ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                      <div className={`flex items-start gap-3 max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] xl:max-w-[65%] ${message.sender === "user" ? "flex-row-reverse" : ""}`}>
+                        {message.sender === "ai" && (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-medium">
+                              {persona.name.split(' ').map(n => n[0]).join('')}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className={`px-4 py-3 transition-all animate-therapeutic-fade ${
+                          message.sender === "user" 
+                            ? "bubble-user" 
+                            : "bubble-ai"
+                        }`}>
+                          <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                          
+                          {/* Clean timestamp */}
+                          <div className={`text-xs mt-2 ${
+                            message.sender === "user" ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+                          }`}>
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Minimalist Typing Indicator */}
+                  {isTyping && (
+                    <div className="flex justify-start w-full">
+                      <div className="flex items-start gap-3 max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[70%] xl:max-w-[65%]">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                           <span className="text-white text-xs font-medium">
                             {persona.name.split(' ').map(n => n[0]).join('')}
                           </span>
                         </div>
-                      )}
-                      
-                      <div className={`px-4 py-3 transition-all animate-therapeutic-fade ${
-                        message.sender === "user" 
-                          ? "bubble-user" 
-                          : "bubble-ai"
-                      }`}>
-                        <p className="font-body text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                        
-                        {/* Clean timestamp */}
-                        <div className={`text-xs mt-2 ${
-                          message.sender === "user" ? "text-white/70" : "text-gray-500 dark:text-gray-400"
-                        }`}>
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="bg-white dark:bg-gray-700 px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {/* Minimalist Typing Indicator */}
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start gap-3 max-w-[70%]">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-medium">
-                          {persona.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="bg-white dark:bg-gray-700 px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
 
               {/* Enhanced Input Area with Wellness Features */}
-              <div className="glass-therapeutic border-t-0">
+              <div className="glass-therapeutic border-t-0 px-4 lg:px-6 xl:px-8">
                 {/* Breathing Guide (when triggered) */}
                 {showBreathingGuide && (
                   <div className="mb-4">
@@ -452,7 +454,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
                 )}
 
                 {/* Unified Message Input Container */}
-                <div className="input-container-unified">
+                <div className="input-container-unified w-full">
                   {/* Emoji Selector */}
                   <EnhancedEmojiSelector 
                     onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
