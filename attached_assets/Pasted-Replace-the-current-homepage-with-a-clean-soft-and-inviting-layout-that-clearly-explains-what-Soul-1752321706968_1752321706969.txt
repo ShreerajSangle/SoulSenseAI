@@ -1,0 +1,78 @@
+Replace the current homepage with a clean, soft, and inviting layout that clearly explains what SoulSense is, introduces the four personas like real people, and invites the user to begin chatting immediately or explore the emotional wellness features like journaling, goal tracking, and mindfulness sessions.
+
+The new homepage should include the following sections:
+
+🔹 1. Hero Section (Top)
+Background: Soft lavender-to-pink gradient or blurred texture
+
+Headline: Calm and inspiring — e.g., “Meet your digital emotional companion.”
+
+Subheadline: Brief sentence about SoulSense — “Empathetic, human-like AI that listens, remembers, and supports — anytime you need it.”
+
+CTA Button 1: “Start Chatting”
+
+CTA Button 2: “Meet the Personas”
+
+Include a soft glowing animation behind the primary button. Use rounded corners, generous padding, and minimal text.
+
+🔹 2. Persona Showcase Section
+Title: “Who will you talk to today?”
+
+Show 4 cards or avatars (Sarah, Alex, Marcus, Maya)
+
+Each should have:
+
+Name
+
+Role (e.g., Therapist, Friend, Mentor, Guide)
+
+A short quote (in-character)
+
+Hover animation or “Start with [Name]” button
+
+Use distinct but gentle color tones for each persona’s card, while keeping the layout cohesive.
+
+🔹 3. Features Preview Section
+Title: “Your safe space includes…”
+
+Three horizontally aligned icons or cards:
+
+📓 Journaling with memory
+
+🎯 Goal setting and tracking
+
+🌬️ Guided breathing and emotional check-ins
+
+Each with a short 2-line description and soft animation (e.g., icon glows or lifts on hover)
+
+🔹 4. Testimonials / Quotes Section (Optional)
+Show calming quotes from beta testers or fictional testimonials:
+
+“I never thought an AI could understand me this well.”
+“Sarah remembered how I felt last week — that meant everything.”
+
+Layout should feel like quiet whispers — minimal font, faded background.
+
+🔹 5. Footer
+Soft background gradient
+
+Navigation: About, Privacy, Terms, Contact
+
+Social icons (if applicable)
+
+Small message like:
+
+“SoulSense is a safe, AI-powered space to reflect, feel, and grow.”
+
+📱 Design Style Guidelines
+Font: Soft, legible (e.g., Poppins Light, Inter, or Nunito)
+
+Colors: Lavender, blush pink, soft neutrals (no harsh contrast)
+
+Layout: Clean, whitespace-rich, mobile-responsive
+
+Components: Rounded, animated lightly (fade-ins, soft glows)
+
+Vibe: Quiet, emotional, trustworthy, calming
+
+Make sure the homepage feels like a therapist’s waiting room meets a modern journal app — not a SaaS product. It should evoke safety, warmth, and presence, even before the user clicks.

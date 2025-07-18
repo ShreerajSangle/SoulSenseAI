@@ -5,10 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { X, Send, Wind, Target, BookOpen, MessageCircle, Smile } from "lucide-react";
+import { EnhancedEmojiSelector } from "@/components/enhanced-emoji-selector";
 import { GentleBreathingGuide } from "@/components/gentle-breathing-guide";
 import { GoalCreationModal } from "@/components/goal-creation-modal";
 import { MiniJournalModal } from "@/components/mini-journal-modal";
 import { QuickReplyBubbles } from "@/components/quick-reply-bubbles";
+import { SessionRecapModal } from "@/components/session-recap-modal";
+import { DynamicTypingIndicator } from "@/components/dynamic-typing-indicator";
+import { MoodTimeline } from "@/components/mood-timeline";
 
 interface Message {
   id: number;
@@ -51,7 +55,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [journalEntries, setJournalEntries] = useState<any[]>([]);
   const [sessionRecapOpen, setSessionRecapOpen] = useState(false);
-
+  const [showMoodTimeline, setShowMoodTimeline] = useState(false);
   const [sessionData, setSessionData] = useState({
     emotionalThemes: [] as string[],
     keyInsights: [] as string[],
@@ -451,6 +455,12 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
 
                 {/* Unified Message Input Container */}
                 <div className="input-container-unified w-full">
+                  {/* Emoji Selector */}
+                  <EnhancedEmojiSelector 
+                    onEmojiSelect={(emoji) => setInputMessage(prev => prev + emoji)}
+                    className="action-button"
+                  />
+                  
                   {/* Journal Entry Icon */}
                   <button
                     onClick={() => setJournalModalOpen(true)}
@@ -554,7 +564,15 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
         persona={persona.id === 'sarah' ? 'dr_sarah' : persona.id as any}
       />
 
-
+      <SessionRecapModal
+        isOpen={sessionRecapOpen}
+        onClose={() => setSessionRecapOpen(false)}
+        persona={{
+          name: persona.name,
+          emoji: persona.emoji
+        }}
+        sessionData={sessionData}
+      />
     </div>
   );
 }

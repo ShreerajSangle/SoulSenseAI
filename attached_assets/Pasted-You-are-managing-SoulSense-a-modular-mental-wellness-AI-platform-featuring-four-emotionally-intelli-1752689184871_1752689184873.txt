@@ -1,0 +1,83 @@
+You are managing SoulSense, a modular mental wellness AI platform featuring four emotionally intelligent personas: Maya, Dr. Sarah, Marcus, and Alex. Each persona has a distinct tone, feature set, and conversational role. They do not share personalities, memory, or logic. Your system must route conversations cleanly and consistently using the following architecture:
+
+🔄 Persona Control & Isolation Rules
+Each persona is treated as a separate intelligent entity, with their own:
+
+*_config.py file (system prompt, mood logic, emotional reflection style, session tone)
+
+UI panel (e.g., maya_panel, marcus_panel)
+
+FastAPI endpoint (e.g., /chat/maya, /chat/sarah)
+
+Memory logs (memory/maya_logs.json, etc.)
+
+Only the active persona’s logic should be loaded during any session. Responses from Mixtral or Claude must align to that persona’s tone and role.
+
+🧘‍♀️ Example: Maya Chat Flow
+When a user clicks the Maya tab, your system must:
+
+Load maya_config.py to retrieve Maya's persona prompt, reflection rules, and feature hooks.
+
+Send the user query to /chat/maya, handled by maya_handler.py.
+
+Use the LLM (Mixtral or Claude) with Maya's personality loaded via system prompt.
+
+Display responses in a calm, minimal chat bubble (with emoji selector, breathwork card, etc.).
+
+Log the session in memory/maya_logs.json for future recall only by Maya.
+
+👩‍⚕️ Dr. Sarah (Therapist Persona)
+Focuses on emotional healing, clinical therapy-style tone.
+
+Uses sarah_config.py, with summaries, journal guidance, CBT-like reflections.
+
+Triggered only via /chat/sarah.
+
+🧔 Marcus (Life Coach / Advisor)
+Offers career guidance, mentorship, rational breakdowns.
+
+Friendly, structured advice tone.
+
+Triggered via /chat/marcus.
+
+🧑 Alex (Cheerful Friend)
+Uses humor, relatability, emojis.
+
+Feels like a best friend who checks in on you.
+
+Triggered via /chat/alex.
+
+🗂️ Config Integration per Persona
+Each *_config.py file must contain:
+
+🎭 system_prompt: Full Mixtral/Claude persona definition
+
+💡 feature_hooks: Feature toggles for that persona (e.g., yoga_flow_generator for Maya, affirmation_loop for Alex)
+
+🧠 memory_rules: What should be saved and recalled (journals, mood logs)
+
+📘 reflection_style: Format of session recaps or emotional summaries
+
+💬 tone, emoji_use, bubble_color, response_length_range
+
+🔗 FastAPI Routing Requirements
+Route	Handler File	Uses Config	Description
+/chat/maya	maya_handler.py	maya_config.py	Load Maya’s system and respond calmly
+/chat/sarah	sarah_handler.py	sarah_config.py	Load Dr. Sarah’s therapist persona
+/chat/marcus	marcus_handler.py	marcus_config.py	Load Marcus the career coach
+/chat/alex	alex_handler.py	alex_config.py	Load Alex the cheerful friend
+
+All use the same LLM backend (Mixtral or Claude) but different system_prompt headers for unique minds.
+
+📦 System Integration Summary
+✅ Dynamic persona system prompt loading
+
+✅ Persona-specific features and UI styles
+
+✅ Emotionally consistent responses
+
+✅ Modular memory and journaling logic per persona
+
+✅ Scalable for future persona additions
+
+✅ Fully API-controlled routing with separation of logic

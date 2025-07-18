@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import UnifiedHome from "@/pages/unified-home";
+import EnhancedMemoryScreen from "@/pages/enhanced-memory-screen";
+import EnhancedDiaryScreen from "@/pages/enhanced-diary-screen";
 import EnhancedProfileScreen from "@/pages/enhanced-profile-screen";
 import GoalsPage from "@/pages/goals-page";
 import ChatSession from "@/pages/chat-session";

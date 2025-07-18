@@ -1,0 +1,100 @@
+You are the frontend interaction layer of the SoulSense homepage. The redesigned UI looks beautiful, but currently, key buttons like “Start Chatting”, “Meet the Personas”, “Start with Maya”, etc. are non-functional. Your job is to ensure every button works properly by connecting them to the right onClick handlers, routes, or actions within the app logic.
+
+🔹 Here’s what to do:
+Identify all interactive elements on the page:
+
+“Start Chatting” → Should navigate to or open the chat screen
+
+“Meet the Personas” → Should scroll to or open the persona showcase section
+
+“Start with [Persona]” buttons → Should open chat with that persona loaded
+
+“Journal”, “Set Goal”, “Try Breathing” → Should navigate to those features or trigger modals
+
+Bind onClick handlers to each button using your app framework:
+
+If using React:
+
+jsx
+Copy
+Edit
+<button onClick={() => navigate('/chat')}>Start Chatting</button>
+or with modal logic:
+
+jsx
+Copy
+Edit
+<button onClick={openPersonaModal}>Start with Maya</button>
+Fix Anchor Navigation or Scroll-to-Section (for Meet the Personas):
+
+jsx
+Copy
+Edit
+<button onClick={() => {
+  document.getElementById("personas").scrollIntoView({ behavior: 'smooth' });
+}}>Meet the Personas</button>
+Then wrap your section like:
+
+html
+Copy
+Edit
+<section id="personas">...</section>
+Route to Chat Page or Open Chat Component:
+
+Make sure your Router (React Router, Next.js routing, etc.) is correctly set up.
+
+Add:
+
+jsx
+Copy
+Edit
+import { useNavigate } from 'react-router-dom';
+const navigate = useNavigate();
+Pass Persona Info to Chat Screen:
+If you're selecting Maya, you might need:
+
+jsx
+Copy
+Edit
+navigate('/chat?persona=Maya')
+Then in your chat screen:
+
+js
+Copy
+Edit
+const persona = new URLSearchParams(window.location.search).get('persona')
+Check Console for Errors:
+
+Inspect each button click
+
+Fix: “undefined function”, “cannot read property 'scrollIntoView'”, etc.
+
+💡 Tips
+Feature Button	Action Required
+Start Chatting	navigate('/chat') or openChatModal()
+Meet the Personas	scrollIntoView()
+Persona Cards	navigate('/chat?persona=Alex')
+Journaling Preview	navigate('/journal')
+Goal Tracker CTA	navigate('/goals')
+
+✅ Example Fix (React)
+jsx
+Copy
+Edit
+import { useNavigate } from 'react-router-dom';
+const navigate = useNavigate();
+
+<button onClick={() => navigate('/chat')}>Start Chatting</button>
+<button onClick={() => document.getElementById("personas").scrollIntoView({ behavior: 'smooth' })}>Meet the Personas</button>
+<button onClick={() => navigate('/chat?persona=Maya')}>Start with Maya</button>
+🔧 Final Fix Summary
+🧠 Add onClick handlers to all buttons
+
+🔁 Wire up navigate() or modal openers
+
+🧭 Use scrollIntoView() for section links
+
+🔍 Test every button in Replit’s browser preview
+
+🔒 Remove any placeholder href="#" or button type="button" with no logic
+
