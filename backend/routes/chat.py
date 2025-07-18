@@ -131,6 +131,41 @@ async def send_chat_message(
         print(f"Error in send_chat_message: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Add persona-specific chat endpoints
+@router.post("/chat/sarah", response_model=ChatResponse)
+async def chat_with_sarah(request: ChatRequest, req: Request):
+    """Chat with Dr. Sarah (Clinical Therapist)"""
+    request.persona_id = "sarah"
+    return await send_chat_message(request, req)
+
+@router.post("/chat/alex", response_model=ChatResponse)
+async def chat_with_alex(request: ChatRequest, req: Request):
+    """Chat with Alex (Peer Counselor)"""
+    request.persona_id = "alex"
+    return await send_chat_message(request, req)
+
+@router.post("/chat/marcus", response_model=ChatResponse)
+async def chat_with_marcus(request: ChatRequest, req: Request):
+    """Chat with Marcus (Life Coach)"""
+    request.persona_id = "marcus"
+    return await send_chat_message(request, req)
+
+@router.post("/chat/maya", response_model=ChatResponse)
+async def chat_with_maya(request: ChatRequest, req: Request):
+    """Chat with Maya (Mindfulness Expert)"""
+    request.persona_id = "maya"
+    return await send_chat_message(request, req)
+
+@router.get("/conversations/{user_id}", response_model=List[ConversationResponse])
+async def get_user_conversations_by_id(user_id: str, req: Request):
+    """Get all conversations for a specific user"""
+    try:
+        storage: Storage = req.app.state.storage
+        conversations = await storage.get_user_conversations(user_id)
+        return conversations
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/chat/conversations", response_model=List[ConversationResponse])
 async def get_user_conversations(
     req: Request,
