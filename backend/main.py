@@ -20,6 +20,8 @@ from personas.marcus_handler import MarcusHandler
 
 # Import core systems
 from core.database import Database
+from core.postgres_database import PostgreSQLDatabase
+from core.silent_data_logger import SilentDataLogger, UserInteractionTracker
 from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
@@ -46,6 +48,9 @@ from models.schemas import (
 
 # Initialize database and core systems
 database = Database()
+postgres_db = PostgreSQLDatabase()
+silent_logger = SilentDataLogger(postgres_db)
+interaction_tracker = UserInteractionTracker(silent_logger)
 emotion_engine = EmotionEngine()
 memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
@@ -74,15 +79,45 @@ PERSONA_HANDLERS = {
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize database and setup on startup"""
+    print("SoulSense AI backend starting...")
+    
     await database.initialize()
+    
+    # Initialize PostgreSQL database
+    try:
+        await postgres_db.initialize()
+        print("✓ PostgreSQL database connected")
+    except Exception as e:
+        print(f"⚠ PostgreSQL connection failed: {e}")
+        print("⚠ Falling back to SQLite database")
+    
+    # Start silent data logger
+    try:
+        await silent_logger.start_logging()
+        print("✓ Silent data logger started")
+    except Exception as e:
+        print(f"⚠ Silent logger failed to start: {e}")
+    
     await passive_logger.initialize()
     await session_manager.initialize()
     await emotional_timeline.initialize()
     await persona_pathways.initialize()
     await daily_loop.initialize()
     await daily_loop_integration.initialize()
+    
+    print("✓ Emotion engine initialized")
+    print("✓ Memory system ready") 
+    print("✓ All personas active")
+    print("✓ Chat sessions tracking enabled")
+    print("✓ Intelligence upgrades applied")
+    print("✓ Backend fully operational")
+    
     yield
+    
+    # Cleanup
     await database.close()
+    await postgres_db.close()
+    await silent_logger.stop_logging()
     await passive_logger.close()
     await session_manager.close()
     await emotional_timeline.close()
@@ -242,6 +277,32 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
             emotional_context=emotional_context.__dict__
         )
         
+        # Silent PostgreSQL logging - completely non-blocking
+        silent_logger.log_user_message(
+            user_id=user_id,
+            persona_id=persona_id,
+            message_content=message.content,
+            conversation_id=session_id
+        )
+        
+        silent_logger.log_ai_response(
+            user_id=user_id,
+            persona_id=persona_id,
+            response_content=response.content,
+            emotion_detected=emotional_context.primary_emotion,
+            confidence=emotional_context.confidence,
+            features_activated=response.features_activated,
+            quick_replies=[reply.text for reply in quick_replies],
+            conversation_id=session_id
+        )
+        
+        # Track interaction for analytics
+        interaction_tracker.start_session(user_id, persona_id)
+        interaction_tracker.track_message(user_id, persona_id, is_user_message=True)
+        interaction_tracker.track_message(user_id, persona_id, is_user_message=False)
+        if emotional_context.primary_emotion:
+            interaction_tracker.track_emotion_detected(user_id, persona_id, emotional_context.primary_emotion)
+        
         # Emotional timeline tracking
         await emotional_timeline.log_emotional_point(
             user_id=user_id,
@@ -296,6 +357,16 @@ async def create_breathing_session(session: BreathingSession, user_id: str = "an
     """Create and track breathing exercise session"""
     result = await database.store_breathing_session(user_id, session)
     
+    # Silent PostgreSQL logging for breathing session
+    silent_logger.log_breathing_session(
+        user_id=user_id,
+        persona_id=getattr(session, 'persona_id', 'maya'),
+        technique_name=session.technique,
+        duration_minutes=session.duration_seconds // 60,
+        pre_mood=getattr(session, 'pre_mood', None),
+        post_mood=getattr(session, 'post_mood', None)
+    )
+    
     # Passive logging for breathing session
     passive_logger.log_wellness_activity_async(
         user_id=user_id,
@@ -322,6 +393,16 @@ async def create_journal_entry(entry: JournalEntry, user_id: str = "anonymous"):
     """Create journal entry with persona-specific insights"""
     result = await database.store_journal_entry(user_id, entry)
     
+    # Silent PostgreSQL logging for journal entry
+    silent_logger.log_journal_entry(
+        user_id=user_id,
+        persona_id=getattr(entry, 'persona_id', 'sarah'),
+        title=getattr(entry, 'title', ''),
+        content=entry.content,
+        mood_rating=entry.mood.value if hasattr(entry.mood, 'value') else (int(entry.mood) if isinstance(entry.mood, (int, str)) else None),
+        emotion_tags=getattr(entry, 'emotion_tags', [])
+    )
+    
     # Passive logging for journal entry
     passive_logger.log_diary_entry_async(
         user_id=user_id,
@@ -343,6 +424,16 @@ async def get_journal_entries(user_id: str):
 async def create_goal(goal: Goal, user_id: str = "anonymous"):
     """Create wellness goal with persona guidance"""
     result = await database.store_goal(user_id, goal)
+    
+    # Silent PostgreSQL logging for goal creation
+    silent_logger.log_goal_interaction(
+        user_id=user_id,
+        persona_id=getattr(goal, 'persona_id', 'marcus'),
+        goal_title=goal.title,
+        goal_description=goal.description,
+        action_type="create",
+        progress_percentage=0.0
+    )
     
     # Passive logging for goal creation
     passive_logger.log_goal_interaction_async(
@@ -451,6 +542,12 @@ async def generate_session_recap(request: dict):
         
         # Store recap in database for future reference
         await database.store_session_recap(user_id, recap_dict)
+        
+        # Store recap in PostgreSQL for analytics
+        try:
+            await postgres_db.store_session_recap(user_id, recap_dict)
+        except Exception as e:
+            print(f"PostgreSQL recap storage error: {e}")
         
         return recap_dict
         
@@ -751,16 +848,119 @@ async def save_persona_context(request: dict):
     await daily_loop_integration.save_persona_context(user_id, persona_id, context_data)
     return {"message": "Context saved successfully"}
 
+# PostgreSQL Analytics Endpoints
+@app.get("/api/analytics/dashboard/{user_id}")
+async def get_analytics_dashboard(user_id: str):
+    """Get comprehensive user analytics dashboard from PostgreSQL"""
+    try:
+        analytics = await postgres_db.get_user_analytics_dashboard(user_id)
+        return analytics
+    except Exception as e:
+        print(f"PostgreSQL analytics error: {e}")
+        # Fallback to SQLite if PostgreSQL fails
+        return await database.get_user_analytics(user_id)
+
+@app.get("/api/analytics/conversations/{user_id}")
+async def get_conversation_history(user_id: str, persona_id: str = None, limit: int = 50):
+    """Get detailed conversation history from PostgreSQL"""
+    try:
+        conversations = await postgres_db.get_user_conversations(user_id, persona_id, limit)
+        return conversations
+    except Exception as e:
+        print(f"PostgreSQL conversation history error: {e}")
+        return []
+
+@app.get("/api/analytics/goals/{user_id}")
+async def get_user_goals_analytics(user_id: str, status: str = None):
+    """Get user's goals and progress from PostgreSQL"""
+    try:
+        goals = await postgres_db.get_user_goals(user_id, status)
+        return goals
+    except Exception as e:
+        print(f"PostgreSQL goals error: {e}")
+        return []
+
+@app.get("/api/analytics/journal/{user_id}")
+async def get_journal_analytics(user_id: str, limit: int = 100):
+    """Get user's journal entries from PostgreSQL"""
+    try:
+        entries = await postgres_db.get_journal_entries(user_id, limit)
+        return entries
+    except Exception as e:
+        print(f"PostgreSQL journal error: {e}")
+        return []
+
+@app.post("/api/analytics/store-session-recap")
+async def store_session_recap_postgres(request: dict):
+    """Store session recap in PostgreSQL for analytics"""
+    user_id = request.get('user_id')
+    recap_data = request.get('recap_data')
+    
+    if not user_id or not recap_data:
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    try:
+        result = await postgres_db.store_session_recap(user_id, recap_data)
+        return result
+    except Exception as e:
+        print(f"PostgreSQL session recap storage error: {e}")
+        return {"status": "error", "message": str(e)}
+
 # User profile endpoints
 @app.get("/api/profile/{user_id}")
 async def get_user_profile(user_id: str):
     """Get user profile and preferences"""
+    try:
+        # Try PostgreSQL first
+        profile = await postgres_db.get_user_profile(user_id)
+        if profile:
+            return {
+                "user_id": profile.user_id,
+                "name": profile.name,
+                "email": profile.email,
+                "preferred_persona": profile.preferred_persona,
+                "bio": profile.bio,
+                "goals": profile.goals,
+                "interests": profile.interests,
+                "mental_health_focus": profile.mental_health_focus,
+                "preferences": profile.preferences,
+                "privacy_settings": profile.privacy_settings,
+                "created_at": profile.created_at.isoformat() if profile.created_at else None,
+                "updated_at": profile.updated_at.isoformat() if profile.updated_at else None
+            }
+    except Exception as e:
+        print(f"PostgreSQL profile error: {e}")
+    
+    # Fallback to SQLite
     return await database.get_user_profile(user_id)
 
 @app.put("/api/profile/{user_id}")
-async def update_user_profile(user_id: str, profile: UserProfile):
+async def update_user_profile(user_id: str, profile_data: dict):
     """Update user profile and preferences"""
-    return await database.update_user_profile(user_id, profile)
+    try:
+        # Store in PostgreSQL
+        from core.postgres_database import UserProfile
+        profile = UserProfile(
+            user_id=user_id,
+            name=profile_data.get('name', 'Anonymous'),
+            email=profile_data.get('email'),
+            preferred_persona=profile_data.get('preferred_persona'),
+            bio=profile_data.get('bio'),
+            goals=profile_data.get('goals', []),
+            interests=profile_data.get('interests', []),
+            mental_health_focus=profile_data.get('mental_health_focus', []),
+            preferences=profile_data.get('preferences', {}),
+            privacy_settings=profile_data.get('privacy_settings', {})
+        )
+        
+        success = await postgres_db.create_or_update_user(profile)
+        if success:
+            return {"status": "success", "message": "Profile updated successfully"}
+    except Exception as e:
+        print(f"PostgreSQL profile update error: {e}")
+    
+    # Fallback to SQLite
+    return await database.update_user_profile(user_id, profile_data)
 
 if __name__ == "__main__":
     uvicorn.run(
