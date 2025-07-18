@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 from models import PersonaResponse
 from auth import get_user_id
@@ -82,12 +83,12 @@ async def chat_with_persona(
         if not message:
             raise HTTPException(status_code=400, detail="Message is required")
         
-        # For now, return a simple response without full chat processing
+        # For now, return a simple response without any datetime functionality
         return {
             "message": f"Hello! I'm {persona_id.title()}. Thank you for your message: '{message}'. This is a test response from the Python backend.",
             "persona_id": persona_id,
             "user_id": user_id,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": "test-timestamp",
             "success": True
         }
         
