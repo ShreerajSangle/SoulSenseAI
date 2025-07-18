@@ -651,3 +651,61 @@ class Database:
         
         await self.connection.commit()
         return True
+
+    async def store_session_recap(self, user_id: str, recap_data: dict):
+        """Store session recap for future reference"""
+        try:
+            # Create table if not exists
+            await self.connection.execute("""
+                CREATE TABLE IF NOT EXISTS session_recaps (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    persona_id TEXT NOT NULL,
+                    conversation_summary TEXT,
+                    key_topics TEXT,
+                    emotional_journey TEXT,
+                    insights_gained TEXT,
+                    therapeutic_techniques_used TEXT,
+                    progress_notes TEXT,
+                    next_session_suggestions TEXT,
+                    mood_change TEXT,
+                    session_rating REAL DEFAULT 7.0,
+                    duration_minutes INTEGER DEFAULT 15,
+                    message_count INTEGER DEFAULT 0,
+                    generated_at TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            cursor = await self.connection.execute("""
+                INSERT INTO session_recaps (
+                    user_id, session_id, persona_id, conversation_summary,
+                    key_topics, emotional_journey, insights_gained,
+                    therapeutic_techniques_used, progress_notes,
+                    next_session_suggestions, mood_change, session_rating,
+                    duration_minutes, message_count, generated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_id,
+                recap_data.get('session_id'),
+                recap_data.get('persona_id'),
+                recap_data.get('conversation_summary'),
+                json.dumps(recap_data.get('key_topics', [])),
+                recap_data.get('emotional_journey'),
+                json.dumps(recap_data.get('insights_gained', [])),
+                json.dumps(recap_data.get('therapeutic_techniques_used', [])),
+                recap_data.get('progress_notes'),
+                json.dumps(recap_data.get('next_session_suggestions', [])),
+                recap_data.get('mood_change'),
+                recap_data.get('session_rating', 7.0),
+                recap_data.get('duration_minutes', 15),
+                recap_data.get('message_count', 0),
+                recap_data.get('generated_at')
+            ))
+            await self.connection.commit()
+            return {"status": "success", "recap_id": cursor.lastrowid}
+            
+        except Exception as e:
+            print(f"Error storing session recap: {e}")
+            return {"status": "error", "message": str(e)}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DynamicQuickReplies from './DynamicQuickReplies';
+import SessionRecapModal from './SessionRecapModal';
 
 const ChatInterface = ({ selectedPersona, user }) => {
   const [messages, setMessages] = useState([]);
@@ -7,6 +8,8 @@ const ChatInterface = ({ selectedPersona, user }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [quickReplies, setQuickReplies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSessionRecap, setShowSessionRecap] = useState(false);
+  const [sessionRecap, setSessionRecap] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -113,6 +116,47 @@ const ChatInterface = ({ selectedPersona, user }) => {
     }
   };
 
+  // Generate session recap from conversation
+  const generateSessionRecap = async () => {
+    if (messages.length < 4) {
+      alert('Please have a longer conversation before generating a recap.');
+      return;
+    }
+
+    try {
+      // Prepare conversation history for recap generation
+      const conversationHistory = messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
+      const response = await fetch('/api/session/recap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversation_history: conversationHistory,
+          persona_id: selectedPersona.id,
+          session_id: `session_${Date.now()}`,
+          user_id: user?.id || 'anonymous'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate session recap');
+      }
+
+      const recapData = await response.json();
+      setSessionRecap(recapData);
+      setShowSessionRecap(true);
+
+    } catch (error) {
+      console.error('Error generating session recap:', error);
+      alert('Unable to generate session recap. Please try again.');
+    }
+  };
+
   // Handle special actions triggered by quick replies
   const handleBreathingAction = (actionData) => {
     // TODO: Integrate with BreathingExercise component
@@ -155,12 +199,25 @@ const ChatInterface = ({ selectedPersona, user }) => {
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-white">
       {/* Header */}
       <div className={`bg-gradient-to-r ${getPersonaColors(selectedPersona.id)} text-white p-4 shadow-lg`}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{selectedPersona.emoji}</span>
-          <div>
-            <h2 className="text-xl font-semibold">{selectedPersona.name}</h2>
-            <p className="text-sm opacity-90">{selectedPersona.role}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{selectedPersona.emoji}</span>
+            <div>
+              <h2 className="text-xl font-semibold">{selectedPersona.name}</h2>
+              <p className="text-sm opacity-90">{selectedPersona.role}</p>
+            </div>
           </div>
+          
+          {/* Session Recap Button */}
+          {messages.length >= 4 && (
+            <button
+              onClick={generateSessionRecap}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+            >
+              <span>📋</span>
+              Session Recap
+            </button>
+          )}
         </div>
       </div>
 
@@ -264,6 +321,14 @@ const ChatInterface = ({ selectedPersona, user }) => {
           </button>
         </form>
       </div>
+
+      {/* Session Recap Modal */}
+      <SessionRecapModal
+        isOpen={showSessionRecap}
+        onClose={() => setShowSessionRecap(false)}
+        sessionRecap={sessionRecap}
+        personaName={selectedPersona.name}
+      />
     </div>
   );
 };

@@ -24,6 +24,7 @@ from core.emotion_engine import EmotionEngine
 from core.memory_system import MemorySystem
 from core.quick_reply_engine import QuickReplyEngine
 from core.passive_logger import PassiveLogger
+from core.session_recap_generator import SessionRecapGenerator
 from core.session_manager import SessionManager
 from core.emotional_timeline import EmotionalTimelineTracker
 from core.persona_pathways import PersonaPathwaySystem
@@ -50,6 +51,7 @@ memory_system = MemorySystem()
 quick_reply_engine = QuickReplyEngine()
 passive_logger = PassiveLogger()
 session_manager = SessionManager()
+session_recap_generator = SessionRecapGenerator()
 emotional_timeline = EmotionalTimelineTracker()
 persona_pathways = PersonaPathwaySystem()
 daily_loop = DailySoulSenseLoop()
@@ -411,6 +413,55 @@ async def finish_session(session_id: str, request: dict):
     )
     
     return summary
+
+@app.post("/api/session/recap")
+async def generate_session_recap(request: dict):
+    """Generate intelligent session recap from conversation history"""
+    conversation_history = request.get('conversation_history', [])
+    persona_id = request.get('persona_id', 'maya')
+    session_id = request.get('session_id', f"session_{int(datetime.now().timestamp())}")
+    user_id = request.get('user_id', 'anonymous')
+    
+    try:
+        # Generate comprehensive session recap
+        recap = await session_recap_generator.generate_session_recap(
+            conversation_history=conversation_history,
+            persona_id=persona_id,
+            session_id=session_id,
+            user_id=user_id
+        )
+        
+        # Convert to dict for JSON response
+        recap_dict = {
+            "session_id": recap.session_id,
+            "persona_id": recap.persona_id,
+            "conversation_summary": recap.conversation_summary,
+            "key_topics": recap.key_topics,
+            "emotional_journey": recap.emotional_journey,
+            "insights_gained": recap.insights_gained,
+            "therapeutic_techniques_used": recap.therapeutic_techniques_used,
+            "progress_notes": recap.progress_notes,
+            "next_session_suggestions": recap.next_session_suggestions,
+            "mood_change": recap.mood_change,
+            "session_rating": recap.session_rating,
+            "duration_minutes": recap.duration_minutes,
+            "message_count": recap.message_count,
+            "generated_at": datetime.now().isoformat()
+        }
+        
+        # Store recap in database for future reference
+        await database.store_session_recap(user_id, recap_dict)
+        
+        return recap_dict
+        
+    except Exception as e:
+        print(f"Error generating session recap: {e}")
+        return {
+            "error": "Failed to generate session recap",
+            "fallback_summary": "Thank you for our conversation today. Your willingness to share and reflect shows great strength.",
+            "session_id": session_id,
+            "persona_id": persona_id
+        }
 
 @app.get("/api/session/recent/{user_id}")
 async def get_recent_sessions(user_id: str, persona_id: str = None, limit: int = 5):
