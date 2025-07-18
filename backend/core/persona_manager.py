@@ -23,8 +23,8 @@ class PersonaManager:
                 "id": "sarah",
                 "name": "Dr. Sarah",
                 "role": "Clinical Therapist",
-                "specialty": "Cognitive Behavioral Therapy & Emotional Processing",
-                "description": "A warm, professional therapist specializing in evidence-based therapeutic techniques. Dr. Sarah provides structured support for anxiety, depression, and emotional challenges.",
+                "specialty": "Trauma-Informed Care, CBT & Emotional Healing",
+                "description": "A compassionate, insightful therapist who provides gentle professional warmth and deep understanding. Dr. Sarah offers reflective listening, cognitive reframing, and trauma-sensitive emotional support in a safe therapeutic space.",
                 "avatar_url": "/api/placeholder/150/150?text=👩‍⚕️",
                 "color": "#6366f1"
             },
