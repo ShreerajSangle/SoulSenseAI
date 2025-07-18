@@ -32,7 +32,8 @@ import {
   TrendingUp,
   Award,
   BookOpen,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from "lucide-react";
 
 interface UserProfile {
@@ -92,13 +93,15 @@ export default function EnhancedProfileScreen() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const userId = "anonymous"; // In production, this would come from auth context
+
   const { data: profile, isLoading } = useQuery({
-    queryKey: ["/api/profile"],
+    queryKey: ["/api/profile", userId],
     queryFn: async () => {
-      const response = await fetch("/api/profile?userId=anonymous");
+      const response = await fetch(`/api/profile?userId=${userId}`);
       if (!response.ok) {
         return {
-          userId: "anonymous",
+          userId,
           name: "",
           bio: "",
           pronouns: "",
@@ -110,14 +113,6 @@ export default function EnhancedProfileScreen() {
             reminderTime: "9:00",
             privacyLevel: "private"
           },
-          goals: [],
-          stats: {
-            totalSessions: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-            averageMood: 0,
-            favoriteEmotion: "calm"
-          }
         };
       }
       return response.json();
@@ -125,9 +120,59 @@ export default function EnhancedProfileScreen() {
   });
 
   const { data: goals = [] } = useQuery<any[]>({
-    queryKey: ["/api/goals"],
+    queryKey: ["/api/goals", userId],
     queryFn: async () => {
-      const response = await fetch("/api/goals?userId=anonymous");
+      const response = await fetch(`/api/goals?userId=${userId}`);
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
+  // Fetch real dashboard analytics data
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
+    queryKey: ["/api/analytics/dashboard", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/analytics/dashboard/${userId}`);
+      if (!response.ok) {
+        return {
+          totalSessions: 0,
+          currentStreak: 0,
+          averageMood: 0,
+          favoritePersona: "sarah",
+          sessionHistory: [],
+          moodTrends: [],
+          goals: { total: 0, completed: 0, inProgress: 0 }
+        };
+      }
+      return response.json();
+    }
+  });
+
+  // Fetch recent session data
+  const { data: recentSessions = [] } = useQuery({
+    queryKey: ["/api/analytics/sessions", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/analytics/sessions/${userId}`);
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
+  // Fetch mood entries
+  const { data: moodEntries = [] } = useQuery({
+    queryKey: ["/api/mood-entries", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/mood-entries?userId=${userId}`);
+      if (!response.ok) return [];
+      return response.json();
+    }
+  });
+
+  // Fetch user conversations for activity tracking
+  const { data: conversations = [] } = useQuery({
+    queryKey: ["/api/conversations", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/conversations?userId=${userId}`);
       if (!response.ok) return [];
       return response.json();
     }
@@ -228,6 +273,24 @@ export default function EnhancedProfileScreen() {
   const completedGoals = goals.filter((goal: any) => goal.status === "completed").length;
   const activeGoals = goals.filter((goal: any) => goal.status === "active").length;
 
+  // Calculate real statistics from fetched data
+  const totalSessions = dashboardData?.totalSessions || 0;
+  const currentStreak = dashboardData?.currentStreak || 0;
+  const averageMood = dashboardData?.averageMood || 0;
+  const favoritePersona = dashboardData?.favoritePersona || "sarah";
+
+  // Early return for loading state - AFTER all hooks
+  if (isLoading || dashboardLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -321,14 +384,12 @@ export default function EnhancedProfileScreen() {
           </p>
         </div>
 
-        <Tabs defaultValue="analytics" className="space-y-8">
-          <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4 bg-white dark:bg-gray-800 rounded-2xl">
-            <TabsTrigger value="analytics" className="rounded-2xl">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </TabsTrigger>
+        <Tabs defaultValue="overview" className="space-y-8">
+          <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-5 bg-white dark:bg-gray-800 rounded-2xl">
             <TabsTrigger value="overview" className="rounded-2xl">Overview</TabsTrigger>
+            <TabsTrigger value="sessions" className="rounded-2xl">Sessions</TabsTrigger>
             <TabsTrigger value="goals" className="rounded-2xl">Goals</TabsTrigger>
+            <TabsTrigger value="mood" className="rounded-2xl">Mood Trends</TabsTrigger>
             <TabsTrigger value="settings" className="rounded-2xl">Settings</TabsTrigger>
           </TabsList>
 
@@ -346,7 +407,7 @@ export default function EnhancedProfileScreen() {
                   <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="font-body text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.totalSessions || 0}</h3>
+                  <h3 className="font-body text-2xl font-bold text-gray-900 dark:text-gray-100">{totalSessions}</h3>
                   <p className="font-body text-sm text-gray-600 dark:text-gray-400 font-medium">Total Sessions</p>
                 </CardContent>
               </Card>
@@ -356,7 +417,7 @@ export default function EnhancedProfileScreen() {
                   <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <TrendingUp className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile?.stats?.currentStreak || 0}</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{currentStreak}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Current Streak</p>
                 </CardContent>
               </Card>
@@ -377,7 +438,7 @@ export default function EnhancedProfileScreen() {
                     <Heart className="h-7 w-7 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {profile?.stats?.averageMood ? profile.stats.averageMood.toFixed(1) : "—"}
+                    {averageMood ? averageMood.toFixed(1) : "—"}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Avg Mood</p>
                 </CardContent>
@@ -393,9 +454,263 @@ export default function EnhancedProfileScreen() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-                  Your recent wellness activities will appear here as you engage with SoulSense.
-                </p>
+                {conversations.length > 0 ? (
+                  <div className="space-y-4">
+                    {conversations.slice(0, 5).map((conversation: any) => (
+                      <div key={conversation.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <MessageCircle className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Chat with {conversation.persona?.name || conversation.personaId}
+                          </p>
+                          <p className="font-body text-xs text-gray-600 dark:text-gray-400">
+                            {format(new Date(conversation.createdAt), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {goals.filter((goal: any) => goal.status === 'completed').slice(0, 3).map((goal: any) => (
+                      <div key={goal.id} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                          <CheckCircle className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Completed: {goal.title}
+                          </p>
+                          <p className="font-body text-xs text-gray-600 dark:text-gray-400">
+                            {goal.completedDate ? format(new Date(goal.completedDate), 'MMM d, yyyy') : 'Recently'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {moodEntries.slice(0, 2).map((entry: any) => (
+                      <div key={entry.id} className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                          <Heart className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Mood logged: {entry.moodRating}/5
+                          </p>
+                          <p className="font-body text-xs text-gray-600 dark:text-gray-400">
+                            {format(new Date(entry.createdAt), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                    Your recent wellness activities will appear here as you engage with SoulSense.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Sessions Tab */}
+          <TabsContent value="sessions" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    Session Overview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Total Sessions</span>
+                      <span className="font-bold text-lg">{totalSessions}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Active Conversations</span>
+                      <span className="font-bold text-lg">{conversations.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Favorite Persona</span>
+                      <span className="font-bold text-lg capitalize">{favoritePersona}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Session Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {['sarah', 'alex', 'marcus', 'maya'].map((personaId) => {
+                      const personaSessions = conversations.filter((c: any) => c.personaId === personaId);
+                      const personaName = personaId === 'sarah' ? 'Dr. Sarah' : personaId === 'alex' ? 'Alex' : personaId === 'marcus' ? 'Marcus' : 'Maya';
+                      return (
+                        <div key={personaId} className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{personaName}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-purple-500 transition-all duration-300"
+                                style={{ 
+                                  width: `${conversations.length ? (personaSessions.length / conversations.length) * 100 : 0}%` 
+                                }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium">{personaSessions.length}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+              <CardHeader>
+                <CardTitle>Recent Conversations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {conversations.length > 0 ? (
+                  <div className="space-y-3">
+                    {conversations.slice(0, 8).map((conversation: any) => (
+                      <div key={conversation.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {conversation.title || `Chat with ${conversation.persona?.name || conversation.personaId}`}
+                          </p>
+                          <p className="font-body text-xs text-gray-600 dark:text-gray-400">
+                            {format(new Date(conversation.createdAt), 'MMM d, yyyy • h:mm a')}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {conversation.persona?.name || conversation.personaId}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                    No conversations yet. Start chatting with a persona to see your session history.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Mood Trends Tab */}
+          <TabsContent value="mood" className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="h-5 w-5" />
+                    Mood Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Average Mood</span>
+                      <span className="font-bold text-lg">{averageMood ? averageMood.toFixed(1) : "—"}/5</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Mood Entries</span>
+                      <span className="font-bold text-lg">{moodEntries.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Current Streak</span>
+                      <span className="font-bold text-lg">{currentStreak} days</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+                <CardHeader>
+                  <CardTitle>Mood Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {moodEntries.length > 0 ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4, 5].map((rating) => {
+                        const count = moodEntries.filter((entry: any) => entry.moodRating === rating).length;
+                        const percentage = (count / moodEntries.length) * 100;
+                        const emoji = ['😢', '😔', '😐', '😊', '😄'][rating - 1];
+                        return (
+                          <div key={rating} className="flex items-center gap-3">
+                            <span className="text-lg">{emoji}</span>
+                            <div className="flex-1">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">{rating}/5</span>
+                                <span className="text-sm font-medium">{count}</span>
+                              </div>
+                              <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                      No mood entries yet. Start tracking your mood to see patterns.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-900">
+              <CardHeader>
+                <CardTitle>Recent Mood Entries</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {moodEntries.length > 0 ? (
+                  <div className="space-y-3">
+                    {moodEntries.slice(0, 6).map((entry: any) => (
+                      <div key={entry.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                          <Heart className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Mood: {entry.moodRating}/5
+                          </p>
+                          <p className="font-body text-xs text-gray-600 dark:text-gray-400">
+                            {format(new Date(entry.createdAt), 'MMM d, yyyy • h:mm a')}
+                          </p>
+                          {entry.notes && (
+                            <p className="font-body text-xs text-gray-500 mt-1">
+                              {entry.notes}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {entry.type}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400 text-center py-8">
+                    No mood entries yet. Start tracking your mood to see your emotional journey.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
