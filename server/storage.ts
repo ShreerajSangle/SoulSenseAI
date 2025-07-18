@@ -845,9 +845,24 @@ export class DatabaseStorage implements IStorage {
 
   // Session Analytics Implementation
   async createSessionAnalytic(analytic: InsertSessionAnalytic): Promise<SessionAnalytic> {
+    // Convert string timestamps to Date objects
+    const processedAnalytic = { ...analytic };
+    if (processedAnalytic.startTime && typeof processedAnalytic.startTime === 'string') {
+      processedAnalytic.startTime = new Date(processedAnalytic.startTime);
+    }
+    if (processedAnalytic.endTime && typeof processedAnalytic.endTime === 'string') {
+      processedAnalytic.endTime = new Date(processedAnalytic.endTime);
+    }
+    if (processedAnalytic.createdAt && typeof processedAnalytic.createdAt === 'string') {
+      processedAnalytic.createdAt = new Date(processedAnalytic.createdAt);
+    }
+    if (processedAnalytic.updatedAt && typeof processedAnalytic.updatedAt === 'string') {
+      processedAnalytic.updatedAt = new Date(processedAnalytic.updatedAt);
+    }
+
     const [newAnalytic] = await db
       .insert(sessionAnalytics)
-      .values(analytic)
+      .values(processedAnalytic)
       .returning();
     return newAnalytic;
   }

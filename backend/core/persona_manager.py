@@ -40,11 +40,11 @@ class PersonaManager:
             {
                 "id": "alex",
                 "name": "Alex",
-                "role": "Peer Counselor",
-                "specialty": "Peer Support & Encouraging Friendship",
-                "description": "A relatable, encouraging friend who brings humor and genuine understanding to tough times. Alex offers peer support with a perfect balance of empathy and optimism.",
-                "avatar_url": "/api/placeholder/150/150?text=😊",
-                "color": "#dc2626"
+                "role": "Digital Best Friend",
+                "specialty": "Peer Support, Humor Therapy & Friendship",
+                "description": "A witty, kind-hearted digital best friend who's your ride-or-die companion. Alex brings humor, relatability, and endless support with the perfect mix of jokes, validation, and genuine care.",
+                "avatar_url": "/api/placeholder/150/150?text=🤗",
+                "color": "#f59e0b"
             },
             {
                 "id": "marcus",
