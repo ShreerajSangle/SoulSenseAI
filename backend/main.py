@@ -30,6 +30,7 @@ from core.persona_pathways import PersonaPathwaySystem
 from core.daily_loop import DailySoulSenseLoop
 from core.daily_loop_integration import DailyLoopIntegration
 from core.advanced_emotion_engine import AdvancedEmotionEngine
+from api.emotional_intelligence import router as emotional_intelligence_router
 from models.schemas import (
     ChatMessage, 
     ChatResponse, 
@@ -103,6 +104,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include API routers
+app.include_router(emotional_intelligence_router)
 
 # Health check endpoint
 @app.get("/health")

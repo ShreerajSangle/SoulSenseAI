@@ -3,6 +3,7 @@ import ChatInterface from './components/ChatInterface';
 import PathwayExplorer from './components/PathwayExplorer';
 import DailyLoopDashboard from './components/DailyLoopDashboard';
 import DailyInsightsBanner from './components/DailyInsightsBanner';
+import EmotionalIntelligenceDashboard from './components/EmotionalIntelligenceDashboard';
 import './App.css';
 
 // Persona data
@@ -42,7 +43,7 @@ const PERSONAS = [
 ];
 
 // HomePage component with persona selection
-const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop, userId }) => {
+const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop, onShowEmotionalIntelligence, userId }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Daily Insights Banner */}
@@ -181,6 +182,12 @@ const HomePage = ({ onPersonaSelect, onShowPathways, onShowDailyLoop, userId }) 
             >
               🧭 Guided Pathways
             </button>
+            <button 
+              onClick={onShowEmotionalIntelligence}
+              className="bg-white/20 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm"
+            >
+              🧠 Emotional Intelligence
+            </button>
           </div>
         </div>
       </div>
@@ -193,6 +200,7 @@ function App() {
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [showPathways, setShowPathways] = useState(false);
   const [showDailyLoop, setShowDailyLoop] = useState(false);
+  const [showEmotionalIntelligence, setShowEmotionalIntelligence] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -223,6 +231,7 @@ function App() {
     setSelectedPersona(null);
     setShowPathways(false);
     setShowDailyLoop(false);
+    setShowEmotionalIntelligence(false);
   };
 
   const handleShowPathways = () => {
@@ -235,6 +244,13 @@ function App() {
     setShowDailyLoop(true);
     setSelectedPersona(null);
     setShowPathways(false);
+  };
+
+  const handleShowEmotionalIntelligence = () => {
+    setShowEmotionalIntelligence(true);
+    setSelectedPersona(null);
+    setShowPathways(false);
+    setShowDailyLoop(false);
   };
 
   if (loading) {
@@ -301,11 +317,17 @@ function App() {
           {/* Daily Loop Dashboard */}
           <DailyLoopDashboard userId={user.id} />
         </div>
+      ) : showEmotionalIntelligence ? (
+        <EmotionalIntelligenceDashboard 
+          userId={user.id} 
+          onClose={handleBackToHome}
+        />
       ) : (
         <HomePage 
           onPersonaSelect={handlePersonaSelect} 
           onShowPathways={handleShowPathways} 
           onShowDailyLoop={handleShowDailyLoop}
+          onShowEmotionalIntelligence={handleShowEmotionalIntelligence}
           userId={user.id}
         />
       )}
