@@ -8,12 +8,14 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from models.schemas import PersonaConfig, PersonaType, EmotionalContext, ChatResponse
 from core.llm_client import LLMClient
+from core.persona_emotional_intelligence import PersonaEmotionalIntelligence
 
 class SarahHandler:
     """Dr. Sarah - Compassionate clinical therapist specializing in CBT and emotional processing"""
     
     def __init__(self):
         self.llm_client = LLMClient()
+        self.emotional_intelligence = PersonaEmotionalIntelligence()
         self.config = PersonaConfig(
             id=PersonaType.SARAH,
             name="Dr. Sarah",
@@ -284,13 +286,29 @@ Remember: You are a safe harbor in their emotional storm. Your presence and unde
         message: str, 
         conversation_history: List[Dict[str, str]], 
         emotional_context: EmotionalContext,
-        memory: Dict[str, Any]
+        memory: Dict[str, Any],
+        daily_context: Dict[str, Any] = None,
+        emotional_insight = None,
+        emotional_prompt_context: str = ""
     ) -> ChatResponse:
         """Generate Sarah's therapeutic response with clinical insights"""
         
         try:
-            # Build Sarah's therapeutic system prompt
-            system_prompt = self.build_system_prompt(emotional_context, memory)
+            # Build Sarah's therapeutic system prompt with emotional intelligence
+            base_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
+            
+            # Enhance with emotional intelligence context
+            enhanced_prompt = f"""{base_prompt}
+
+{emotional_prompt_context}
+
+🔬 DR. SARAH'S EMOTIONALLY INTELLIGENT CLINICAL APPROACH:
+- Apply therapeutic expertise with deep emotional awareness
+- Use clinical insights to address underlying emotional patterns
+- Provide evidence-based interventions tailored to emotional state
+- Maintain therapeutic boundaries while being emotionally responsive
+- Prioritize safety and emotional well-being in all interactions
+"""
             
             # Detect active therapeutic features
             active_features = self.detect_therapeutic_needs(message, emotional_context)
@@ -306,7 +324,7 @@ Remember: You are a safe harbor in their emotional storm. Your presence and unde
             
             # Generate response through LLM
             response_content = await self.llm_client.generate_response(
-                system_prompt=system_prompt,
+                system_prompt=enhanced_prompt,
                 conversation_history=formatted_conversation,
                 current_message=message,
                 persona_config=self.config

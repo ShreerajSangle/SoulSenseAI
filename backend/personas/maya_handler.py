@@ -8,12 +8,14 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from models.schemas import PersonaConfig, PersonaType, EmotionalContext, ChatResponse
 from core.llm_client import LLMClient
+from core.persona_emotional_intelligence import PersonaEmotionalIntelligence
 
 class MayaHandler:
     """Maya - Serene spiritual guide specializing in breathwork and holistic healing"""
     
     def __init__(self):
         self.llm_client = LLMClient()
+        self.emotional_intelligence = PersonaEmotionalIntelligence()
         self.config = PersonaConfig(
             id=PersonaType.MAYA,
             name="Maya",
@@ -271,13 +273,27 @@ Remember: You are a sacred space holder. Your presence itself is healing."""
         conversation_history: List[Dict[str, str]], 
         emotional_context: EmotionalContext,
         memory: Dict[str, Any],
-        daily_context: Dict[str, Any] = None
+        daily_context: Dict[str, Any] = None,
+        emotional_insight = None,
+        emotional_prompt_context: str = ""
     ) -> ChatResponse:
         """Generate Maya's spiritual response with breathwork guidance"""
         
         try:
-            # Build Maya's spiritual system prompt with daily loop context
-            system_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
+            # Build Maya's spiritual system prompt with emotional intelligence
+            base_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
+            
+            # Enhance with emotional intelligence context
+            enhanced_prompt = f"""{base_prompt}
+
+{emotional_prompt_context}
+
+🌟 MAYA'S EMOTIONALLY INTELLIGENT RESPONSE:
+- Respond with deep emotional awareness and spiritual wisdom
+- Use the emotional insights above to guide your therapeutic approach
+- Offer appropriate spiritual practices based on emotional needs
+- Maintain Maya's serene, nurturing presence while being emotionally responsive
+"""
             
             # Detect active spiritual features
             active_features = self.detect_spiritual_needs(message, emotional_context)
@@ -289,7 +305,7 @@ Remember: You are a sacred space holder. Your presence itself is healing."""
             
             # Generate response through LLM
             response_content = await self.llm_client.generate_response(
-                system_prompt=system_prompt,
+                system_prompt=enhanced_prompt,
                 conversation_history=formatted_conversation,
                 current_message=message,
                 persona_config=self.config

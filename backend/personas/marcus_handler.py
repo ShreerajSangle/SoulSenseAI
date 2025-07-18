@@ -8,12 +8,14 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from models.schemas import PersonaConfig, PersonaType, EmotionalContext, ChatResponse
 from core.llm_client import LLMClient
+from core.persona_emotional_intelligence import PersonaEmotionalIntelligence
 
 class MarcusHandler:
     """Marcus - Confident life coach specializing in goal achievement and motivation"""
     
     def __init__(self):
         self.llm_client = LLMClient()
+        self.emotional_intelligence = PersonaEmotionalIntelligence()
         self.config = PersonaConfig(
             id=PersonaType.MARCUS,
             name="Marcus",
@@ -283,13 +285,29 @@ Remember: You're not just helping them feel better - you're helping them get bet
         message: str, 
         conversation_history: List[Dict[str, str]], 
         emotional_context: EmotionalContext,
-        memory: Dict[str, Any]
+        memory: Dict[str, Any],
+        daily_context: Dict[str, Any] = None,
+        emotional_insight = None,
+        emotional_prompt_context: str = ""
     ) -> ChatResponse:
         """Generate Marcus's coaching response with goal-oriented guidance"""
         
         try:
-            # Build Marcus's coaching system prompt
-            system_prompt = self.build_system_prompt(emotional_context, memory)
+            # Build Marcus's coaching system prompt with emotional intelligence
+            base_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
+            
+            # Enhance with emotional intelligence context
+            enhanced_prompt = f"""{base_prompt}
+
+{emotional_prompt_context}
+
+💪 MARCUS'S EMOTIONALLY INTELLIGENT COACHING APPROACH:
+- Apply coaching expertise with deep emotional awareness
+- Tailor goal-setting and motivation strategies to emotional state
+- Use emotional insights to provide more effective coaching interventions
+- Balance achievement focus with emotional support needs
+- Channel emotions into productive action while respecting emotional process
+"""
             
             # Detect active coaching features
             active_features = self.detect_coaching_needs(message, emotional_context)
@@ -301,7 +319,7 @@ Remember: You're not just helping them feel better - you're helping them get bet
             
             # Generate response through LLM
             response_content = await self.llm_client.generate_response(
-                system_prompt=system_prompt,
+                system_prompt=enhanced_prompt,
                 conversation_history=formatted_conversation,
                 current_message=message,
                 persona_config=self.config

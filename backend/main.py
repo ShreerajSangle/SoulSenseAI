@@ -156,7 +156,7 @@ async def chat_marcus(message: ChatMessage, user_id: str = "anonymous"):
     return await process_persona_chat("marcus", message, user_id)
 
 async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: str) -> ChatResponse:
-    """Process chat message through isolated persona system"""
+    """Process chat message through emotionally intelligent persona system"""
     try:
         # Get persona handler
         handler = PERSONA_HANDLERS[persona_id]
@@ -164,19 +164,35 @@ async def process_persona_chat(persona_id: str, message: ChatMessage, user_id: s
         # Get user's conversation memory for this persona
         memory = await memory_system.get_conversation_memory(user_id, persona_id)
         
-        # Detect emotional context
+        # Detect basic emotional context
         emotional_context = await emotion_engine.analyze_emotion(message.content)
+        
+        # Enhanced emotional intelligence analysis
+        conversation_history = message.conversation_history or []
+        emotional_insight = await handler.emotional_intelligence.analyze_emotional_context(
+            message.content, 
+            conversation_history, 
+            persona_id
+        )
         
         # Get daily loop context for personalized response
         daily_context = await daily_loop_integration.get_persona_context(user_id, persona_id)
         
-        # Generate persona-specific response with daily loop context
+        # Generate emotional context for persona prompt
+        emotional_prompt_context = handler.emotional_intelligence.generate_emotional_prompt_context(
+            emotional_insight, 
+            persona_id
+        )
+        
+        # Generate persona-specific response with emotional intelligence
         response = await handler.generate_response(
             message.content,
-            message.conversation_history or [],
+            conversation_history,
             emotional_context,
             memory,
-            daily_context
+            daily_context,
+            emotional_insight,
+            emotional_prompt_context
         )
         
         # Update memory with persona-specific rules

@@ -8,12 +8,14 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from models.schemas import PersonaConfig, PersonaType, EmotionalContext, ChatResponse
 from core.llm_client import LLMClient
+from core.persona_emotional_intelligence import PersonaEmotionalIntelligence
 
 class AlexHandler:
     """Alex - Witty, kind-hearted digital best friend providing peer support"""
     
     def __init__(self):
         self.llm_client = LLMClient()
+        self.emotional_intelligence = PersonaEmotionalIntelligence()
         self.config = PersonaConfig(
             id=PersonaType.ALEX,
             name="Alex",
@@ -278,13 +280,29 @@ Remember: You're not trying to fix them - you're being a good friend who listens
         message: str, 
         conversation_history: List[Dict[str, str]], 
         emotional_context: EmotionalContext,
-        memory: Dict[str, Any]
+        memory: Dict[str, Any],
+        daily_context: Dict[str, Any] = None,
+        emotional_insight = None,
+        emotional_prompt_context: str = ""
     ) -> ChatResponse:
         """Generate Alex's peer support response with humor and relatability"""
         
         try:
-            # Build Alex's peer support system prompt
-            system_prompt = self.build_system_prompt(emotional_context, memory)
+            # Build Alex's peer support system prompt with emotional intelligence
+            base_prompt = self.build_system_prompt(emotional_context, memory, daily_context)
+            
+            # Enhance with emotional intelligence context
+            enhanced_prompt = f"""{base_prompt}
+
+{emotional_prompt_context}
+
+🤗 ALEX'S EMOTIONALLY INTELLIGENT PEER SUPPORT:
+- Use emotional insights to provide more relatable and supportive responses
+- Apply peer support techniques that match the user's emotional needs
+- Share appropriate personal experiences based on emotional context
+- Use humor and encouragement tailored to emotional state
+- Create authentic connections through emotional understanding
+"""
             
             # Detect active peer support features
             active_features = self.detect_peer_support_needs(message, emotional_context)
@@ -296,7 +314,7 @@ Remember: You're not trying to fix them - you're being a good friend who listens
             
             # Generate response through LLM
             response_content = await self.llm_client.generate_response(
-                system_prompt=system_prompt,
+                system_prompt=enhanced_prompt,
                 conversation_history=formatted_conversation,
                 current_message=message,
                 persona_config=self.config
