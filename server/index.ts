@@ -1,73 +1,61 @@
-// SoulSense AI - Complete Application Server
+// SoulSense AI - Full Stack Development Server
 import { spawn } from 'child_process';
 import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-console.log('🚀 Starting SoulSense AI Application...');
+console.log('🚀 Starting SoulSense AI Full Stack...');
 
-// Start Python FastAPI backend on port 8000
-const pythonProcess = spawn('python3', ['-m', 'uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000'], {
-  cwd: path.join(__dirname, '../backend'),
+// Start Python FastAPI backend
+const pythonProcess = spawn('python3', ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', '8000', '--reload'], {
+  cwd: './backend',
   stdio: 'inherit',
   env: { ...process.env, NODE_ENV: 'development' }
 });
 
-pythonProcess.on('error', (error) => {
-  console.error('Python backend error:', error);
+// Start React development server
+const reactProcess = spawn('npm', ['run', 'dev'], {
+  cwd: './client',
+  stdio: 'inherit',
+  env: { ...process.env, PORT: '3000' }
 });
 
-// Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// API proxy to Python backend
+app.use('/api', createProxyMiddleware({
+  target: 'http://127.0.0.1:8000',
+  changeOrigin: true,
+  timeout: 30000
+}));
 
-// Proxy API requests to Python backend
-app.use('/api/*', async (req, res) => {
-  try {
-    const response = await fetch(`http://localhost:8000${req.path}`, {
-      method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...req.headers
-      },
-      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined
-    });
-    
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (error) {
-    res.status(500).json({ error: 'Backend connection failed' });
-  }
-});
+app.use('/health', createProxyMiddleware({
+  target: 'http://127.0.0.1:8000',
+  changeOrigin: true
+}));
 
-// Health and docs endpoints
-app.get('/health', async (req, res) => {
-  try {
-    const response = await fetch('http://localhost:8000/health');
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ status: 'Backend unavailable' });
-  }
-});
+app.use('/docs', createProxyMiddleware({
+  target: 'http://127.0.0.1:8000',
+  changeOrigin: true
+}));
 
-// Serve React app for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+// Frontend proxy to React dev server
+app.use('/', createProxyMiddleware({
+  target: 'http://127.0.0.1:3000',
+  changeOrigin: true,
+  ws: true // Enable websocket support for HMR
+}));
 
 const PORT = 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ SoulSense AI running on http://localhost:${PORT}`);
-  console.log('🔗 API endpoints proxied to Python backend');
-  console.log('📱 React frontend served from /client/dist');
+app.listen(PORT, () => {
+  console.log(`✅ SoulSense AI proxy running on http://localhost:${PORT}`);
+  console.log('🔗 API routed to Python backend (port 8000)');
+  console.log('🌐 Frontend routed to React dev server (port 3000)');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   pythonProcess.kill();
+  reactProcess.kill();
   process.exit(0);
 });
