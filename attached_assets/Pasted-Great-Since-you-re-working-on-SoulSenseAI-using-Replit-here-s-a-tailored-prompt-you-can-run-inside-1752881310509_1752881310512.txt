@@ -1,0 +1,76 @@
+Great! Since you're working on SoulSenseAI using Replit, here's a tailored prompt you can run inside Replit's shell or use as a build instruction to completely rebuild your project from scratch using:
+
+Frontend: React (with existing UI preserved)
+
+Backend: Python (FastAPI)
+
+LLM Integration: Claude + Mixtral via OpenRouter (Mixtral API key provided)
+
+Database: PostgreSQL
+
+Hosting Environment: Replit
+
+Outcome: Identical design, features, and behavior as current project, but fully converted to Python backend with a cleaned codebase
+
+✅ 🔧 Final Build Instruction Prompt (Use in Replit to Rebuild Project)
+bash
+Copy
+Edit
+# 🧹 STEP 1: Clean Entire Workspace
+rm -rf client server backend api src build dist *.ts *.tsx *.js *.jsx node_modules package.json tsconfig.json vite.config.* .eslintrc* yarn.lock
+
+# 🛠️ STEP 2: Rebuild Project Structure
+mkdir client backend database configs models routes utils assets
+touch backend/main.py backend/router.py backend/persona_handler.py backend/chat.py
+touch database/init_db.py database/models.py
+touch configs/env.py
+touch client/README.md
+
+# 📦 STEP 3: Install Backend Dependencies
+pip install fastapi uvicorn sqlalchemy psycopg2-binary openai python-dotenv
+
+# ⚙️ STEP 4: Set Up PostgreSQL DB (Replit integration or Supabase/PostgreSQL)
+# Define tables: users, chats, journal_entries, goals, sessions, analytics, breathing_sessions
+# Store conversation history, summaries, goals, mood trends, streaks
+
+# 📡 STEP 5: Add Claude + Mixtral Integration via OpenRouter
+# Use Mixtral API Key: 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
+# Add OpenRouter header in backend/chat.py for chat completions
+
+# 🌍 STEP 6: Connect Frontend (React) with Python Backend
+npx create-react-app client
+cd client
+npm install axios react-router-dom
+# Rebuild the UI exactly as before (reuse CSS, components, layout from current system)
+# Fetch from Python backend (http://localhost:8000/api or Replit URL)
+
+# 🔌 STEP 7: API Routes in FastAPI (backend/router.py)
+# - /chat/{persona}
+# - /journal/
+# - /goals/
+# - /profile/analytics/
+# Each persona (Maya, Marcus, Alex, Sarah) has separate config + endpoint
+
+# 🔒 STEP 8: Secure API with OpenRouter key in .env
+echo "OPENROUTER_API_KEY=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" >> .env
+
+# ✅ STEP 9: Run Backend
+uvicorn backend.main:app --reload --host=0.0.0.0 --port=8000
+
+# ✅ STEP 10: Run Frontend
+cd client && npm start
+
+# 🧼 STEP 11: Final Cleanup
+# Remove ALL unused assets, duplicate files, temp folders, test scripts
+✅ Outcome:
+Backend: Fully Pythonic with FastAPI
+
+Frontend: Exactly same as current (React)
+
+Database: PostgreSQL connected and logging everything (chat, mood, goals, etc.)
+
+Models: Claude + Mixtral hooked using OpenRouter
+
+Replit Compatible: No workflow breaking
+
+UI/UX: Not altered – exactly matches current experience

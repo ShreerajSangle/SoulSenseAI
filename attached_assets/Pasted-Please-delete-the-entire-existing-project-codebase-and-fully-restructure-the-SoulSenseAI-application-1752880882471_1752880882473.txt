@@ -1,0 +1,68 @@
+Please delete the entire existing project codebase and fully restructure the SoulSenseAI application from scratch, while preserving the current UI design, frontend experience, and workflow logic exactly as it appears now. The goal is to migrate the backend completely from TypeScript/Express to Python/FastAPI, while retaining the React frontend. Make sure no part of the user interface or user interaction behavior is altered — the chat flow, persona switching, journaling, profile analytics, and breathing tools should all work identically as they currently do.
+
+Use the following base setup for the rebuild:
+
+Frontend: React (with Vite or CRA) using .jsx or .tsx components (as per current design)
+
+Backend: Python with FastAPI (fully replacing all .ts files, routes, and logic from Express)
+
+Database: PostgreSQL (replace SQLite or mock DBs with psycopg2 or SQLAlchemy)
+
+LLM Integration:
+
+Base model: Claude 3 Haiku (via OpenRouter API)
+
+Secondary model for spiritual persona: Mixtral
+
+OpenRouter API Key: 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
+
+Endpoints to be preserved: /chat, /profile, /goals, /diary, /sessions, /summary, /persona, etc.
+
+Core Features to Maintain (no change):
+
+4 persona chat flows: Maya, Marcus, Alex, Dr. Sarah
+
+Emotion-based quick replies
+
+Chat summaries and memory
+
+Journaling & mood logs
+
+Goal tracking with habit builder
+
+Profile analytics (mood trend, session count, goals achieved)
+
+Breathing + meditation prompts
+
+Architecture Expectations:
+
+Use async and Pydantic models in FastAPI backend
+
+PostgreSQL schema must store: users, conversations, goals, journal entries, breathing logs, sessions, analytics, emotional patterns
+
+Use CORS and proper middleware for frontend-backend communication
+
+React frontend should continue working without any change in code if connected to new Python API routes
+
+After deleting the old codebase, recreate the entire system with clean, modular structure:
+
+pgsql
+Copy
+Edit
+SoulSenseAI/
+├── backend/              # Python FastAPI server
+│   ├── main.py
+│   ├── routes/           # Modular API endpoints (chat.py, user.py, goals.py, etc.)
+│   ├── models/           # Pydantic schemas
+│   ├── db/               # PostgreSQL connection + SQLAlchemy models
+│   └── utils/            # Claude, Mixtral, journaling logic
+├── client/               # React frontend (unchanged in structure/UI)
+│   ├── components/
+│   ├── pages/
+│   └── api/              # Axios or fetch to call new FastAPI endpoints
+├── database/             # Optional for seed scripts or SQL schema
+├── .env                  # Include keys, DB credentials
+├── requirements.txt
+├── package.json
+└── README.md
+Once built, remove all previous .ts, .tsx, .tsconfig, old Node/Express server files, and unused assets, ensuring the React app calls only the new Python backend routes. Do not alter or redesign any frontend elements — keep everything looking and functioning exactly the same.
