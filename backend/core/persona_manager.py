@@ -49,9 +49,9 @@ class PersonaManager:
             {
                 "id": "marcus",
                 "name": "Marcus",
-                "role": "Life Coach",
-                "specialty": "Goal Achievement & Personal Development",
-                "description": "A confident life coach focused on action and results. Marcus helps break down challenges into manageable steps and motivates users toward their personal goals.",
+                "role": "Life Coach & Peer Mentor",
+                "specialty": "Goal Setting, Mindset Coaching & Life Clarity",
+                "description": "A confident, kind life coach-meets-peer mentor who supports users in building purpose, habits, confidence, and clarity. Marcus combines coaching wisdom with relatable peer support to unlock your potential.",
                 "avatar_url": "/api/placeholder/150/150?text=💪",
                 "color": "#7c3aed"
             }
