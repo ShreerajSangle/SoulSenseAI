@@ -18,6 +18,10 @@ SoulSense is a comprehensive AI-driven mental health support platform that provi
 - ✅ **Development Environment**: Dual-server setup capability with Python backend (port 5000) and React frontend (port 3000) with hot reload
 - ✅ **Production Ready**: FastAPI with uvicorn server, automatic API documentation at /docs, comprehensive error handling and logging
 - ✅ **Rebuild Complete**: Fully functional SoulSense AI platform with clean Python architecture and preserved user experience
+- ⚠️ **Workflow Configuration**: Root package.json needs "dev" script for automatic startup - manual launch available via start_soulsense.py
+- ✅ **Manual Development**: Both servers can be started individually - Python backend (port 5000) and React frontend (port 3000)
+- ✅ **Backend Verification**: Python FastAPI backend successfully imports and runs with all therapeutic personas ready
+- ✅ **Frontend Structure**: Complete React application with pages, components, and Tailwind CSS configuration ready
 
 ### Full Screen Chat Interface Enhancement (July 2025)
 - ✅ **Complete Full Screen Implementation**: Successfully expanded all chat interfaces to use full screen width and height for immersive conversation experience
