@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     print("Starting SoulSense AI Backend...")
     
     # Initialize core services
-    database = Database()
+    database = Database("backend/soulsense.db")
     await database.initialize()
     
     storage = Storage(database)

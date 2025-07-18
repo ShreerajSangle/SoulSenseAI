@@ -29,7 +29,7 @@ async def init_database():
     print("✅ Database tables created successfully")
     
     # Check if personas exist
-    cursor = await database.connection.execute(
+    cursor = await database._connection.execute(
         "SELECT COUNT(*) FROM personas"
     )
     count = (await cursor.fetchone())[0]
@@ -72,16 +72,16 @@ async def init_database():
         ]
         
         for persona in personas:
-            await database.connection.execute(
+            await database._connection.execute(
                 """
-                INSERT INTO personas (id, name, role, description, color, emoji)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO personas (id, name, role, specialty, description, avatar_url, color)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (persona['id'], persona['name'], persona['role'], 
-                 persona['description'], persona['color'], persona['emoji'])
+                 persona['role'], persona['description'], '', persona['color'])
             )
         
-        await database.connection.commit()
+        await database._connection.commit()
         print("✅ Default personas created")
     else:
         print(f"✅ Found {count} existing personas")

@@ -1,79 +1,68 @@
 # SoulSense AI - Quick Start Local Setup
 
-## 🚀 3-Step Setup (2 minutes)
+## 🚀 2-Minute Setup
 
-### Step 1: Download & Extract
-- Download the project zip from Replit 
-- Extract to your desired folder
-- Open terminal/command prompt in that folder
+### Prerequisites
+- Python 3.9+ (`python3 --version`)
+- Node.js 18+ (`node --version`)
 
-### Step 2: Run Setup Script
+### One-Command Setup
 ```bash
-# Option A: Automated script (recommended)
-./run_local.sh
+# Clone/download the project and run:
+./complete_local_setup.sh
 
-# Option B: Python script
-python3 start_local.py
-
-# Option C: Manual commands
-npm install
-npm run dev
+# Or use the Python backend specifically:
+./run_python_backend.sh
 ```
 
-### Step 3: Add API Key
-1. Edit the `.env` file that gets created
-2. Add your OpenRouter API key:
-   ```env
-   OPENROUTER_API_KEY=your_actual_key_here
-   ```
-3. Get free key from: https://openrouter.ai/
-
-## ✅ Visit Your App
-**http://localhost:5000**
-
-You'll see the exact same SoulSense AI interface as in Replit!
-
-## 🎯 What You Get
-
-- **Identical UI/UX** - Pixel-perfect match to Replit
-- **4 AI Personas** - Sarah, Alex, Marcus, Maya with full personalities
-- **Complete Features** - Chat, journal, goals, breathing, analytics
-- **Local Database** - SQLite (automatic setup)
-- **Hot Reload** - Live updates during development
-
-## 🛠️ Available Scripts
-
+### Manual Setup (if scripts don't work)
 ```bash
-npm run dev          # Start full application
-npm run setup        # Install all dependencies
-npm run test-api     # Test API endpoints
-npm run kill-port    # Fix port conflicts
-./verify_local_setup.sh  # Test everything works
+# 1. Fix database issues
+python3 fix_database_local.py
+
+# 2. Backend setup
+cd backend
+python3 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Start backend
+uvicorn main:app --host 0.0.0.0 --port 5000 --reload
 ```
 
-## 🔧 Troubleshooting
+### Access Your App
+- **Frontend**: http://localhost:5000
+- **API Docs**: http://localhost:5000/docs
+- **Health Check**: http://localhost:5000/health
 
-**Port 5000 in use?**
+### API Key Configuration
+Your OpenRouter API key is already configured! If you need to change it:
 ```bash
-npm run kill-port
+# Edit backend/.env and update:
+OPENROUTER_API_KEY=your_new_key_here
 ```
 
-**Missing dependencies?**
+### Test Everything Works
 ```bash
-npm run setup
+# Quick test
+curl http://localhost:5000/api/personas
+
+# Comprehensive test
+python3 test_local_setup.py
 ```
 
-**API not working?**
-- Add OpenRouter API key to `.env`
-- Restart: `npm run dev`
+## ✅ Success Indicators
+- Homepage loads with 4 persona cards
+- Chat interface opens and responds
+- No red errors in browser console
+- API endpoints return JSON data
 
-## 📁 Complete Package Includes
+## 🔧 Common Issues
+- **Port 5000 busy**: `npx kill-port 5000`
+- **Python errors**: Check virtual environment is activated
+- **Database errors**: Run `python3 fix_database_local.py`
+- **API not working**: Verify .env file exists in backend/
 
-- ✅ All source code (React + TypeScript)
-- ✅ Automated setup scripts
-- ✅ Environment templates
-- ✅ Documentation and guides
-- ✅ Verification tools
-- ✅ Troubleshooting helpers
-
-The local version preserves 100% of Replit functionality while running on your machine!
+## 📚 Full Documentation
+- **TROUBLESHOOTING_LOCAL.md** - Detailed problem solving
+- **LOCAL_SETUP_FINAL.md** - Complete setup guide

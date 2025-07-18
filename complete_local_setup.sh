@@ -68,8 +68,14 @@ fi
 echo "✅ pip3 available"
 echo
 
+# Fix Database Issues First
+echo "🔧 Step 2: Database Fix"
+echo "======================="
+python3 fix_database_local.py
+echo
+
 # Backend Setup
-echo "🐍 Step 2: Backend Setup (Python FastAPI)"
+echo "🐍 Step 3: Backend Setup (Python FastAPI)"
 echo "=========================================="
 
 cd backend
@@ -111,7 +117,7 @@ cd ..
 echo
 
 # Frontend Setup
-echo "⚛️  Step 3: Frontend Setup (React)"
+echo "⚛️  Step 4: Frontend Setup (React)"
 echo "=================================="
 
 # Install main dependencies
@@ -129,7 +135,7 @@ if [ -d "frontend" ]; then
 fi
 
 # Environment Configuration
-echo "🔧 Step 4: Environment Configuration"
+echo "🔧 Step 5: Environment Configuration"
 echo "===================================="
 
 # Create main .env if it doesn't exist
@@ -165,7 +171,7 @@ fi
 echo
 
 # Port Management
-echo "🌐 Step 5: Port Management"
+echo "🌐 Step 6: Port Management"
 echo "=========================="
 
 # Clean up any existing processes
@@ -183,7 +189,7 @@ echo "✅ Ports cleaned"
 echo
 
 # Final Check
-echo "✅ Step 6: Setup Complete!"
+echo "✅ Step 7: Setup Complete!"
 echo "========================="
 echo
 echo "🎯 SoulSense AI is ready to run locally!"
