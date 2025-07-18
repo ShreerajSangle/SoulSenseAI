@@ -272,17 +272,20 @@ export const sessionAnalytics = pgTable("session_analytics", {
   userId: varchar("user_id").notNull(),
   personaId: text("persona_id").notNull(),
   sessionType: varchar("session_type").notNull(), // 'chat', 'journal', 'goal_setting', 'breathing'
+  conversationId: integer("conversation_id"),
   startTime: timestamp("start_time").defaultNow().notNull(),
   endTime: timestamp("end_time"),
   duration: integer("duration"), // Duration in seconds
   messageCount: integer("message_count").default(0),
-  toolsUsed: json("tools_used").$type<string[]>(),
+  techniquesUsed: json("techniques_used").$type<string[]>(),
+  keyTopics: json("key_topics").$type<string[]>(),
+  emotionAnalysis: json("emotion_analysis").$type<any>(),
+  crisisIndicators: json("crisis_indicators").$type<string[]>(),
   moodBefore: integer("mood_before"),
   moodAfter: integer("mood_after"),
-  engagementScore: integer("engagement_score"), // 1-100 calculated score
-  completionStatus: varchar("completion_status").default('incomplete'), // 'completed', 'incomplete', 'abandoned'
-  quality: varchar("quality"), // 'high', 'medium', 'low'
+  sessionRating: integer("session_rating"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_session_analytics_user_id").on(table.userId),
   index("idx_session_analytics_persona_id").on(table.personaId),

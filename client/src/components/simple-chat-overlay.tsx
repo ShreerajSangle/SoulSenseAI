@@ -46,6 +46,8 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [checkInResponse, setCheckInResponse] = useState("");
   const [currentEmotion, setCurrentEmotion] = useState("Neutral");
   const [emotionIntensity, setEmotionIntensity] = useState(50);
@@ -84,6 +86,63 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Start a session when chat opens
+  useEffect(() => {
+    if (isOpen && !sessionStarted) {
+      startNewSession();
+    }
+  }, [isOpen]);
+
+  const startNewSession = async () => {
+    try {
+      const response = await fetch('/api/analytics/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 'anonymous',
+          personaId: persona.id,
+          sessionType: 'chat',
+          startTime: new Date(),
+          messageCount: 0,
+          completionStatus: 'incomplete',
+        }),
+      });
+
+      if (response.ok) {
+        const sessionData = await response.json();
+        setSessionId(sessionData.id);
+        setSessionStartTime(new Date());
+      }
+    } catch (error) {
+      console.error('Error starting session:', error);
+    }
+  };
+
+  const endSession = async () => {
+    if (sessionId && sessionStartTime) {
+      try {
+        const duration = Math.round((new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60); // Duration in minutes
+        
+        await fetch('/api/chat/end-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: sessionId,
+            userId: 'anonymous',
+            duration: duration,
+            messageCount: messages.length,
+          }),
+        });
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+  };
 
   const sendMessage = async (message: string) => {
     try {
@@ -234,6 +293,11 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
     }
   };
 
+  const handleCloseSession = () => {
+    endSession();
+    onClose();
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
       sendMessage(inputMessage);
@@ -290,7 +354,7 @@ export function SimpleChatOverlay({ persona, isOpen, onClose }: SimpleChatOverla
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={handleCloseSession}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg transition-colors"
               >
                 <X className="h-4 w-4" />
