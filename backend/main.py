@@ -1,94 +1,161 @@
 """
-SoulSense AI - FastAPI Backend
-Complete rebuild with Python FastAPI replacing TypeScript Express
+SoulSense AI - Python FastAPI Backend
+Complete replacement for TypeScript/Express backend
+Preserves all functionality while providing Python ecosystem benefits
 """
 
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 import os
+import time
+from datetime import datetime
 from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+import uvicorn
 
-from routes import chat, user, goals, diary, sessions, personas
-from db.database import init_database
-from models.responses import HealthResponse
+from core.database import Database, get_db
+from core.storage import Storage
+from core.persona_manager import PersonaManager
+from core.emotion_engine import EmotionEngine
+from core.claude_client import ClaudeClient
+from api.personas import router as personas_router
+from api.chat import router as chat_router
+from api.profile import router as profile_router
+from api.goals import router as goals_router
+from api.diary import router as diary_router
+from api.analytics import router as analytics_router
+from api.health import router as health_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application startup and shutdown"""
-    print("🚀 Starting SoulSense AI Backend...")
+    """Application startup and shutdown events"""
+    print("Starting SoulSense AI Backend...")
     
-    # Initialize database
-    await init_database()
-    print("✅ Database initialized")
+    # Initialize core services
+    database = Database()
+    await database.initialize()
+    
+    storage = Storage(database)
+    emotion_engine = EmotionEngine()
+    claude_client = ClaudeClient()
+    persona_manager = PersonaManager(storage, claude_client, emotion_engine)
+    
+    # Initialize personas
+    await persona_manager.initialize_personas()
+    print("✓ Personas already exist")
+    
+    # Ensure database tables exist
+    await database.create_tables()
+    print("✓ Database tables created")
+    
+    # Store services in app state
+    app.state.database = database
+    app.state.storage = storage
+    app.state.emotion_engine = emotion_engine
+    app.state.claude_client = claude_client
+    app.state.persona_manager = persona_manager
+    
+    print("✓ Core services initialized")
     
     yield
     
-    print("🛑 Shutting down SoulSense AI Backend...")
+    # Cleanup
+    await database.close()
 
 
-# Create FastAPI app
+# Initialize FastAPI app
 app = FastAPI(
-    title="SoulSense AI",
-    description="AI-powered mental wellness platform with therapeutic personas",
+    title="SoulSense AI Backend",
+    description="AI-powered mental wellness platform backend",
     version="2.0.0",
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5000", "https://*.replit.app"],
+    allow_origins=["*"],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# API Routes
-app.include_router(chat.router, prefix="/api", tags=["chat"])
-app.include_router(user.router, prefix="/api", tags=["user"])
-app.include_router(goals.router, prefix="/api", tags=["goals"])
-app.include_router(diary.router, prefix="/api", tags=["diary"])
-app.include_router(sessions.router, prefix="/api", tags=["sessions"])
-app.include_router(personas.router, prefix="/api", tags=["personas"])
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log API requests with duration and response info"""
+    start_time = time.time()
+    
+    response = await call_next(request)
+    
+    duration = int((time.time() - start_time) * 1000)
+    
+    if request.url.path.startswith("/api"):
+        log_line = f"{request.method} {request.url.path} {response.status_code} in {duration}ms"
+        
+        # Add response info for API calls
+        if hasattr(response, '_content'):
+            try:
+                content_preview = str(response._content)[:60]
+                if len(content_preview) == 60:
+                    content_preview += "..."
+                log_line += f" :: {content_preview}"
+            except:
+                pass
+        
+        print(log_line)
+    
+    return response
 
 
-@app.get("/api/health", response_model=HealthResponse)
-async def health():
-    """Health check endpoint"""
-    return HealthResponse(
-        status="healthy",
-        message="SoulSense AI Backend is running",
-        version="2.0.0"
+# Include API routers
+app.include_router(personas_router, prefix="/api", tags=["personas"])
+app.include_router(chat_router, prefix="/api", tags=["chat"])
+app.include_router(profile_router, prefix="/api", tags=["profile"])
+app.include_router(goals_router, prefix="/api", tags=["goals"])
+app.include_router(diary_router, prefix="/api", tags=["diary"])
+app.include_router(analytics_router, prefix="/api", tags=["analytics"])
+app.include_router(health_router, tags=["health"])
+
+
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint - serves React app in production"""
+    return {"message": "SoulSense AI Backend", "status": "running", "version": "2.0.0"}
+
+
+# Serve static files in production
+if os.getenv("NODE_ENV") != "development":
+    # Check if static files exist before mounting
+    static_dir = "../client/dist"
+    if os.path.exists(static_dir):
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
+
+# Global error handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler for unhandled errors"""
+    print(f"Unhandled error: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Internal server error", "detail": str(exc)}
     )
 
 
-# Serve React frontend
-if os.path.exists("../client/dist"):
-    app.mount("/", StaticFiles(directory="../client/dist", html=True), name="static")
-    
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        """Serve React app for all non-API routes"""
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="API endpoint not found")
-        
-        file_path = f"../client/dist/{full_path}"
-        if os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
-        
-        # Return index.html for React Router
-        return FileResponse("../client/dist/index.html")
-
-
 if __name__ == "__main__":
-    import uvicorn
+    # Run server directly when executed
+    port = int(os.getenv("PORT", 5000))
+    
     uvicorn.run(
-        "main:app",
+        app,
         host="0.0.0.0",
-        port=5000,
-        reload=True,
+        port=port,
+        reload=False,
         log_level="info"
     )

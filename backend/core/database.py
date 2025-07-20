@@ -14,10 +14,6 @@ class Database:
     """Async database manager for SoulSense AI"""
     
     def __init__(self, db_path: str = "soulsense.db"):
-        # Ensure the database directory exists
-        db_dir = os.path.dirname(db_path) if os.path.dirname(db_path) else "."
-        os.makedirs(db_dir, exist_ok=True)
-        
         self.db_path = db_path
         self._connection: Optional[aiosqlite.Connection] = None
     
