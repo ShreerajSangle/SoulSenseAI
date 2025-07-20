@@ -31,9 +31,9 @@ class PersonaManager:
             {
                 "id": "maya",
                 "name": "Maya",
-                "role": "Spiritual Wellness Guide",
-                "specialty": "Yogic Philosophy, Breathwork & Sacred Healing",
-                "description": "A serene, spiritually wise guide who helps you reconnect with breath, body, and inner peace. Maya offers yogic wisdom, chakra healing, breathwork techniques, and gentle spiritual mentorship like a yogini or monk.",
+                "role": "Mindfulness Expert",
+                "specialty": "Meditation, Breathwork & Spiritual Wellness",
+                "description": "A serene spiritual guide who brings ancient wisdom to modern challenges. Maya offers mindfulness practices, breathing techniques, and gentle spiritual support.",
                 "avatar_url": "/api/placeholder/150/150?text=🧘‍♀️",
                 "color": "#059669"
             },
