@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// import { setupAuth, isAuthenticated } from "./replitAuth";
 import { claudeConversationSystem } from "./claude_conversation_system";
 import { naturalConversationSystem } from "./natural_conversation_system";
 import { supabaseSync } from "./supabase-sync";
@@ -36,7 +36,7 @@ const createSessionSummaryRequestSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  // await setupAuth(app);
 
   // Add dedicated persona routes for modular architecture
   app.use("/api", personaRoutes);

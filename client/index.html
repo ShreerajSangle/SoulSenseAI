@@ -1,46 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" style="font-family: 'Nunito', system-ui, sans-serif;">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    
-    <!-- Therapeutic Typography System - SoulSense -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rosarivo:ital@0;1&family=Nunito:wght@300;400;600;700&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <title>SoulSense - Your Digital Emotional Companion</title>
-    <style>
-      /* Base therapeutic typography */
-      body, * {
-        font-family: 'Nunito', system-ui, sans-serif !important;
-        line-height: 1.6 !important;
-      }
-      
-      /* Elegant headings with Rosarivo */
-      h1, h2, h3, h4, h5, h6, .font-heading {
-        font-family: 'Rosarivo', Georgia, serif !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.01em !important;
-      }
-      
-      /* Friendly microcopy with Quicksand */
-      .font-accent, .font-microcopy {
-        font-family: 'Quicksand', system-ui, sans-serif !important;
-        font-weight: 500 !important;
-      }
-      
-      /* Calming therapeutic background with light lavender */
-      body {
-        background-color: #e8e4f3 !important;
-        color: #2d3748 !important;
-      }
-    </style>
-  </head>
-  <body style="font-family: 'Nunito', system-ui, sans-serif;">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
-    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#673ab7" />
+  <meta name="description" content="SoulSense AI - A compassionate AI-powered mental wellness platform with personalized therapeutic support through four specialized personas." />
+  <meta name="keywords" content="mental health, AI therapy, wellness, meditation, breathing exercises, emotional support, therapy chatbot" />
+  <meta name="author" content="Shreeraj Sangle" />
+  
+  <!-- Open Graph tags for social media -->
+  <meta property="og:title" content="SoulSense AI - Your Digital Emotional Companion" />
+  <meta property="og:description" content="Experience personalized, empathetic AI therapy with four specialized personas designed to support your mental wellness journey." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://soulsense.ai" />
+  <meta property="og:image" content="/og-image.jpg" />
+  
+  <!-- Twitter Card tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SoulSense AI - Your Digital Emotional Companion" />
+  <meta name="twitter:description" content="Experience personalized, empathetic AI therapy with four specialized personas designed to support your mental wellness journey." />
+  <meta name="twitter:image" content="/twitter-image.jpg" />
+  
+  <!-- Preconnect to Google Fonts for better performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://soulsense.ai" />
+  
+  <!-- Structured data for search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SoulSense AI",
+    "description": "AI-powered mental wellness platform with personalized therapeutic support",
+    "url": "https://soulsense.ai",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Shreeraj Sangle"
+    }
+  }
+  </script>
+  
+  <title>SoulSense AI - Your Digital Emotional Companion</title>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
 </html>
