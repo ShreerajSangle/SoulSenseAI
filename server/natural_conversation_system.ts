@@ -202,7 +202,7 @@ class NaturalConversationSystem extends EventEmitter {
     if (lowerMessage.includes('sleep') || lowerMessage.includes('tired')) topics.push('sleep');
     if (lowerMessage.includes('goal') || lowerMessage.includes('improve')) topics.push('goals');
     
-    context.lastTopics = [...new Set([...context.lastTopics, ...topics])].slice(-5);
+    context.lastTopics = Array.from(new Set([...context.lastTopics, ...topics])).slice(-5);
 
     // Track goals mentioned
     if (lowerMessage.includes('want to') || lowerMessage.includes('goal') || lowerMessage.includes('improve')) {
@@ -336,16 +336,16 @@ class NaturalConversationSystem extends EventEmitter {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://soulsense.replit.app',
-          'X-Title': 'SoulSense'
+          'X-Title': 'SoulSense AI'
         },
         body: JSON.stringify({
-          model: 'mistralai/mixtral-8x7b-instruct',
+          model: 'mistralai/mistral-7b-instruct',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt }
           ],
           max_tokens: 400,
-          temperature: 0.75,
+          temperature: 0.8,
           stream: false
         })
       });

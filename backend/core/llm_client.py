@@ -11,6 +11,14 @@ from models.schemas import PersonaConfig
 import os
 from datetime import datetime
 
+# Add this block to load .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Please install python-dotenv: pip install python-dotenv")
+    import sys; sys.exit(1)
+
 class LLMClient:
     """Client for interacting with various LLM models through OpenRouter API"""
     

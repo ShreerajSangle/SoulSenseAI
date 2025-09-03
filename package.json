@@ -5,7 +5,7 @@
   "description": "",
   "main": "postcss.config.js",
   "scripts": {
-    "dev": "concurrently \"vite\" \"cross-env NODE_ENV=development node -r dotenv/config $(which tsx) server/index.ts\"",
+    "dev": "concurrently \"vite\" \"cross-env NODE_ENV=development node -r dotenv/config $(which tsx) server/index.ts\" \"python3 start_python_backend.py\"",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
@@ -95,6 +95,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.1.11",
     "@types/connect-pg-simple": "^7.0.3",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.23",
     "@types/express-session": "^1.18.2",
     "@types/node": "^20.19.9",

@@ -10,6 +10,14 @@ import asyncio
 import uvicorn
 from pathlib import Path
 
+# Add this block to load .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Please install python-dotenv: pip install python-dotenv")
+    sys.exit(1)
+
 # Add the backend directory to Python path
 backend_dir = Path(__file__).parent / "backend"
 sys.path.insert(0, str(backend_dir))

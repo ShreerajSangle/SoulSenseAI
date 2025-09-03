@@ -13,6 +13,14 @@ from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 import uuid
 
+# Add this block to load .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Please install python-dotenv: pip install python-dotenv")
+    import sys; sys.exit(1)
+
 @dataclass
 class UserProfile:
     """User profile data structure"""

@@ -1,4 +1,12 @@
 import os
+# Add this block to load .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Please install python-dotenv: pip install python-dotenv")
+    import sys; sys.exit(1)
+
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Request, Depends

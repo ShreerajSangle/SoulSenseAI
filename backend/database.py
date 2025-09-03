@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 import asyncio
 from typing import AsyncGenerator, Optional
 from contextlib import asynccontextmanager
